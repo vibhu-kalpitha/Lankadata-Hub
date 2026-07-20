@@ -35,7 +35,7 @@ export const DatasetDetail: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-6 py-10 w-full space-y-6 bg-lanka-bg grid-bg">
+      <div className="max-w-7xl mx-auto px-6 py-10 w-full space-y-6 bg-lanka-bg">
         <ChartSkeleton />
         <TableSkeleton />
       </div>
@@ -44,39 +44,56 @@ export const DatasetDetail: React.FC = () => {
 
   if (!dataset) {
     return (
-      <div className="max-w-7xl mx-auto px-6 py-20 text-center space-y-4 bg-lanka-bg grid-bg">
-        <h2 className="text-xl font-bold text-white">Dataset Not Found</h2>
+      <div className="max-w-7xl mx-auto px-6 py-20 text-center space-y-4 bg-lanka-bg">
+        <Database size={48} className="text-white/10 mx-auto" />
+        <h2 className="text-xl font-black text-white">Dataset Not Found</h2>
         <p className="text-xs text-lanka-muted">The requested dataset does not exist or has been archived.</p>
-        <Link to="/datasets" className="inline-block bg-lanka-blue text-white text-xs font-semibold px-4 py-2 rounded-lg">
-          Back to Dataset Explorer
+        <Link to="/datasets" className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 text-white text-xs font-bold px-6 py-3 rounded-xl">
+          Back to Datasets
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 bg-lanka-bg py-10 px-6 max-w-7xl mx-auto w-full grid-bg">
-      
-      {/* Header Badges */}
-      <div className="mb-6 flex flex-wrap items-center gap-3">
-        <span className="text-[10px] font-bold bg-lanka-blue-glow text-lanka-blue-light border border-lanka-blue/30 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-          {dataset.category} & GROWTH
-        </span>
-        <div className="flex items-center gap-1.5 text-[9px] font-bold text-lanka-teal">
-          <span className="w-1.5 h-1.5 rounded-full bg-lanka-teal animate-ping" />
-          <span>Live Updates Enabled</span>
+    <div className="flex-1 bg-lanka-bg min-h-screen">
+
+      {/* ── Gradient Page Header ─────────────────────── */}
+      <div className="relative overflow-hidden border-b border-white/8 py-12 px-6">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#030b16] to-[#040c1a]" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px] pointer-events-none" />
+        <div className="max-w-7xl mx-auto relative">
+          <div className="flex flex-wrap items-center gap-2 mb-3 text-[11px] text-lanka-muted">
+            <Link to="/" className="hover:text-white transition-colors">Home</Link>
+            <ChevronRight size={12} />
+            <Link to="/datasets" className="hover:text-white transition-colors">Datasets</Link>
+            <ChevronRight size={12} />
+            <span className="text-white">{dataset.title}</span>
+          </div>
+          <div className="flex flex-wrap items-center gap-3 mb-4">
+            <span className="text-[10px] font-black bg-blue-500/20 text-blue-300 border border-blue-500/30 px-3 py-1 rounded-full uppercase tracking-widest">
+              {dataset.category}
+            </span>
+            {dataset.live && (
+              <div className="flex items-center gap-1.5 text-[10px] font-black text-teal-400">
+                <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-ping" />
+                Live Updates
+              </div>
+            )}
+          </div>
+          <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-tight mb-4">
+            {dataset.title}
+          </h1>
+          <p className="text-sm text-lanka-muted max-w-3xl leading-relaxed">{dataset.fullDescription}</p>
+          <div className="flex items-center gap-6 mt-6 text-xs text-lanka-muted">
+            <span className="flex items-center gap-1.5"><Eye size={14} className="text-cyan-400" /><strong className="text-white">{dataset.views.toLocaleString()}</strong> views</span>
+            <span className="flex items-center gap-1.5"><Download size={14} className="text-teal-400" /><strong className="text-white">{dataset.downloads.toLocaleString()}</strong> downloads</span>
+            <span className="flex items-center gap-1.5"><Calendar size={14} className="text-lanka-muted" />{dataset.coverage}</span>
+          </div>
         </div>
       </div>
 
-      {/* Main Title & Description */}
-      <div className="mb-8 max-w-4xl">
-        <h1 className="text-2xl md:text-4xl font-extrabold text-white tracking-tight leading-tight m-0">
-          {dataset.title}
-        </h1>
-        <p className="text-xs md:text-sm text-lanka-muted mt-3 leading-relaxed">
-          {dataset.fullDescription}
-        </p>
-      </div>
+      <div className="max-w-7xl mx-auto px-6 py-10">
 
       {/* Left/Right Columns Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -88,9 +105,9 @@ export const DatasetDetail: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
             {/* Chart 1: Bar chart */}
-            <div className="bg-lanka-card border border-lanka-border rounded-xl p-5 flex flex-col h-72">
-              <span className="text-[10px] font-bold text-lanka-darkText uppercase tracking-wider flex items-center gap-1.5 mb-4">
-                <BarChart3 size={12} className="text-lanka-cyan" />
+            <div className="bg-[#050d1a] border border-white/10 rounded-2xl p-5 flex flex-col h-72">
+              <span className="text-[10px] font-bold text-lanka-darkText uppercase tracking-widest flex items-center gap-1.5 mb-4">
+                <BarChart3 size={12} className="text-cyan-400" />
                 Quarterly Distribution
               </span>
               <div className="flex-1 w-full min-h-0">
@@ -116,13 +133,13 @@ export const DatasetDetail: React.FC = () => {
             </div>
 
             {/* Chart 2: Line chart */}
-            <div className="bg-lanka-card border border-lanka-border rounded-xl p-5 flex flex-col h-72">
+            <div className="bg-[#050d1a] border border-white/10 rounded-2xl p-5 flex flex-col h-72">
               <div className="flex justify-between items-center mb-4">
-                <span className="text-[10px] font-bold text-lanka-darkText uppercase tracking-wider flex items-center gap-1.5">
-                  <LineIcon size={12} className="text-lanka-teal" />
+                <span className="text-[10px] font-bold text-lanka-darkText uppercase tracking-widest flex items-center gap-1.5">
+                  <LineIcon size={12} className="text-teal-400" />
                   5-Year Growth Trend
                 </span>
-                <span className="text-[10px] font-bold text-lanka-teal bg-lanka-teal-glow border border-lanka-teal/20 px-2 py-0.5 rounded-full">
+                <span className="text-[10px] font-black text-teal-400 bg-teal-500/10 border border-teal-500/25 px-2 py-0.5 rounded-full">
                   +12.4% YoY
                 </span>
               </div>
@@ -141,24 +158,22 @@ export const DatasetDetail: React.FC = () => {
           </div>
 
           {/* Views / Downloads counters */}
-          <div className="flex items-center gap-6 bg-[#091122]/50 border border-lanka-border rounded-xl px-5 py-3 text-xs">
+          <div className="flex items-center gap-6 bg-white/[0.03] border border-white/10 rounded-2xl px-5 py-4 text-xs">
             <span className="flex items-center gap-1.5 text-lanka-muted">
-              <Eye size={14} className="text-lanka-cyan" />
+              <Eye size={14} className="text-cyan-400" />
               <strong className="text-white font-bold">{dataset.views.toLocaleString()}</strong> VIEWS
             </span>
             <span className="flex items-center gap-1.5 text-lanka-muted">
-              <Download size={14} className="text-lanka-teal" />
+              <Download size={14} className="text-teal-400" />
               <strong className="text-white font-bold">{dataset.downloads.toLocaleString()}</strong> DOWNLOADS
             </span>
           </div>
 
           {/* Data Preview Table */}
-          <div className="bg-lanka-card border border-lanka-border rounded-xl overflow-hidden">
-            <div className="p-4 border-b border-lanka-border flex justify-between items-center bg-lanka-bg-light/35">
-              <span className="text-xs font-bold text-white">Data Preview</span>
-              <button className="text-[10px] font-bold text-lanka-cyan hover:underline uppercase flex items-center gap-1">
-                <span>View Fullscreen</span>
-              </button>
+          <div className="bg-[#050d1a] border border-white/10 rounded-2xl overflow-hidden">
+            <div className="p-4 border-b border-white/10 flex justify-between items-center bg-white/[0.02]">
+              <span className="text-xs font-black text-white">Data Preview</span>
+              <button className="text-[10px] font-bold text-cyan-400 hover:underline uppercase">View Fullscreen</button>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
@@ -211,11 +226,11 @@ export const DatasetDetail: React.FC = () => {
         </div>
 
         {/* Right Column: Downloads, Metadata, and Relationships */}
-        <div className="space-y-6">
+        <div className="space-y-5">
           
           {/* Download Resources Card */}
-          <div className="bg-lanka-card border border-lanka-border rounded-xl p-5 space-y-4">
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider">Download Resource</h3>
+          <div className="bg-[#050d1a] border border-white/10 rounded-2xl p-5 space-y-4">
+            <h3 className="text-xs font-black text-white uppercase tracking-widest">Download Resource</h3>
             
             {/* CSV File download link */}
             <div 
@@ -256,8 +271,8 @@ export const DatasetDetail: React.FC = () => {
           </div>
 
           {/* Similar Datasets Card */}
-          <div className="bg-lanka-card border border-lanka-border rounded-xl p-5 space-y-4">
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider">Similar Datasets</h3>
+          <div className="bg-[#050d1a] border border-white/10 rounded-2xl p-5 space-y-4">
+            <h3 className="text-xs font-black text-white uppercase tracking-widest">Similar Datasets</h3>
             <div className="divide-y divide-lanka-border/50">
               {dataset.similarDatasets.map((d) => (
                 <Link 
@@ -280,8 +295,8 @@ export const DatasetDetail: React.FC = () => {
           </div>
 
           {/* Dataset Metadata Card */}
-          <div className="bg-lanka-card border border-lanka-border rounded-xl p-5 space-y-4">
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider">Dataset Metadata</h3>
+          <div className="bg-[#050d1a] border border-white/10 rounded-2xl p-5 space-y-4">
+            <h3 className="text-xs font-black text-white uppercase tracking-widest">Dataset Metadata</h3>
             
             <div className="space-y-3.5 text-xs">
               <div>
@@ -322,9 +337,8 @@ export const DatasetDetail: React.FC = () => {
           </div>
 
         </div>
-
       </div>
-
+      </div>
     </div>
   );
 };
