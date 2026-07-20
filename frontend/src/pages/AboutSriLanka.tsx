@@ -1,6 +1,6 @@
 import React from 'react';
 import { SriLankaMap } from '../components/SriLankaMap';
-import { Map, Landmark, Shield } from 'lucide-react';
+import { Map, Shield } from 'lucide-react';
 import { srilankaService } from '../services/srilankaService';
 
 export const AboutSriLanka: React.FC = () => {
@@ -40,7 +40,7 @@ export const AboutSriLanka: React.FC = () => {
       {/* Key Facts Grid */}
       <section className="space-y-6">
         <h2 className="text-lg font-bold text-white flex items-center gap-2">
-          <Landmarks className="text-lanka-cyan" size={18} />
+          <Map className="text-lanka-cyan" size={18} />
           Key Geographic & Demographic Facts
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

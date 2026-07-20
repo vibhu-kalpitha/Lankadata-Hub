@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { FileText, Eye, Download, Database, ChevronRight, LayoutGrid, Calendar, Clock, BarChart3, LineChart as LineIcon } from 'lucide-react';
+import { FileText, Eye, Download, Database, Key, ChevronRight, LayoutGrid, Calendar, Clock, BarChart3, LineChart as LineIcon } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LineChart, Line, Tooltip } from 'recharts';
 
 import { datasetService } from '../services/datasetService';

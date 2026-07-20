@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { BookOpen, Key, AlertTriangle, HelpCircle, Terminal, Layers } from 'lucide-react';
 
 export const Documentation: React.FC = () => {
