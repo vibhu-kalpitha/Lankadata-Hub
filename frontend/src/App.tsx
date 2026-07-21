@@ -12,6 +12,8 @@ const DashboardDetail = lazy(() => import('./pages/DashboardDetail'));
 const APIMarketplace = lazy(() => import('./pages/APIMarketplace'));
 const APIDetail = lazy(() => import('./pages/APIDetail'));
 const Documentation = lazy(() => import('./pages/Documentation'));
+const Login = lazy(() => import('./pages/Login'));
+const Signup = lazy(() => import('./pages/Signup'));
 const Categories = lazy(() => import('./pages/Categories'));
 const CategoryDetail = lazy(() => import('./pages/CategoryDetail'));
 const AboutSriLanka = lazy(() => import('./pages/AboutSriLanka'));
@@ -53,6 +55,8 @@ export const App: React.FC = () => {
               <Route path="/about-srilanka" element={<AboutSriLanka />} />
               <Route path="/about" element={<AboutHub />} />
               <Route path="/contact" element={<Contact />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
               
               {/* Fallback routes */}
               <Route path="/404" element={<NotFound />} />

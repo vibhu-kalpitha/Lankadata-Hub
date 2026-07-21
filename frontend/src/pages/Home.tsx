@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
-  Search, ChevronLeft, ChevronRight, Activity, ShieldCheck,
-  Zap, Database, ArrowRight, TrendingUp, Globe, Users,
-  BarChart2, CloudRain, Layers, Cpu
+  ChevronLeft, ChevronRight, Activity,
+  Zap, Database, ArrowRight, TrendingUp, Globe,
+  BarChart2, CloudRain, Cpu, Terminal
 } from 'lucide-react';
 import {
   PieChart, Pie, Cell, BarChart, Bar, XAxis,
@@ -36,11 +36,6 @@ function useCountUp(target: number, duration = 1800) {
   return count;
 }
 
-/* ─── Floating orb decoration ────────────────────────────────────────────── */
-const Orb = ({ className }: { className: string }) => (
-  <div className={`absolute rounded-full blur-[120px] pointer-events-none ${className}`} />
-);
-
 export const Home: React.FC = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
@@ -49,7 +44,6 @@ export const Home: React.FC = () => {
   const [latestDatasets, setLatestDatasets] = useState<Dataset[]>([]);
   const [trendingDashboards, setTrendingDashboards] = useState<DashboardDetail[]>([]);
   const [currentDashboardIdx, setCurrentDashboardIdx] = useState(0);
-  const [heroVisible, setHeroVisible] = useState(false);
 
   const datasetsCount  = useCountUp(2480);
   const dashboardCount = useCountUp(184);
@@ -57,7 +51,6 @@ export const Home: React.FC = () => {
   const updateCount    = useCountUp(99);
 
   useEffect(() => {
-    setTimeout(() => setHeroVisible(true), 100);
     setTodaysStats(srilankaService.getTodaysStats());
     setDiscoverStats(srilankaService.getDiscoverStats());
     datasetService.getLatestDatasets(3).then(d => setLatestDatasets(d));
@@ -111,195 +104,174 @@ export const Home: React.FC = () => {
     { icon: Activity,   label: '% Uptime',          value: updateCount,    suffix: '%', color: 'text-lanka-teal'       },
   ];
 
-  const categoryBadges = [
-    { icon: TrendingUp,  label: 'Economy',      color: 'from-blue-600/20 to-blue-900/20 border-blue-500/30',    text: 'text-blue-300' },
-    { icon: Activity,    label: 'Health',       color: 'from-rose-600/20 to-rose-900/20 border-rose-500/30',    text: 'text-rose-300' },
-    { icon: CloudRain,   label: 'Weather',      color: 'from-sky-600/20 to-sky-900/20 border-sky-500/30',       text: 'text-sky-300'  },
-    { icon: Layers,      label: 'Agriculture',  color: 'from-green-600/20 to-green-900/20 border-green-500/30', text: 'text-green-300'},
-    { icon: Globe,       label: 'Tourism',      color: 'from-amber-600/20 to-amber-900/20 border-amber-500/30', text: 'text-amber-300'},
-    { icon: Users,       label: 'Population',   color: 'from-violet-600/20 to-violet-900/20 border-violet-500/30',text:'text-violet-300'},
-  ];
-
   return (
     <div className="flex-1 bg-lanka-bg grid-bg overflow-x-hidden">
 
       {/* ══════════════════════════════════════════════════
-          HERO SECTION
+          HERO HEADER SECTION (Clean Suitable Dark Design)
       ══════════════════════════════════════════════════ */}
-      <section className="relative min-h-[88vh] flex flex-col items-center justify-center px-6 pt-8 overflow-hidden">
-        {/* Background orbs */}
-        <Orb className="w-[600px] h-[600px] bg-blue-600/15 top-[-150px] left-[-200px]" />
-        <Orb className="w-[500px] h-[500px] bg-cyan-500/10  top-[100px]  right-[-150px]" />
-        <Orb className="w-[300px] h-[300px] bg-purple-500/10 bottom-[80px] left-[30%]" />
+      <section className="relative min-h-[440px] md:min-h-[480px] flex flex-col items-center justify-center px-6 pt-10 pb-16 overflow-hidden">
+        {/* Subtle, Clean Design Background */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden select-none">
+          {/* Deep dark gradient backdrop */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#020712] via-[#051328] to-[#040d1a]" />
+          
+          {/* Subtle Ambient Glows */}
+          <div className="absolute top-1/3 left-1/4 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[140px]" />
+          <div className="absolute bottom-1/3 right-1/4 w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[140px]" />
 
-        {/* Animated grid overlay */}
-        <div
-          className="absolute inset-0 pointer-events-none opacity-[0.04]"
-          style={{
-            backgroundImage: 'linear-gradient(#38bdf8 1px,transparent 1px),linear-gradient(90deg,#38bdf8 1px,transparent 1px)',
-            backgroundSize: '60px 60px',
-          }}
-        />
+          {/* Minimalist Grid Pattern */}
+          <div className="absolute inset-0 grid-bg opacity-30" />
 
-        {/* Live indicator – small blinking word only */}
-        <div className={`flex items-center gap-2 mb-6 transition-all duration-700 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-400" />
-          </span>
-          <span className="text-[11px] font-black text-teal-400 tracking-widest uppercase">Live</span>
+          {/* Seamless gradient fade at bottom */}
+          <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#040d1a] via-[#040d1a]/85 to-transparent pointer-events-none z-10" />
         </div>
 
-        {/* Main heading */}
-        <div className={`text-center max-w-4xl transition-all duration-700 delay-100 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
-          <h1 className="text-5xl md:text-7xl font-black tracking-tight text-white leading-[1.08] mb-6">
-            Sri Lanka's
-            <span className="block bg-gradient-to-r from-lanka-blue-light via-lanka-cyan to-teal-400 bg-clip-text text-transparent">
-              Open Data Hub
-            </span>
-          </h1>
-          <p className="text-base md:text-lg text-lanka-muted max-w-2xl mx-auto leading-relaxed mb-10">
-            Trusted national datasets, real-time dashboards, and REST APIs —<br className="hidden md:block" />
-            powering research, policy, and innovation across the island.
-          </p>
-        </div>
+        {/* Content container */}
+        <div className="relative z-20 max-w-7xl mx-auto w-full px-4">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center mb-10">
+            {/* LEFT SIDE: Left-aligned hero title & command search */}
+            <div className="lg:col-span-6 text-left space-y-4">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-cyan-500/10 border border-cyan-500/30 rounded-full text-[11px] font-black text-cyan-400 tracking-[0.2em] uppercase select-none">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                NATIONAL INTELLIGENCE CORE
+              </div>
 
-        {/* Search bar */}
-        <div className={`w-full max-w-2xl transition-all duration-700 delay-200 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <form onSubmit={handleSearchSubmit} className="relative group">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-lanka-blue via-lanka-cyan to-teal-500 rounded-2xl opacity-40 group-hover:opacity-70 blur transition-opacity duration-300" />
-            <div className="relative flex items-center bg-[#040d1a] rounded-2xl border border-white/10">
-              <Search size={18} className="absolute left-5 text-lanka-muted" />
-              <input
-                type="text"
-                placeholder="Search datasets, indicators, regions..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="w-full bg-transparent py-4 pl-12 pr-36 text-sm text-white placeholder-lanka-darkText focus:outline-none"
-              />
-              <button
-                type="submit"
-                className="absolute right-2 bg-gradient-to-r from-lanka-blue to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white text-xs font-bold px-6 py-2.5 rounded-xl transition-all shadow-blue-glow"
-              >
-                Search
-              </button>
+              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-white tracking-tight leading-[1.05] drop-shadow-[0_0_35px_rgba(255,255,255,0.35)]">
+                LankaData<br />
+                <span className="bg-gradient-to-r from-white via-slate-100 to-cyan-300 bg-clip-text text-transparent">Hub</span>
+              </h1>
+
+              <p className="text-sm sm:text-base text-lanka-muted max-w-lg leading-relaxed">
+                Sri Lanka's central platform for real-time national intelligence & open data core.
+              </p>
+
+              {/* Terminal command search bar */}
+              <div className="w-full max-w-lg pt-2">
+                <form onSubmit={handleSearchSubmit} className="relative group">
+                  <div className="relative flex items-center bg-[#07182b]/95 hover:bg-[#07182b] border border-[#38bdf8]/40 hover:border-[#38bdf8]/80 rounded-2xl p-2 pl-4 shadow-[0_0_30px_rgba(3,15,30,0.8)] backdrop-blur-md transition-all">
+                    <span className="text-cyan-400 text-xs mr-2 select-none">✦</span>
+                    <Terminal size={17} className="text-[#38bdf8] flex-shrink-0 mr-3" />
+                    <input
+                      type="text"
+                      placeholder="EXECUTE COMMAND_"
+                      value={searchQuery}
+                      onChange={e => setSearchQuery(e.target.value)}
+                      className="w-full bg-transparent text-xs sm:text-sm font-mono text-white placeholder-slate-500 tracking-wider focus:outline-none uppercase"
+                    />
+                    <button
+                      type="submit"
+                      className="bg-[#13304d] hover:bg-[#1a4066] border border-[#38bdf8]/40 text-[#38bdf8] hover:text-white font-extrabold text-xs tracking-wider px-5 py-2.5 rounded-xl transition-all uppercase shadow-[0_0_15px_rgba(56,189,248,0.2)]"
+                    >
+                      SEARCH
+                    </button>
+                  </div>
+                </form>
+
+                {/* Telemetry micro stats */}
+                <div className="flex items-center gap-6 mt-3 px-1 text-[10px] font-mono font-bold text-slate-400/80 tracking-widest uppercase select-none">
+                  <span>NODES: <span className="text-cyan-400">1,422</span></span>
+                  <span>LATENCY: <span className="text-teal-400">14MS</span></span>
+                  <span>STATUS: <span className="text-emerald-400">ONLINE</span></span>
+                </div>
+              </div>
             </div>
-          </form>
 
-          {/* Quick links */}
-          <div className="flex flex-wrap gap-2 justify-center mt-4">
-            {['GDP Growth', 'Dengue Stats', 'Fuel Prices', 'Population Census', 'Weather Data'].map(q => (
-              <button
-                key={q}
-                onClick={() => navigate(`/datasets?search=${encodeURIComponent(q)}`)}
-                className="text-[11px] text-lanka-muted hover:text-white border border-white/10 hover:border-white/25 bg-white/5 hover:bg-white/10 px-3 py-1 rounded-full transition-all"
-              >
-                {q}
-              </button>
+            {/* RIGHT SIDE: Edge-to-Edge 3D Sri Lanka Hologram Map Card */}
+            <div className="lg:col-span-6 relative">
+              <div className="relative rounded-3xl overflow-hidden border border-[#38bdf8]/35 shadow-[0_0_50px_rgba(56,189,248,0.25)] bg-[#040e1a] group w-full h-[320px] sm:h-[380px]">
+                <img
+                  src="/srilanka-subtle-cyan.png"
+                  alt="Sri Lanka National Intelligence Hologram Core"
+                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#040c18] via-transparent to-transparent opacity-70 pointer-events-none" />
+                <div className="absolute top-4 right-4 bg-[#07192e]/85 border border-[#38bdf8]/40 backdrop-blur-md px-3 py-1 rounded-full flex items-center gap-1.5 select-none z-10">
+                  <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+                  <span className="text-[10px] font-black text-cyan-300 tracking-wider uppercase">SRI LANKA CORE</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Platform stats counter row (Centered across bottom) */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 w-full max-w-4xl mx-auto">
+            {platformStats.map((s, i) => (
+              <div key={i} className="text-center group bg-[#071a2e]/60 border border-lanka-border hover:border-[#38bdf8]/30 rounded-2xl p-3 backdrop-blur-sm transition-all">
+                <div className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-white/5 border border-lanka-border group-hover:border-[#38bdf8]/30 mb-1.5 transition-colors">
+                  <s.icon size={16} className={s.color} />
+                </div>
+                <div className={`text-xl sm:text-2xl font-black ${s.color}`}>{s.value.toLocaleString()}{s.suffix}</div>
+                <div className="text-[10px] text-lanka-darkText uppercase tracking-wider mt-0.5 font-semibold">{s.label}</div>
+              </div>
             ))}
           </div>
         </div>
-
-        {/* Platform stats counter row */}
-        <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 mt-16 w-full max-w-3xl transition-all duration-700 delay-300 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-          {platformStats.map((s, i) => (
-            <div key={i} className="text-center group">
-              <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white/5 border border-white/10 group-hover:border-white/20 mb-2 transition-colors">
-                <s.icon size={16} className={s.color} />
-              </div>
-              <div className={`text-2xl font-black ${s.color}`}>{s.value.toLocaleString()}{s.suffix}</div>
-              <div className="text-[10px] text-lanka-darkText uppercase tracking-wider mt-0.5">{s.label}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Scroll hint */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-lanka-darkText text-[10px] animate-bounce">
-          <ChevronRight size={16} className="rotate-90" />
-        </div>
       </section>
 
       {/* ══════════════════════════════════════════════════
-          CATEGORY BADGES
+          TRENDING DASHBOARDS  (Compacted & Streamlined)
       ══════════════════════════════════════════════════ */}
-      <section className="max-w-7xl mx-auto px-6 py-6">
-        <div className="flex flex-wrap gap-3 justify-center">
-          {categoryBadges.map((c, i) => (
-            <Link
-              key={i}
-              to={`/categories/${c.label.toLowerCase()}`}
-              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r ${c.color} border text-[12px] font-semibold ${c.text} hover:scale-105 transition-all`}
-            >
-              <c.icon size={13} />
-              {c.label}
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════════════════
-          TRENDING DASHBOARDS  (with Sri Lanka Map)
-      ══════════════════════════════════════════════════ */}
-      <section className="max-w-7xl mx-auto px-6 py-10">
+      <section className="max-w-7xl mx-auto px-6 py-6 md:py-8">
         {/* Section header */}
-        <div className="flex justify-between items-end mb-8">
+        <div className="flex justify-between items-end mb-6">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="w-1 h-5 bg-gradient-to-b from-lanka-blue to-cyan-400 rounded-full" />
-              <h2 className="text-2xl font-black text-white">Trending Dashboards</h2>
+              <h2 className="text-xl sm:text-2xl font-black text-white">Trending Dashboards</h2>
             </div>
-            <p className="text-[12px] text-lanka-muted ml-3">
+            <p className="text-[11px] text-lanka-muted ml-3">
               Featured intelligence panels — updated every minute from verified national sources.
             </p>
           </div>
           <div className="flex gap-2">
-            <button onClick={prev} className="p-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-white transition-colors">
-              <ChevronLeft size={16} />
+            <button onClick={prev} className="p-1.5 rounded-xl border border-lanka-border bg-white/5 hover:bg-white/10 text-white transition-colors">
+              <ChevronLeft size={15} />
             </button>
-            <button onClick={next} className="p-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-white transition-colors">
-              <ChevronRight size={16} />
+            <button onClick={next} className="p-1.5 rounded-xl border border-lanka-border bg-white/5 hover:bg-white/10 text-white transition-colors">
+              <ChevronRight size={15} />
             </button>
           </div>
         </div>
 
         {activeDb ? (
-          <div className="relative rounded-3xl overflow-hidden border border-white/10">
+          <div className="relative rounded-3xl overflow-hidden border border-lanka-border">
             {/* Gradient background */}
             <div className="absolute inset-0 bg-gradient-to-br from-[#050f20] via-[#071428] to-[#050e1c]" />
-            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[100px] pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-cyan-500/8 rounded-full blur-[80px] pointer-events-none" />
+            <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-blue-600/10 rounded-full blur-[100px] pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-[250px] h-[250px] bg-cyan-500/8 rounded-full blur-[80px] pointer-events-none" />
 
-            <div className="relative p-8 grid grid-cols-1 xl:grid-cols-12 gap-8">
+            <div className="relative p-5 md:p-6 grid grid-cols-1 xl:grid-cols-12 gap-6 items-stretch">
 
               {/* ── LEFT: Info panel ──────────────────────────────── */}
-              <div className="xl:col-span-3 flex flex-col justify-between space-y-6">
+              <div className="xl:col-span-3 flex flex-col justify-between space-y-4">
                 <div>
-                  <div className="flex items-center gap-2 mb-3">
+                  <div className="flex items-center gap-2 mb-2">
                     <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-                    <span className="text-[10px] font-black text-red-400 tracking-widest uppercase">Live Data Stream</span>
+                    <span className="text-[9px] font-black text-red-400 tracking-widest uppercase">Live Data Stream</span>
                   </div>
 
                   {/* Dashboard pagination dots */}
-                  <div className="flex gap-1.5 mb-4">
+                  <div className="flex gap-1.5 mb-3">
                     {trendingDashboards.map((_, i) => (
                       <button
                         key={i}
                         onClick={() => setCurrentDashboardIdx(i)}
-                        className={`rounded-full transition-all ${i === currentDashboardIdx ? 'w-6 h-2 bg-lanka-cyan' : 'w-2 h-2 bg-white/20'}`}
+                        className={`rounded-full transition-all ${i === currentDashboardIdx ? 'w-5 h-1.5 bg-lanka-cyan' : 'w-1.5 h-1.5 bg-white/20'}`}
                       />
                     ))}
                   </div>
 
-                  <h3 className="text-xl font-black text-white leading-tight mb-2">{activeDb.title}</h3>
-                  <p className="text-xs text-lanka-muted leading-relaxed">{activeDb.description}</p>
+                  <h3 className="text-lg font-black text-white leading-tight mb-1">{activeDb.title}</h3>
+                  <p className="text-[11px] text-lanka-muted leading-relaxed line-clamp-2">{activeDb.description}</p>
                 </div>
 
                 {/* Metrics mini grid */}
-                <div className="grid grid-cols-1 gap-2.5">
-                  {activeDb.metrics?.slice(0, 4).map((m: any, idx: number) => (
-                    <div key={idx} className="bg-white/5 border border-white/10 rounded-2xl p-3 flex items-center justify-between hover:bg-white/8 transition-colors">
+                <div className="grid grid-cols-1 gap-2">
+                  {activeDb.metrics?.slice(0, 3).map((m: any, idx: number) => (
+                    <div key={idx} className="bg-white/5 border border-lanka-border rounded-xl p-2.5 flex items-center justify-between hover:bg-white/8 transition-colors">
                       <span className="text-[10px] font-semibold text-lanka-muted">{m.title}</span>
-                      <span className={`text-sm font-black ${
+                      <span className={`text-xs font-black ${
                         m.type === 'CASES' || m.type === 'ZONES' ? 'text-red-400' : 'text-lanka-teal'
                       }`}>{m.value}</span>
                     </div>
@@ -308,68 +280,68 @@ export const Home: React.FC = () => {
 
                 <Link
                   to={`/dashboards/${activeDb.id}`}
-                  className="flex items-center justify-center gap-2 bg-gradient-to-r from-lanka-blue to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white text-xs font-bold px-6 py-3 rounded-2xl shadow-blue-glow transition-all active:scale-95"
+                  className="flex items-center justify-center gap-2 bg-gradient-to-r from-lanka-blue to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white text-[11px] font-bold px-5 py-2.5 rounded-xl shadow-blue-glow transition-all active:scale-95"
                 >
-                  View Full Dashboard <ArrowRight size={13} />
+                  View Full Dashboard <ArrowRight size={12} />
                 </Link>
               </div>
 
               {/* ── CENTRE: Sri Lanka Map ─────────────────────────── */}
-              <div className="xl:col-span-4 flex flex-col">
-                <div className="flex items-center gap-2 mb-3">
-                  <Globe size={13} className="text-lanka-cyan" />
-                  <span className="text-[11px] font-bold text-lanka-darkText uppercase tracking-wider">Province Heatmap</span>
+              <div className="xl:col-span-4 flex flex-col justify-between">
+                <div className="flex items-center gap-2 mb-2">
+                  <Globe size={12} className="text-lanka-cyan" />
+                  <span className="text-[10px] font-bold text-lanka-darkText uppercase tracking-wider">Province Heatmap</span>
                 </div>
-                <div className="flex-1 bg-white/[0.03] border border-white/10 rounded-2xl overflow-hidden">
-                  <SriLankaMap />
+                <div className="flex-1 bg-white/[0.03] border border-lanka-border rounded-2xl overflow-hidden min-h-[220px]">
+                  <SriLankaMap compact />
                 </div>
               </div>
 
               {/* ── RIGHT: Charts ─────────────────────────────────── */}
-              <div className="xl:col-span-5 grid grid-rows-2 gap-4">
+              <div className="xl:col-span-5 grid grid-rows-2 gap-3">
 
                 {/* Pie chart card */}
-                <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-4 flex gap-4 items-center">
-                  <div className="w-36 h-36 relative flex-shrink-0">
+                <div className="bg-white/[0.03] border border-lanka-border rounded-2xl p-3 flex gap-3 items-center">
+                  <div className="w-28 h-28 relative flex-shrink-0">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
-                        <Pie data={denguePieData} cx="50%" cy="50%" innerRadius={44} outerRadius={62} paddingAngle={4} dataKey="value">
+                        <Pie data={denguePieData} cx="50%" cy="50%" innerRadius={34} outerRadius={48} paddingAngle={3} dataKey="value">
                           {denguePieData.map((e, i) => <Cell key={i} fill={e.color} />)}
                         </Pie>
                       </PieChart>
                     </ResponsiveContainer>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-sm font-black text-white">55%</span>
-                      <span className="text-[9px] text-lanka-muted">West</span>
+                      <span className="text-xs font-black text-white">55%</span>
+                      <span className="text-[8px] text-lanka-muted">West</span>
                     </div>
                   </div>
                   <div className="flex-1">
-                    <p className="text-[10px] font-bold text-lanka-darkText uppercase tracking-wider mb-3">Case Distribution</p>
+                    <p className="text-[9px] font-bold text-lanka-darkText uppercase tracking-wider mb-2">Case Distribution</p>
                     {denguePieData.map((d, i) => (
-                      <div key={i} className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: d.color }} />
-                          <span className="text-[11px] text-lanka-muted">{d.name}</span>
+                      <div key={i} className="flex items-center justify-between mb-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: d.color }} />
+                          <span className="text-[10px] text-lanka-muted">{d.name}</span>
                         </div>
-                        <span className="text-[11px] font-bold text-white">{d.value}%</span>
+                        <span className="text-[10px] font-bold text-white">{d.value}%</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 {/* Bar chart card */}
-                <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-4 flex flex-col">
-                  <p className="text-[10px] font-bold text-lanka-darkText uppercase tracking-wider mb-3">Weekly Case Trends</p>
-                  <div className="flex-1">
+                <div className="bg-white/[0.03] border border-lanka-border rounded-2xl p-3 flex flex-col">
+                  <p className="text-[9px] font-bold text-lanka-darkText uppercase tracking-wider mb-2">Weekly Case Trends</p>
+                  <div className="flex-1 min-h-[100px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={dengueBarData} barSize={16}>
-                        <XAxis dataKey="month" stroke="#475569" fontSize={9} tickLine={false} axisLine={false} />
+                      <BarChart data={dengueBarData} barSize={14}>
+                        <XAxis dataKey="month" stroke="#475569" fontSize={8} tickLine={false} axisLine={false} />
                         <Tooltip
-                          contentStyle={{ background: '#071428', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, fontSize: 11 }}
+                          contentStyle={{ background: '#071428', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 10 }}
                           labelStyle={{ color: '#94a3b8' }}
                           itemStyle={{ color: '#fff' }}
                         />
-                        <Bar dataKey="cases" radius={[4, 4, 0, 0]}>
+                        <Bar dataKey="cases" radius={[3, 3, 0, 0]}>
                           {dengueBarData.map((_e, i) => (
                             <Cell key={i} fill={i === dengueBarData.length - 1 ? '#f43f5e' : '#2563eb'} />
                           ))}
@@ -382,7 +354,7 @@ export const Home: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="text-center py-20 text-lanka-muted text-sm glass-panel rounded-3xl">
+          <div className="text-center py-12 text-lanka-muted text-xs glass-panel rounded-3xl">
             Loading trending dashboards...
           </div>
         )}
@@ -520,7 +492,7 @@ export const Home: React.FC = () => {
           GDP AREA CHART BANNER
       ══════════════════════════════════════════════════ */}
       <section className="max-w-7xl mx-auto px-6 py-6">
-        <div className="relative rounded-3xl overflow-hidden border border-white/10 bg-gradient-to-r from-[#050f20] to-[#060d1b] p-6">
+        <div className="relative rounded-3xl overflow-hidden border border-lanka-border bg-gradient-to-r from-[#050f20] to-[#060d1b] p-6">
           <div className="absolute right-0 top-0 w-80 h-full bg-blue-600/10 blur-[80px] pointer-events-none" />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
             <div>
@@ -543,7 +515,7 @@ export const Home: React.FC = () => {
                   </defs>
                   <XAxis dataKey="y" stroke="#475569" fontSize={10} tickLine={false} axisLine={false} />
                   <Tooltip
-                    contentStyle={{ background: '#071428', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, fontSize: 11 }}
+                    contentStyle={{ background: '#071428', border: '1px solid rgba(59,130,246,0.2)', borderRadius: 10, fontSize: 11 }}
                     formatter={(v: any) => [`${v}%`, 'GDP Growth']}
                   />
                   <Area type="monotone" dataKey="v" stroke="#0ea5e9" strokeWidth={2.5} fill="url(#gdpGrad)" dot={{ fill: '#0ea5e9', r: 3 }} />
@@ -569,14 +541,14 @@ export const Home: React.FC = () => {
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
           {discoverStats.map((s, i) => (
-            <div key={i} className="bg-white/[0.04] border border-white/10 hover:border-white/20 rounded-2xl p-4 text-center transition-all hover:scale-[1.02]">
+            <div key={i} className="bg-white/[0.03] border border-lanka-border hover:border-lanka-border-hover rounded-2xl p-4 text-center transition-all hover:scale-[1.02]">
               <span className="text-[9px] font-bold text-lanka-darkText uppercase tracking-widest block mb-2">{s.label}</span>
               <span className="text-2xl font-black text-white">{s.value}</span>
               {s.unit && <span className="text-xs text-lanka-muted ml-1">{s.unit}</span>}
             </div>
           ))}
         </div>
-        <div className="mt-6 bg-[#050d1a]/70 border border-white/8 rounded-2xl p-5 flex flex-wrap justify-around gap-6 text-center">
+        <div className="mt-6 bg-[#050d1a]/70 border border-lanka-border rounded-2xl p-5 flex flex-wrap justify-around gap-6 text-center">
           {srilankaService.getFooterMetrics().map((m, i) => (
             <div key={i}>
               <span className="text-[9px] font-bold text-lanka-darkText uppercase tracking-widest block">{m.label}</span>
@@ -597,7 +569,7 @@ export const Home: React.FC = () => {
               <h2 className="text-2xl font-black text-white">Latest Published Datasets</h2>
             </div>
           </div>
-          <Link to="/datasets" className="text-xs text-lanka-cyan hover:text-white flex items-center gap-1 border border-white/10 hover:border-white/25 px-3 py-1.5 rounded-xl transition-all">
+          <Link to="/datasets" className="text-xs text-lanka-cyan hover:text-white flex items-center gap-1 border border-lanka-border hover:border-lanka-border-hover px-3 py-1.5 rounded-xl transition-all">
             Explore All <ArrowRight size={12} />
           </Link>
         </div>
@@ -606,12 +578,12 @@ export const Home: React.FC = () => {
           {latestDatasets.map(d => (
             <div
               key={d.id}
-              className="group relative bg-gradient-to-br from-[#071428] to-[#050d1a] border border-white/10 hover:border-white/20 rounded-2xl p-5 flex flex-col justify-between h-52 transition-all hover:scale-[1.02] hover:shadow-[0_0_40px_rgba(37,99,235,0.15)] overflow-hidden"
+              className="group relative bg-gradient-to-br from-[#071428] to-[#050d1a] border border-lanka-border hover:border-lanka-border-hover rounded-2xl p-5 flex flex-col justify-between h-52 transition-all hover:scale-[1.02] hover:shadow-[0_0_40px_rgba(37,99,235,0.15)] overflow-hidden"
             >
               <div className="absolute bottom-0 right-0 w-32 h-32 bg-blue-600/5 rounded-full blur-2xl pointer-events-none group-hover:bg-blue-600/10 transition-colors" />
               <div>
                 <div className="flex justify-between items-start mb-3">
-                  <span className="text-[9px] font-black bg-white/10 border border-white/15 text-slate-300 px-2.5 py-1 rounded-full uppercase tracking-wider">{d.category}</span>
+                  <span className="text-[9px] font-black bg-white/5 border border-lanka-border text-slate-300 px-2.5 py-1 rounded-full uppercase tracking-wider">{d.category}</span>
                   {d.live && (
                     <span className="flex items-center gap-1 text-[9px] font-bold text-red-400">
                       <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-ping" />LIVE
@@ -621,7 +593,7 @@ export const Home: React.FC = () => {
                 <h4 className="text-sm font-black text-white leading-tight mb-2">{d.title}</h4>
                 <p className="text-[11px] text-lanka-muted line-clamp-2 leading-relaxed">{d.description}</p>
               </div>
-              <div className="flex justify-between items-center pt-3 border-t border-white/8">
+              <div className="flex justify-between items-center pt-3 border-t border-lanka-border">
                 <div className="flex gap-1.5">
                   {d.formats.slice(0, 3).map((f, i) => (
                     <span key={i} className="text-[8px] font-black text-cyan-300 bg-cyan-500/10 border border-cyan-500/25 px-1.5 py-0.5 rounded uppercase">{f}</span>
@@ -633,69 +605,6 @@ export const Home: React.FC = () => {
               </div>
             </div>
           ))}
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════════════════
-          DEVELOPER API BANNER
-      ══════════════════════════════════════════════════ */}
-      <section className="max-w-7xl mx-auto px-6 py-10 pb-16">
-        <div className="relative rounded-3xl overflow-hidden border border-white/10">
-          {/* Animated gradient background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-[#030b17] via-[#071428] to-[#0a1a35]" />
-          <div className="absolute inset-0 opacity-30"
-            style={{
-              backgroundImage: 'radial-gradient(circle at 20% 50%, #1d4ed8 0%, transparent 50%), radial-gradient(circle at 80% 20%, #0891b2 0%, transparent 40%)',
-            }}
-          />
-
-          <div className="relative p-10 flex flex-col md:flex-row items-center justify-between gap-8">
-            <div className="max-w-xl">
-              <span className="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/25 rounded-full text-[10px] text-blue-400 font-bold tracking-widest uppercase mb-4">
-                <Activity size={10} /> Developer Portal
-              </span>
-              <h3 className="text-3xl font-black text-white mb-3">
-                Build with Sri Lanka's<br />
-                <span className="bg-gradient-to-r from-lanka-blue-light to-cyan-400 bg-clip-text text-transparent">
-                  most trusted APIs
-                </span>
-              </h3>
-              <p className="text-sm text-lanka-muted leading-relaxed mb-6">
-                Secure, high-performance REST APIs for developers building fintech tools, research platforms, or regional dashboards.
-              </p>
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                {[
-                  [ShieldCheck, 'Secure Bearer Tokens'],
-                  [Zap,         'Sub-100ms Response'],
-                  [Database,    'JSON / CSV / SQL'],
-                  [Activity,    '99.9% Uptime SLA'],
-                ].map(([Icon, label], i) => (
-                  <div key={i} className="flex items-center gap-2 text-lanka-muted">
-                    {/* @ts-ignore */}
-                    <Icon size={14} className="text-cyan-400 flex-shrink-0" />
-                    <span>{label as string}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-3 w-full md:w-auto">
-              <Link to="/apis" className="bg-gradient-to-r from-lanka-blue to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white text-center text-sm font-bold px-8 py-3.5 rounded-2xl shadow-blue-glow transition-all active:scale-95">
-                Get API Access
-              </Link>
-              <Link to="/documentation" className="bg-white/5 hover:bg-white/10 text-white text-center border border-white/15 hover:border-white/25 text-sm font-bold px-8 py-3.5 rounded-2xl transition-all">
-                View Documentation
-              </Link>
-
-              {/* Code snippet teaser */}
-              <div className="mt-2 bg-[#020811] border border-white/10 rounded-xl p-3 font-mono text-[10px] text-slate-400 select-text">
-                <span className="text-cyan-400">GET</span>{' '}
-                <span className="text-white">/api/v1/economy/gdp-growth</span><br />
-                <span className="text-green-400">Authorization:</span>{' '}
-                <span className="text-slate-500">Bearer YOUR_KEY</span>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
     </div>

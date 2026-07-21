@@ -3,7 +3,11 @@ import { MapPin, Info, Users, Maximize2, Layers } from 'lucide-react';
 import { srilankaService } from '../services/srilankaService';
 import type { ProvinceData } from '../services/srilankaService';
 
-export const SriLankaMap: React.FC = () => {
+interface SriLankaMapProps {
+  compact?: boolean;
+}
+
+export const SriLankaMap: React.FC<SriLankaMapProps> = ({ compact = false }) => {
   const provinces = srilankaService.getProvinces();
   const [hoveredProvince, setHoveredProvince] = useState<ProvinceData | null>(provinces[0]); // default to Western
 
@@ -64,6 +68,74 @@ export const SriLankaMap: React.FC = () => {
       color: 'stroke-lanka-cyan/40 hover:fill-lanka-cyan/20 fill-lanka-blue-glow'
     }
   ];
+
+  if (compact) {
+    return (
+      <div className="flex flex-col sm:flex-row items-center justify-between w-full h-full gap-3 p-3 select-none">
+        {/* Map SVG */}
+        <div className="w-full sm:w-1/2 flex justify-center relative min-h-[190px]">
+          <svg 
+            viewBox="0 0 300 400" 
+            className="w-full h-[200px] drop-shadow-[0_0_15px_rgba(0,210,255,0.25)]"
+          >
+            {provincePaths.map((p) => {
+              const data = provinces.find((prov) => prov.id === p.id);
+              const isSelected = hoveredProvince?.id === p.id;
+              return (
+                <path
+                  key={p.id}
+                  d={p.d}
+                  className={`transition-all duration-300 stroke-2 cursor-pointer outline-none ${p.color} ${
+                    isSelected ? 'fill-lanka-cyan/40 stroke-lanka-cyan scale-[1.03] transform-origin-center' : 'stroke-lanka-blue-light/30'
+                  }`}
+                  onMouseEnter={() => data && setHoveredProvince(data)}
+                  onClick={() => data && setHoveredProvince(data)}
+                />
+              );
+            })}
+          </svg>
+        </div>
+
+        {/* Details Card on Right */}
+        <div className="w-full sm:w-1/2 bg-[#07172b]/80 border border-lanka-border rounded-xl p-3 flex flex-col justify-between space-y-2 text-xs">
+          {hoveredProvince && (
+            <>
+              <div>
+                <span className="text-[9px] font-bold text-cyan-400 uppercase tracking-widest block">Province Profile</span>
+                <h4 className="text-sm font-black text-white flex items-center gap-1.5 mt-0.5">
+                  <MapPin size={13} className="text-cyan-400 animate-pulse" />
+                  {hoveredProvince.name} Province
+                </h4>
+              </div>
+
+              <div className="grid grid-cols-2 gap-1.5 text-[10px]">
+                <div className="bg-white/5 border border-lanka-border p-1.5 rounded-lg">
+                  <span className="text-[8px] font-bold text-lanka-darkText block uppercase">Capital</span>
+                  <span className="font-bold text-white truncate block">{hoveredProvince.capital}</span>
+                </div>
+                <div className="bg-white/5 border border-lanka-border p-1.5 rounded-lg">
+                  <span className="text-[8px] font-bold text-lanka-darkText block uppercase">Area</span>
+                  <span className="font-bold text-white truncate block">{hoveredProvince.area}</span>
+                </div>
+              </div>
+
+              <div className="bg-white/5 border border-lanka-border p-1.5 rounded-lg text-[10px]">
+                <span className="text-[8px] font-bold text-lanka-darkText block uppercase mb-0.5">Population</span>
+                <span className="font-bold text-teal-400 flex items-center gap-1">
+                  <Users size={11} /> {hoveredProvince.population}
+                </span>
+              </div>
+
+              <div className="text-[9px] text-lanka-muted pt-1 border-t border-lanka-border/50">
+                <span className="font-bold text-slate-300">Districts: </span>
+                <span className="line-clamp-1">{hoveredProvince.districts.join(', ')}</span>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col lg:flex-row items-center gap-8 w-full p-6 glass-panel rounded-2xl">

@@ -57,7 +57,7 @@ export const Categories: React.FC = () => {
             const style = catStyles[cat.id] || catStyles.economy;
             return (
               <Link key={cat.id} to={`/categories/${cat.id}`}
-                className={`group relative bg-gradient-to-br ${style.gradient} border border-white/8 hover:border-white/20 rounded-2xl p-6 flex flex-col justify-between h-52 transition-all hover:scale-[1.02] ${style.glow} overflow-hidden`}>
+                className={`group relative bg-gradient-to-br ${style.gradient} border border-lanka-border hover:border-lanka-border-hover rounded-2xl p-6 flex flex-col justify-between h-52 transition-all hover:scale-[1.02] ${style.glow} overflow-hidden`}>
 
                 {/* Subtle grid pattern */}
                 <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
@@ -68,14 +68,14 @@ export const Categories: React.FC = () => {
                 </div>
 
                 <div className="relative">
-                  <div className={`inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white/10 border border-white/15 mb-4 group-hover:scale-110 transition-transform`}>
+                  <div className={`inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white/10 border border-lanka-border mb-4 group-hover:scale-110 transition-transform`}>
                     {getIcon(cat.iconName, style.iconColor)}
                   </div>
                   <h3 className="text-lg font-black text-white mb-1">{cat.name}</h3>
                   <p className="text-[11px] text-lanka-muted leading-relaxed line-clamp-2">{cat.description}</p>
                 </div>
 
-                <div className="relative flex items-center justify-between pt-3 border-t border-white/8">
+                <div className="relative flex items-center justify-between pt-3 border-t border-lanka-border">
                   <span className="text-[10px] font-mono text-lanka-darkText">
                     {cat.count} datasets
                   </span>
@@ -89,7 +89,7 @@ export const Categories: React.FC = () => {
         </div>
 
         {/* Bottom CTA */}
-        <div className="mt-16 text-center bg-[#050d1a] border border-white/10 rounded-2xl p-10">
+        <div className="mt-16 text-center bg-[#050d1a] border border-lanka-border rounded-2xl p-10">
           <h3 className="text-xl font-black text-white mb-2">Don't see your sector?</h3>
           <p className="text-sm text-lanka-muted mb-6">Request a new dataset category or contribute data through our open data portal.</p>
           <Link to="/contact" className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white text-sm font-bold px-8 py-3 rounded-2xl shadow-[0_0_20px_rgba(37,99,235,0.4)] transition-all">

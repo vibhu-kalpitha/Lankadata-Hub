@@ -116,22 +116,6 @@ export const Navbar: React.FC = () => {
             Dashboards
           </NavLink>
           <NavLink 
-            to="/apis" 
-            className={({ isActive }) => 
-              `text-sm font-medium transition-colors hover:text-white ${isActive ? 'text-lanka-cyan border-b-2 border-lanka-cyan pb-1' : 'text-lanka-muted'}`
-            }
-          >
-            APIs
-          </NavLink>
-          <NavLink 
-            to="/documentation" 
-            className={({ isActive }) => 
-              `text-sm font-medium transition-colors hover:text-white ${isActive ? 'text-lanka-cyan border-b-2 border-lanka-cyan pb-1' : 'text-lanka-muted'}`
-            }
-          >
-            Documentation
-          </NavLink>
-          <NavLink 
             to="/about" 
             className={({ isActive }) => 
               `text-sm font-medium transition-colors hover:text-white ${isActive ? 'text-lanka-cyan border-b-2 border-lanka-cyan pb-1' : 'text-lanka-muted'}`
@@ -142,20 +126,20 @@ export const Navbar: React.FC = () => {
         </div>
 
         {/* Search & Actions */}
-        <div className="hidden md:flex items-center gap-4">
+        <div className="hidden md:flex items-center gap-3">
           {/* Search Input Container */}
           <div ref={searchRef} className="relative">
             <form onSubmit={handleSearchSubmit} className="relative">
               <input
                 type="text"
-                placeholder="Search datasets, indicators, APIs..."
+                placeholder="Search datasets, indicators..."
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
                   setSearchOpen(true);
                 }}
                 onFocus={() => setSearchOpen(true)}
-                className="w-64 bg-lanka-bg-light border border-lanka-border hover:border-lanka-border-hover focus:border-lanka-blue rounded-full py-1.5 pl-4 pr-10 text-xs text-white placeholder-lanka-darkText focus:outline-none focus:ring-1 focus:ring-lanka-blue transition-all"
+                className="w-56 bg-lanka-bg-light border border-lanka-border hover:border-lanka-border-hover focus:border-lanka-blue rounded-full py-1.5 pl-4 pr-10 text-xs text-white placeholder-lanka-darkText focus:outline-none focus:ring-1 focus:ring-lanka-blue transition-all"
               />
               <button type="submit" className="absolute right-3 top-2 text-lanka-muted hover:text-white transition-colors">
                 <Search size={14} />
@@ -201,23 +185,7 @@ export const Navbar: React.FC = () => {
                     </div>
                   )}
 
-                  {/* APIs Matches */}
-                  {results.apis.length > 0 && (
-                    <div>
-                      <div className="px-2 pb-1 text-[10px] font-semibold text-lanka-blue-light">DEVELOPER APIS</div>
-                      {results.apis.map(a => (
-                        <div 
-                          key={a.id} 
-                          onClick={() => handleResultClick('api', a.id)}
-                          className="px-2 py-1.5 rounded-lg hover:bg-white/5 cursor-pointer text-xs text-white truncate transition-colors"
-                        >
-                          {a.title}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {results.datasets.length === 0 && results.dashboards.length === 0 && results.apis.length === 0 && (
+                  {results.datasets.length === 0 && results.dashboards.length === 0 && (
                     <div className="text-center py-4 text-xs text-lanka-muted">
                       No results found for "{searchQuery}"
                     </div>
@@ -228,10 +196,16 @@ export const Navbar: React.FC = () => {
           </div>
 
           <Link 
-            to="/apis" 
-            className="bg-lanka-blue hover:bg-lanka-blue-hover text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-blue-glow transition-all active:scale-95"
+            to="/login" 
+            className="text-xs font-semibold text-slate-300 hover:text-white px-3.5 py-1.5 rounded-xl border border-lanka-border hover:border-lanka-border-hover transition-all"
           >
-            Get API Access
+            Log In
+          </Link>
+          <Link 
+            to="/signup" 
+            className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white text-xs font-bold px-4 py-1.5 rounded-xl shadow-blue-glow transition-all active:scale-95"
+          >
+            Sign Up
           </Link>
         </div>
 
@@ -277,9 +251,6 @@ export const Navbar: React.FC = () => {
               {results.dashboards.map(d => (
                 <div key={d.id} onClick={() => handleResultClick('dashboard', d.id)} className="p-3 text-xs text-white border-b border-lanka-border/50">{d.title}</div>
               ))}
-              {results.apis.map(a => (
-                <div key={a.id} onClick={() => handleResultClick('api', a.id)} className="p-3 text-xs text-white border-b border-lanka-border/50">{a.title}</div>
-              ))}
             </div>
           )}
         </div>
@@ -291,16 +262,23 @@ export const Navbar: React.FC = () => {
           <Link to="/datasets" onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium text-lanka-muted hover:text-white py-1">Datasets</Link>
           <Link to="/categories" onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium text-lanka-muted hover:text-white py-1">Categories</Link>
           <Link to="/dashboards" onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium text-lanka-muted hover:text-white py-1">Dashboards</Link>
-          <Link to="/apis" onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium text-lanka-muted hover:text-white py-1">APIs</Link>
-          <Link to="/documentation" onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium text-lanka-muted hover:text-white py-1">Documentation</Link>
           <Link to="/about" onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium text-lanka-muted hover:text-white py-1">About</Link>
-          <Link 
-            to="/apis" 
-            onClick={() => setMobileMenuOpen(false)}
-            className="w-full bg-lanka-blue hover:bg-lanka-blue-hover text-white text-center text-xs font-semibold py-2.5 rounded-lg mt-2"
-          >
-            Get API Access
-          </Link>
+          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-lanka-border">
+            <Link 
+              to="/login" 
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-full border border-lanka-border text-white text-center text-xs font-semibold py-2.5 rounded-lg"
+            >
+              Log In
+            </Link>
+            <Link 
+              to="/signup" 
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 text-white text-center text-xs font-bold py-2.5 rounded-lg"
+            >
+              Sign Up
+            </Link>
+          </div>
         </div>
       )}
     </nav>

@@ -105,7 +105,7 @@ export const DatasetDetail: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
             {/* Chart 1: Bar chart */}
-            <div className="bg-[#050d1a] border border-white/10 rounded-2xl p-5 flex flex-col h-72">
+            <div className="bg-[#050d1a] border border-lanka-border rounded-2xl p-5 flex flex-col h-72">
               <span className="text-[10px] font-bold text-lanka-darkText uppercase tracking-widest flex items-center gap-1.5 mb-4">
                 <BarChart3 size={12} className="text-cyan-400" />
                 Quarterly Distribution
@@ -133,7 +133,7 @@ export const DatasetDetail: React.FC = () => {
             </div>
 
             {/* Chart 2: Line chart */}
-            <div className="bg-[#050d1a] border border-white/10 rounded-2xl p-5 flex flex-col h-72">
+            <div className="bg-[#050d1a] border border-lanka-border rounded-2xl p-5 flex flex-col h-72">
               <div className="flex justify-between items-center mb-4">
                 <span className="text-[10px] font-bold text-lanka-darkText uppercase tracking-widest flex items-center gap-1.5">
                   <LineIcon size={12} className="text-teal-400" />
@@ -158,7 +158,7 @@ export const DatasetDetail: React.FC = () => {
           </div>
 
           {/* Views / Downloads counters */}
-          <div className="flex items-center gap-6 bg-white/[0.03] border border-white/10 rounded-2xl px-5 py-4 text-xs">
+          <div className="flex items-center gap-6 bg-white/[0.03] border border-lanka-border rounded-2xl px-5 py-4 text-xs">
             <span className="flex items-center gap-1.5 text-lanka-muted">
               <Eye size={14} className="text-cyan-400" />
               <strong className="text-white font-bold">{dataset.views.toLocaleString()}</strong> VIEWS
@@ -170,8 +170,8 @@ export const DatasetDetail: React.FC = () => {
           </div>
 
           {/* Data Preview Table */}
-          <div className="bg-[#050d1a] border border-white/10 rounded-2xl overflow-hidden">
-            <div className="p-4 border-b border-white/10 flex justify-between items-center bg-white/[0.02]">
+          <div className="bg-[#050d1a] border border-lanka-border rounded-2xl overflow-hidden">
+            <div className="p-4 border-b border-lanka-border flex justify-between items-center bg-white/[0.02]">
               <span className="text-xs font-black text-white">Data Preview</span>
               <button className="text-[10px] font-bold text-cyan-400 hover:underline uppercase">View Fullscreen</button>
             </div>
@@ -229,7 +229,7 @@ export const DatasetDetail: React.FC = () => {
         <div className="space-y-5">
           
           {/* Download Resources Card */}
-          <div className="bg-[#050d1a] border border-white/10 rounded-2xl p-5 space-y-4">
+          <div className="bg-[#050d1a] border border-lanka-border rounded-2xl p-5 space-y-4">
             <h3 className="text-xs font-black text-white uppercase tracking-widest">Download Resource</h3>
             
             {/* CSV File download link */}
@@ -271,7 +271,7 @@ export const DatasetDetail: React.FC = () => {
           </div>
 
           {/* Similar Datasets Card */}
-          <div className="bg-[#050d1a] border border-white/10 rounded-2xl p-5 space-y-4">
+          <div className="bg-[#050d1a] border border-lanka-border rounded-2xl p-5 space-y-4">
             <h3 className="text-xs font-black text-white uppercase tracking-widest">Similar Datasets</h3>
             <div className="divide-y divide-lanka-border/50">
               {dataset.similarDatasets.map((d) => (
@@ -295,7 +295,7 @@ export const DatasetDetail: React.FC = () => {
           </div>
 
           {/* Dataset Metadata Card */}
-          <div className="bg-[#050d1a] border border-white/10 rounded-2xl p-5 space-y-4">
+          <div className="bg-[#050d1a] border border-lanka-border rounded-2xl p-5 space-y-4">
             <h3 className="text-xs font-black text-white uppercase tracking-widest">Dataset Metadata</h3>
             
             <div className="space-y-3.5 text-xs">

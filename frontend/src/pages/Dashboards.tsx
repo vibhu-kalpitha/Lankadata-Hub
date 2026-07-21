@@ -63,7 +63,7 @@ export const Dashboards: React.FC = () => {
           {/* Search */}
           <form onSubmit={handleSearch} className="max-w-xl mx-auto relative group">
             <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-2xl opacity-30 group-hover:opacity-60 blur transition-opacity" />
-            <div className="relative flex items-center bg-[#040c1a] rounded-2xl border border-white/10">
+            <div className="relative flex items-center bg-[#040c1a] rounded-2xl border border-lanka-border">
               <Search size={16} className="absolute left-4 text-lanka-muted" />
               <input type="text" placeholder="Search dashboards, e.g. GDP, Dengue, Monsoon…"
                 value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
@@ -77,7 +77,7 @@ export const Dashboards: React.FC = () => {
           <div className="flex flex-wrap justify-center gap-2 mt-5">
             {['GDP Q4 2023', 'Monsoon Alerts', 'Colombo Stock Ex.', 'Dengue Tracker'].map(tag => (
               <button key={tag} onClick={() => setSearchQuery(tag)}
-                className="text-[11px] text-lanka-muted hover:text-white border border-white/10 hover:border-white/25 bg-white/5 hover:bg-white/10 px-3 py-1 rounded-full transition-all">
+                className="text-[11px] text-lanka-muted hover:text-white border border-lanka-border hover:border-lanka-border-hover bg-white/5 hover:bg-white/10 px-3 py-1 rounded-full transition-all">
                 {tag}
               </button>
             ))}
@@ -102,12 +102,12 @@ export const Dashboards: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {trending.map(d => (
               <Link key={d.id} to={`/dashboards/${d.id}`}
-                className="group relative bg-gradient-to-br from-[#060f1e] to-[#040b16] border border-white/8 hover:border-white/20 rounded-2xl overflow-hidden transition-all hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(37,99,235,0.15)]">
+                className="group relative bg-gradient-to-br from-[#060f1e] to-[#040b16] border border-lanka-border hover:border-lanka-border-hover rounded-2xl overflow-hidden transition-all hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(37,99,235,0.15)]">
                 {/* Visual preview */}
                 <div className={`h-40 bg-gradient-to-br ${categoryGradient[d.category] || 'from-slate-600/20 to-slate-900/10 border-slate-500/30'} relative flex items-center justify-center overflow-hidden`}>
                   <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
                   <div className="text-center z-10">
-                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white/10 border border-white/20 mb-2">
+                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white/10 border border-lanka-border mb-2">
                       {categoryIcon[d.category] || <BarChart2 size={20} className="text-white/60" />}
                     </div>
                     <p className="text-[10px] font-black text-white/60 uppercase tracking-widest">{d.category} Stream</p>
@@ -118,7 +118,7 @@ export const Dashboards: React.FC = () => {
                       <span className="text-[9px] font-black text-red-400 uppercase">Live</span>
                     </div>
                   )}
-                  <div className="absolute top-3 right-3 bg-black/50 backdrop-blur-sm border border-white/10 px-2 py-1 rounded-full text-[9px] text-white/60">
+                  <div className="absolute top-3 right-3 bg-black/50 backdrop-blur-sm border border-lanka-border px-2 py-1 rounded-full text-[9px] text-white/60">
                     {(d.views / 1000).toFixed(1)}k views
                   </div>
                 </div>
@@ -126,7 +126,7 @@ export const Dashboards: React.FC = () => {
                 <div className="p-5">
                   <h3 className="text-sm font-black text-white mb-2 leading-tight group-hover:text-cyan-300 transition-colors">{d.title}</h3>
                   <p className="text-[11px] text-lanka-muted line-clamp-2 leading-relaxed mb-4">{d.description}</p>
-                  <div className="flex justify-between items-center pt-3 border-t border-white/8">
+                  <div className="flex justify-between items-center pt-3 border-t border-lanka-border">
                     <span className="text-[10px] text-lanka-darkText">{d.author}</span>
                     <span className={`text-[10px] font-bold flex items-center gap-1 ${categoryAccent[d.category] || 'text-white/60'}`}>
                       View Dashboard <ChevronRight size={11} className="group-hover:translate-x-0.5 transition-transform" />
@@ -153,13 +153,13 @@ export const Dashboards: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {popular.map(d => (
               <Link key={d.id} to={`/dashboards/${d.id}`}
-                className="group bg-[#050d1a] border border-white/8 hover:border-white/20 rounded-2xl p-5 space-y-3 transition-all hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(245,158,11,0.08)]">
-                <span className={`text-[9px] font-black px-2 py-1 rounded-full border uppercase tracking-wider ${categoryGradient[d.category] ? `bg-gradient-to-r ${categoryGradient[d.category]} ${categoryAccent[d.category]}` : 'bg-white/5 border-white/10 text-white/50'}`}>
+                className="group bg-[#050d1a] border border-lanka-border hover:border-lanka-border-hover rounded-2xl p-5 space-y-3 transition-all hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(245,158,11,0.08)]">
+                <span className={`text-[9px] font-black px-2 py-1 rounded-full border uppercase tracking-wider ${categoryGradient[d.category] ? `bg-gradient-to-r ${categoryGradient[d.category]} ${categoryAccent[d.category]}` : 'bg-white/5 border-lanka-border text-white/50'}`}>
                   {d.category}
                 </span>
                 <h3 className="text-sm font-black text-white group-hover:text-amber-300 transition-colors leading-tight">{d.title}</h3>
                 <p className="text-[11px] text-lanka-muted leading-relaxed line-clamp-2">{d.description}</p>
-                <div className="flex justify-between items-center pt-2 border-t border-white/8 text-[10px] text-lanka-darkText">
+                <div className="flex justify-between items-center pt-2 border-t border-lanka-border text-[10px] text-lanka-darkText">
                   <span>{d.author}</span>
                   <span className="flex items-center gap-1"><Eye size={10} />{(d.views / 1000).toFixed(0)}k</span>
                 </div>
@@ -195,8 +195,8 @@ export const Dashboards: React.FC = () => {
               </Link>
             ))}
             {['Mental Health Indicators', 'Pharmaceutical Supply'].map((label, i) => (
-              <div key={i} className="border border-dashed border-white/10 rounded-2xl p-5 flex flex-col items-center justify-center text-center gap-3 min-h-[200px] bg-white/[0.02]">
-                <div className="w-10 h-10 rounded-xl border border-dashed border-white/10 flex items-center justify-center">
+              <div key={i} className="border border-dashed border-lanka-border rounded-2xl p-5 flex flex-col items-center justify-center text-center gap-3 min-h-[200px] bg-white/[0.02]">
+                <div className="w-10 h-10 rounded-xl border border-dashed border-lanka-border flex items-center justify-center">
                   <span className="text-xl text-white/20">+</span>
                 </div>
                 <span className="text-xs font-bold text-white/40">Coming Soon</span>

@@ -12,17 +12,20 @@ import os
 # Load from environment variable (set in .env file)
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql://postgres:postgres@localhost:5432/lankadata_hub"
+    "sqlite:///./lankadata_hub.db"
 )
 
-# Create the SQLAlchemy engine
-engine = create_engine(
-    DATABASE_URL,
-    pool_pre_ping=True,       # Verify connection before use
-    pool_size=5,              # Max connections in pool
-    max_overflow=10,          # Allow extra connections under load
-    echo=False                # Set True for SQL query logging during dev
-)
+engine_kwargs = {"echo": False}
+if DATABASE_URL.startswith("sqlite"):
+    engine_kwargs["connect_args"] = {"check_same_thread": False}
+else:
+    engine_kwargs.update({
+        "pool_pre_ping": True,
+        "pool_size": 5,
+        "max_overflow": 10
+    })
+
+engine = create_engine(DATABASE_URL, **engine_kwargs)
 
 # Session factory for dependency injection
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
