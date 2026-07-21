@@ -126,7 +126,7 @@ export const Home: React.FC = () => {
       {/* ══════════════════════════════════════════════════
           HERO SECTION
       ══════════════════════════════════════════════════ */}
-      <section className="relative min-h-[88vh] flex flex-col items-center justify-center px-6 overflow-hidden">
+      <section className="relative min-h-[88vh] flex flex-col items-center justify-center px-6 pt-8 overflow-hidden">
         {/* Background orbs */}
         <Orb className="w-[600px] h-[600px] bg-blue-600/15 top-[-150px] left-[-200px]" />
         <Orb className="w-[500px] h-[500px] bg-cyan-500/10  top-[100px]  right-[-150px]" />
@@ -141,14 +141,13 @@ export const Home: React.FC = () => {
           }}
         />
 
-        {/* Live indicator pill */}
-        <div
-          className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-lanka-teal/30 bg-lanka-teal/10
-          text-lanka-teal text-[11px] font-bold tracking-widest uppercase mb-6
-          transition-all duration-700 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
-        >
-          <span className="w-1.5 h-1.5 rounded-full bg-lanka-teal animate-ping" />
-          Live  •  Real-Time National Intelligence
+        {/* Live indicator – small blinking word only */}
+        <div className={`flex items-center gap-2 mb-6 transition-all duration-700 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-400" />
+          </span>
+          <span className="text-[11px] font-black text-teal-400 tracking-widest uppercase">Live</span>
         </div>
 
         {/* Main heading */}

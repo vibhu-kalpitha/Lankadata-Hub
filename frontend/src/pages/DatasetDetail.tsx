@@ -59,18 +59,18 @@ export const DatasetDetail: React.FC = () => {
     <div className="flex-1 bg-lanka-bg min-h-screen">
 
       {/* ── Gradient Page Header ─────────────────────── */}
-      <div className="relative overflow-hidden border-b border-white/8 py-12 px-6">
+      <div className="relative overflow-hidden py-8 px-6">
         <div className="absolute inset-0 bg-gradient-to-b from-[#030b16] to-[#040c1a]" />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute top-0 right-0 w-64 h-40 bg-blue-600/10 rounded-full blur-[80px] pointer-events-none" />
         <div className="max-w-7xl mx-auto relative">
-          <div className="flex flex-wrap items-center gap-2 mb-3 text-[11px] text-lanka-muted">
+          <div className="flex flex-wrap items-center gap-2 mb-2 text-[11px] text-lanka-muted">
             <Link to="/" className="hover:text-white transition-colors">Home</Link>
             <ChevronRight size={12} />
             <Link to="/datasets" className="hover:text-white transition-colors">Datasets</Link>
             <ChevronRight size={12} />
             <span className="text-white">{dataset.title}</span>
           </div>
-          <div className="flex flex-wrap items-center gap-3 mb-4">
+          <div className="flex flex-wrap items-center gap-3 mb-2">
             <span className="text-[10px] font-black bg-blue-500/20 text-blue-300 border border-blue-500/30 px-3 py-1 rounded-full uppercase tracking-widest">
               {dataset.category}
             </span>
@@ -81,11 +81,11 @@ export const DatasetDetail: React.FC = () => {
               </div>
             )}
           </div>
-          <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-tight mb-4">
+          <h1 className="text-2xl font-black text-white tracking-tight leading-tight mb-2">
             {dataset.title}
           </h1>
-          <p className="text-sm text-lanka-muted max-w-3xl leading-relaxed">{dataset.fullDescription}</p>
-          <div className="flex items-center gap-6 mt-6 text-xs text-lanka-muted">
+          <p className="text-xs text-lanka-muted max-w-3xl leading-relaxed">{dataset.fullDescription}</p>
+          <div className="flex items-center gap-6 mt-3 text-xs text-lanka-muted">
             <span className="flex items-center gap-1.5"><Eye size={14} className="text-cyan-400" /><strong className="text-white">{dataset.views.toLocaleString()}</strong> views</span>
             <span className="flex items-center gap-1.5"><Download size={14} className="text-teal-400" /><strong className="text-white">{dataset.downloads.toLocaleString()}</strong> downloads</span>
             <span className="flex items-center gap-1.5"><Calendar size={14} className="text-lanka-muted" />{dataset.coverage}</span>
