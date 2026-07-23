@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-lanka-bg text-lanka-text font-sans antialiased;
+    background-image: 
+      radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.05) 0%, transparent 40%),
+      radial-gradient(circle at 90% 80%, rgba(0, 210, 255, 0.04) 0%, transparent 40%);
+    background-attachment: fixed;
+    margin: 0;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(13, 22, 38, 0.2);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.2);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.45);
+}
+
+/* Glassmorphism card utilities */
+.glass-panel {
+  @apply bg-lanka-card border border-lanka-border rounded-xl backdrop-blur-md shadow-glass transition-all duration-300;
+}
+
+.glass-panel-hover {
+  @apply hover:border-lanka-border-hover hover:bg-lanka-card-hover;
+}
+
+/* Grid overlay background patterns */
+.grid-bg {
+  background-size: 40px 40px;
+  background-image: linear-gradient(to right, rgba(59, 130, 246, 0.02) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(59, 130, 246, 0.02) 1px, transparent 1px);
+}
+
+/* Hide scrollbar default styles for horizontal scrolls but keep function */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
