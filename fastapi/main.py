@@ -1,5 +1,5 @@
 """
-LankaData Hub - FastAPI Backend Application
+LankaData Hub - FastAPI Application
 Main entry point providing REST API endpoints for:
   - Categories
   - Datasets (list, filter, detail)
@@ -7,10 +7,10 @@ Main entry point providing REST API endpoints for:
   - API Marketplace Specs
 
 Run locally:
-    uvicorn main:app --reload --port 8000
+    uvicorn main:app --reload --port 8001
 
-Swagger UI: http://localhost:8000/docs
-ReDoc:       http://localhost:8000/redoc
+Swagger UI: http://localhost:8001/docs
+ReDoc:       http://localhost:8001/redoc
 """
 
 from fastapi import FastAPI, Depends, HTTPException, Query

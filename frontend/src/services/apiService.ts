@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { API_BASE_URL, USE_MOCK_DATA } from './config';
+import { FASTAPI_API_URL, USE_MOCK_DATA } from './config';
 
 export interface ApiEndpoint {
   id: string;
@@ -123,7 +123,7 @@ export const apiService = {
     if (USE_MOCK_DATA) {
       return MOCK_APIS;
     }
-    const response = await axios.get(`${API_BASE_URL}/apis`);
+    const response = await axios.get(`${FASTAPI_API_URL}/apis`);
     return response.data;
   },
 
@@ -133,7 +133,7 @@ export const apiService = {
       return api || null;
     }
     try {
-      const response = await axios.get(`${API_BASE_URL}/apis/${id}`);
+      const response = await axios.get(`${FASTAPI_API_URL}/apis/${id}`);
       return response.data;
     } catch {
       return null;
