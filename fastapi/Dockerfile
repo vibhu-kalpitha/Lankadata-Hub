@@ -15,5 +15,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application source
 COPY . .
 
-# Seed database on startup, then run the server
-CMD ["sh", "-c", "python seed.py && uvicorn main:app --host 0.0.0.0 --port 8000"]
+# Run the server on port 8001 (database seeding is run by backend service)
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001"]

@@ -1,21 +1,9 @@
-# ─────────────────────────────────────────────────────
-# LankaData Hub - Docker Compose
-# Orchestrates the React frontend, FastAPI backend, and PostgreSQL database.
-#
-# Usage:
-#   docker-compose up --build
-#
-# Services available:
-#   Frontend:   http://localhost:5173
-#   Backend:    http://localhost:8000
-#   DB Admin:   http://localhost:5050  (pgAdmin)
-# ─────────────────────────────────────────────────────
-
 version: "3.9"
 
 services:
 
   # ── PostgreSQL Database ────────────────────────────
+  # Port 5432 is NOT exposed to the host — only accessible inside lankadata_net
   postgres:
     image: postgres:16-alpine
     container_name: lankadata_postgres
@@ -24,35 +12,54 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: lankadata_hub
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - lankadata_net
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # ── FastAPI Backend ────────────────────────────────
+  # ── Backend Service ────────────────────────────────
+  # Port 8000 is NOT exposed to the host — Nginx proxies /api -> backend:8000 internally
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: lankadata_backend
     restart: unless-stopped
-    ports:
-      - "8000:8000"
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/lankadata_hub
-      CORS_ORIGINS: http://localhost:5173,http://localhost:3000
+      CORS_ORIGINS: "http://localhost,http://lankadatahub.lk"
     depends_on:
       postgres:
         condition: service_healthy
-    volumes:
-      - ./backend:/app
+    networks:
+      - lankadata_net
 
-  # ── React Frontend ─────────────────────────────────
+  # ── FastAPI Service ────────────────────────────────
+  # Port 8001 is NOT exposed to the host — Nginx proxies /fastapi-api -> fastapi:8001 internally
+  fastapi:
+    build:
+      context: ./fastapi
+      dockerfile: Dockerfile
+    container_name: lankadata_fastapi
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/lankadata_hub
+      CORS_ORIGINS: "http://localhost,http://lankadatahub.lk"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    networks:
+      - lankadata_net
+
+  # ── React Frontend (Nginx) ─────────────────────────
+  # Only publicly exposed port — serves React SPA and proxies /api and /fastapi-api
   frontend:
     build:
       context: ./frontend
@@ -60,30 +67,62 @@ services:
     container_name: lankadata_frontend
     restart: unless-stopped
     ports:
-      - "5173:5173"
-    environment:
-      VITE_API_BASE_URL: http://localhost:8000/api
+      - "80:80"
     depends_on:
       - backend
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
+      - fastapi
+    networks:
+      - lankadata_net
 
-  # ── pgAdmin (optional DB management tool) ─────────
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: lankadata_pgadmin
+  # ── Mage AI ────────────────────────────────────────
+  # Uses named volume so it works after a fresh git clone (no local ./mage dir required)
+  mage:
+    image: mageai/mageai:latest
+    container_name: lankadata_mage
     restart: unless-stopped
     ports:
-      - "5050:80"
+      - "6789:6789"
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@lankadatahub.lk
-      PGADMIN_DEFAULT_PASSWORD: admin123
+      MAGE_DATABASE_CONNECTION_URL: postgresql://postgres:postgres@postgres:5432/lankadata_hub
+    volumes:
+      - mage_data:/home/src
     depends_on:
-      - postgres
-    profiles:
-      - tools
+      postgres:
+        condition: service_healthy
+    networks:
+      - lankadata_net
+
+  # ── Metabase ───────────────────────────────────────
+  # Stores its metadata in the shared PostgreSQL database
+  metabase:
+    image: metabase/metabase:latest
+    container_name: lankadata_metabase
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: lankadata_hub
+      MB_DB_PORT: 5432
+      MB_DB_USER: postgres
+      MB_DB_PASS: postgres
+      MB_DB_HOST: postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - metabase_data:/metabase.db
+    networks:
+      - lankadata_net
+
+networks:
+  lankadata_net:
+    driver: bridge
 
 volumes:
   postgres_data:
+    driver: local
+  mage_data:
+    driver: local
+  metabase_data:
     driver: local
