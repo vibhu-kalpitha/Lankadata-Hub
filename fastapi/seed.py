@@ -224,6 +224,100 @@ def seed_data():
         db.commit()
         print("✓ API specs seeded.")
 
+        # ─── Seed Provinces ───────────────────────────────────────────────────
+        provinces_data = [
+            models.Province(
+                province="Central",
+                provincial_capital="Kandy",
+                total_area_km2=5674.0,
+                estimated_population="2.8M",
+                districts_included="Kandy, Matale, Nuwara Eliya",
+                data_source="Department of Census and Statistics",
+                last_updated="2023"
+            ),
+            models.Province(
+                province="Eastern",
+                provincial_capital="Trincomalee",
+                total_area_km2=9996.0,
+                estimated_population="1.7M",
+                districts_included="Trincomalee, Batticaloa, Ampara",
+                data_source="Department of Census and Statistics",
+                last_updated="2023"
+            ),
+            models.Province(
+                province="North Central",
+                provincial_capital="Anuradhapura",
+                total_area_km2=10472.0,
+                estimated_population="1.4M",
+                districts_included="Anuradhapura, Polonnaruwa",
+                data_source="Department of Census and Statistics",
+                last_updated="2023"
+            ),
+            models.Province(
+                province="North Western",
+                provincial_capital="Kurunegala",
+                total_area_km2=7888.0,
+                estimated_population="2.5M",
+                districts_included="Kurunegala, Puttalam",
+                data_source="Department of Census and Statistics",
+                last_updated="2023"
+            ),
+            models.Province(
+                province="Northern",
+                provincial_capital="Jaffna",
+                total_area_km2=8884.0,
+                estimated_population="1.1M",
+                districts_included="Jaffna, Kilinochchi, Mannar, Vavuniya, Mullaitivu",
+                data_source="Department of Census and Statistics",
+                last_updated="2023"
+            ),
+            models.Province(
+                province="Sabaragamuwa",
+                provincial_capital="Ratnapura",
+                total_area_km2=4968.0,
+                estimated_population="2.0M",
+                districts_included="Ratnapura, Kegalle",
+                data_source="Department of Census and Statistics",
+                last_updated="2023"
+            ),
+            models.Province(
+                province="Southern",
+                provincial_capital="Galle",
+                total_area_km2=5544.0,
+                estimated_population="2.6M",
+                districts_included="Galle, Matara, Hambantota",
+                data_source="Department of Census and Statistics",
+                last_updated="2023"
+            ),
+            models.Province(
+                province="Uva",
+                provincial_capital="Badulla",
+                total_area_km2=8500.0,
+                estimated_population="1.3M",
+                districts_included="Badulla, Moneragala",
+                data_source="Department of Census and Statistics",
+                last_updated="2023"
+            ),
+            models.Province(
+                province="Western",
+                provincial_capital="Colombo",
+                total_area_km2=3684.0,
+                estimated_population="6.2M",
+                districts_included="Colombo, Gampaha, Kalutara",
+                data_source="Department of Census and Statistics",
+                last_updated="2023"
+            ),
+        ]
+
+        existing_count = db.query(models.Province).count()
+        if existing_count == 0:
+            for prov in provinces_data:
+                db.add(prov)
+            db.commit()
+            print("✓ Provinces seeded.")
+        else:
+            print("✓ Provinces already seeded, skipping.")
+
         print("\n🎉 LankaData Hub database seeded successfully!")
 
     except Exception as e:
