@@ -98,3 +98,19 @@ class APISpecOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# ─── Province Schemas ─────────────────────────────────────────────────────────
+
+class ProvinceOut(BaseModel):
+    id: int
+    province: str
+    provincial_capital: str
+    total_area_km2: float
+    estimated_population: str
+    districts_included: List[str]   # returned as list, stored as comma-separated
+    data_source: Optional[str] = None
+    last_updated: Optional[str] = None
+
+    class Config:
+        from_attributes = True

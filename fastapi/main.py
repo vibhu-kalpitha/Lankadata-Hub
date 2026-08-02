@@ -252,3 +252,24 @@ def get_api(api_id: str, db: Session = Depends(get_db)):
     if not api:
         raise HTTPException(status_code=404, detail=f"API spec '{api_id}' not found.")
     return api
+
+
+# ─── Province Endpoints ───────────────────────────────────────────────────────
+
+@app.get("/api/provinces", response_model=List[schemas.ProvinceOut], tags=["Provinces"])
+def list_provinces(db: Session = Depends(get_db)):
+    """Return all Sri Lanka provinces ordered alphabetically."""
+    rows = db.query(models.Province).order_by(models.Province.province.asc()).all()
+    result = []
+    for row in rows:
+        result.append(schemas.ProvinceOut(
+            id=row.id,
+            province=row.province,
+            provincial_capital=row.provincial_capital,
+            total_area_km2=row.total_area_km2,
+            estimated_population=row.estimated_population,
+            districts_included=[d.strip() for d in row.districts_included.split(",")],
+            data_source=row.data_source,
+            last_updated=row.last_updated,
+        ))
+    return result

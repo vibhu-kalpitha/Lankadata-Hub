@@ -12,6 +12,8 @@ import {
 
 import { SriLankaMap } from '../components/SriLankaMap';
 import { srilankaService } from '../services/srilankaService';
+import { fetchProvinces } from '../services/provinceService';
+import type { Province } from '../services/provinceService';
 import { datasetService } from '../services/datasetService';
 import type { Dataset } from '../services/datasetService';
 import { dashboardService } from '../services/dashboardService';
@@ -44,6 +46,9 @@ export const Home: React.FC = () => {
   const [latestDatasets, setLatestDatasets] = useState<Dataset[]>([]);
   const [trendingDashboards, setTrendingDashboards] = useState<DashboardDetail[]>([]);
   const [currentDashboardIdx, setCurrentDashboardIdx] = useState(0);
+  const [provinces, setProvinces] = useState<Province[]>([]);
+  const [provincesLoading, setProvincesLoading] = useState(true);
+  const [provincesError, setProvincesError] = useState<string | null>(null);
 
   const datasetsCount  = useCountUp(2480);
   const dashboardCount = useCountUp(184);
@@ -55,6 +60,18 @@ export const Home: React.FC = () => {
     setDiscoverStats(srilankaService.getDiscoverStats());
     datasetService.getLatestDatasets(3).then(d => setLatestDatasets(d));
     dashboardService.getDashboards().then(d => setTrendingDashboards(d));
+
+    // Fetch provinces from FastAPI → PostgreSQL
+    fetchProvinces()
+      .then(data => {
+        setProvinces(data);
+        setProvincesLoading(false);
+      })
+      .catch(err => {
+        console.error('Failed to load provinces:', err);
+        setProvincesError('Could not load province data. Please try again.');
+        setProvincesLoading(false);
+      });
   }, []);
 
   /* auto-rotate dashboard carousel */
@@ -537,7 +554,27 @@ export const Home: React.FC = () => {
           </p>
         </div>
         <div className="mb-6">
-          <SriLankaMap />
+          {provincesLoading ? (
+            <div className="flex items-center justify-center h-[420px] glass-panel rounded-2xl">
+              <div className="flex flex-col items-center gap-3 text-lanka-muted">
+                <div className="w-8 h-8 border-2 border-lanka-cyan border-t-transparent rounded-full animate-spin" />
+                <span className="text-xs font-semibold uppercase tracking-wider">Loading province data…</span>
+              </div>
+            </div>
+          ) : provincesError ? (
+            <div className="flex items-center justify-center h-[420px] glass-panel rounded-2xl">
+              <div className="text-center space-y-2">
+                <p className="text-sm font-semibold text-red-400">{provincesError}</p>
+                <p className="text-xs text-lanka-muted">Check that the FastAPI service is running.</p>
+              </div>
+            </div>
+          ) : provinces.length === 0 ? (
+            <div className="flex items-center justify-center h-[420px] glass-panel rounded-2xl">
+              <p className="text-sm text-lanka-muted">No province data available.</p>
+            </div>
+          ) : (
+            <SriLankaMap provinces={provinces} />
+          )}
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
           {discoverStats.map((s, i) => (

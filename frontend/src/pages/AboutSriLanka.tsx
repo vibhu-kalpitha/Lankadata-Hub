@@ -1,10 +1,26 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { SriLankaMap } from '../components/SriLankaMap';
 import { Map, Shield } from 'lucide-react';
-import { srilankaService } from '../services/srilankaService';
+import { fetchProvinces } from '../services/provinceService';
+import type { Province } from '../services/provinceService';
 
 export const AboutSriLanka: React.FC = () => {
-  const provinces = srilankaService.getProvinces();
+  const [provinces, setProvinces] = useState<Province[]>([]);
+  const [provincesLoading, setProvincesLoading] = useState(true);
+  const [provincesError, setProvincesError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchProvinces()
+      .then(data => {
+        setProvinces(data);
+        setProvincesLoading(false);
+      })
+      .catch(err => {
+        console.error('Failed to load provinces:', err);
+        setProvincesError('Could not load province data.');
+        setProvincesLoading(false);
+      });
+  }, []);
 
   const keyFacts = [
     { label: 'Area', value: '65,610 km²', desc: 'Ranked 122nd globally' },
@@ -34,14 +50,27 @@ export const AboutSriLanka: React.FC = () => {
           <Map className="text-lanka-cyan" size={18} />
           Interactive Provincial Intelligence
         </h2>
-        <SriLankaMap />
+        {provincesLoading ? (
+          <div className="flex items-center justify-center h-[420px] glass-panel rounded-2xl">
+            <div className="flex flex-col items-center gap-3 text-lanka-muted">
+              <div className="w-8 h-8 border-2 border-lanka-cyan border-t-transparent rounded-full animate-spin" />
+              <span className="text-xs font-semibold uppercase tracking-wider">Loading province data…</span>
+            </div>
+          </div>
+        ) : provincesError ? (
+          <div className="flex items-center justify-center h-[420px] glass-panel rounded-2xl">
+            <p className="text-sm font-semibold text-red-400">{provincesError}</p>
+          </div>
+        ) : (
+          <SriLankaMap provinces={provinces} />
+        )}
       </section>
 
       {/* Key Facts Grid */}
       <section className="space-y-6">
         <h2 className="text-lg font-bold text-white flex items-center gap-2">
           <Map className="text-lanka-cyan" size={18} />
-          Key Geographic & Demographic Facts
+          Key Geographic &amp; Demographic Facts
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {keyFacts.map((fact, idx) => (
@@ -72,23 +101,39 @@ export const AboutSriLanka: React.FC = () => {
               <tr className="border-b border-lanka-border text-lanka-darkText font-bold bg-[#091122]/30">
                 <th className="py-2.5 px-3">PROVINCE</th>
                 <th className="py-2.5 px-3">CAPITAL</th>
-                <th className="py-2.5 px-3">AREA</th>
+                <th className="py-2.5 px-3">AREA (km²)</th>
                 <th className="py-2.5 px-3">POPULATION</th>
                 <th className="py-2.5 px-3">DISTRICTS</th>
+                <th className="py-2.5 px-3">DATA SOURCE</th>
+                <th className="py-2.5 px-3">LAST UPDATED</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-lanka-border/50">
-              {provinces.map((p, idx) => (
-                <tr key={idx} className="hover:bg-white/2 transition-colors">
-                  <td className="py-3 px-3 font-bold text-white">{p.name}</td>
-                  <td className="py-3 px-3 text-lanka-muted">{p.capital}</td>
-                  <td className="py-3 px-3 text-lanka-muted">{p.area}</td>
-                  <td className="py-3 px-3 text-slate-300 font-semibold">{p.population}</td>
-                  <td className="py-3 px-3 text-lanka-muted">
-                    {p.districts.join(', ')}
-                  </td>
+              {provincesLoading ? (
+                <tr>
+                  <td colSpan={7} className="py-8 text-center text-lanka-muted">Loading…</td>
                 </tr>
-              ))}
+              ) : provincesError ? (
+                <tr>
+                  <td colSpan={7} className="py-8 text-center text-red-400">{provincesError}</td>
+                </tr>
+              ) : provinces.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-8 text-center text-lanka-muted">No data available.</td>
+                </tr>
+              ) : (
+                provinces.map((p, idx) => (
+                  <tr key={idx} className="hover:bg-white/2 transition-colors">
+                    <td className="py-3 px-3 font-bold text-white">{p.province}</td>
+                    <td className="py-3 px-3 text-lanka-muted">{p.provincial_capital}</td>
+                    <td className="py-3 px-3 text-lanka-muted">{p.total_area_km2.toLocaleString()}</td>
+                    <td className="py-3 px-3 text-slate-300 font-semibold">{p.estimated_population}</td>
+                    <td className="py-3 px-3 text-lanka-muted">{p.districts_included.join(', ')}</td>
+                    <td className="py-3 px-3 text-lanka-muted">{p.data_source ?? '—'}</td>
+                    <td className="py-3 px-3 text-lanka-muted">{p.last_updated ?? '—'}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
