@@ -4,10 +4,10 @@ import type { Province } from '../services/provinceService';
 
 interface SriLankaMapProps {
   compact?: boolean;
-  provinces: Province[];
+  provinces?: Province[];
 }
 
-export const SriLankaMap: React.FC<SriLankaMapProps> = ({ compact = false, provinces }) => {
+export const SriLankaMap: React.FC<SriLankaMapProps> = ({ compact = false, provinces = [] }) => {
   // The SVG paths key off province names — map API name → SVG id
   const provinceIdMap: Record<string, string> = {
     'Western':       'LK-1',
