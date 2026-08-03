@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import {
   ChevronLeft, ChevronRight, Activity,
   Zap, Database, ArrowRight, TrendingUp, Globe,
-  BarChart2, CloudRain, Cpu, Terminal, Landmark, Percent, Coins
+  BarChart2, CloudRain, Cpu, Terminal, Landmark, Percent, Coins, Clock
 } from 'lucide-react';
 import {
   PieChart, Pie, Cell, BarChart, Bar, XAxis,
@@ -47,6 +47,7 @@ export const Home: React.FC = () => {
   const [trendingDashboards, setTrendingDashboards] = useState<DashboardDetail[]>([]);
   const [currentDashboardIdx, setCurrentDashboardIdx] = useState(0);
   const [provinces, setProvinces] = useState<Province[]>([]);
+  const [selectedProvince, setSelectedProvince] = useState<Province | null>(null);
   const [provincesLoading, setProvincesLoading] = useState(true);
   const [provincesError, setProvincesError] = useState<string | null>(null);
 
@@ -65,6 +66,8 @@ export const Home: React.FC = () => {
     fetchProvinces()
       .then(data => {
         setProvinces(data);
+        const defaultWestern = data.find(p => p.province === 'Western') ?? data[0] ?? null;
+        setSelectedProvince(defaultWestern);
         setProvincesLoading(false);
       })
       .catch(err => {
@@ -581,23 +584,29 @@ export const Home: React.FC = () => {
               ) : provincesError ? (
                 <p className="text-sm text-red-400">{provincesError}</p>
               ) : (
-                <SriLankaMap provinces={provinces} mapOnly />
+                <SriLankaMap
+                  provinces={provinces}
+                  mapOnly
+                  selectedProvince={selectedProvince}
+                  onHoverProvince={setSelectedProvince}
+                  onSelectProvince={setSelectedProvince}
+                />
               )}
             </div>
 
-            {/* Province detail panel — Scaled up */}
+            {/* Province detail panel — Dynamic hover selection */}
             <div className="flex-1 p-6 flex flex-col justify-between">
               {(() => {
-                const featured = provinces.find(p => p.province === 'Eastern') ?? provinces[0] ?? null;
+                const featured = selectedProvince ?? provinces.find(p => p.province === 'Western') ?? provinces[0] ?? null;
                 if (!featured) return (
-                  <div className="text-sm text-lanka-muted py-6">Select a province on the map to view data.</div>
+                  <div className="text-sm text-lanka-muted py-6">Hover over any province on the map to view data.</div>
                 );
                 return (
                   <div className="h-full flex flex-col justify-between space-y-4">
                     <div>
                       <span className="text-[10px] font-extrabold text-lanka-cyan uppercase tracking-widest block">Selection Focus</span>
                       <h3 className="text-2xl sm:text-3xl font-black text-white mt-1">{featured.province} Province</h3>
-                      <span className="text-xs text-lanka-muted">Data current as of {featured.last_updated ?? '2023'}</span>
+                      <span className="text-xs text-lanka-muted">Hover or click any province on the map to update</span>
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
@@ -625,6 +634,24 @@ export const Home: React.FC = () => {
                         {featured.districts_included.map((d, i) => (
                           <span key={i} className="text-xs font-semibold px-3 py-1 rounded-lg bg-[#1e293b]/70 border border-slate-700/60 text-slate-200">{d}</span>
                         ))}
+                      </div>
+                    </div>
+
+                    {/* Data Source & Last Updated metadata */}
+                    <div className="grid grid-cols-2 gap-3 pt-1 border-t border-lanka-border/40">
+                      <div className="bg-white/[0.03] border border-lanka-border/80 rounded-xl p-3 flex items-center gap-2.5">
+                        <Database size={15} className="text-lanka-cyan shrink-0" />
+                        <div className="min-w-0">
+                          <span className="text-[9px] font-bold text-lanka-cyan uppercase tracking-widest block">Data Source</span>
+                          <span className="text-xs font-semibold text-slate-200 truncate block">{featured.data_source ?? 'Department of Census'}</span>
+                        </div>
+                      </div>
+                      <div className="bg-white/[0.03] border border-lanka-border/80 rounded-xl p-3 flex items-center gap-2.5">
+                        <Clock size={15} className="text-lanka-cyan shrink-0" />
+                        <div className="min-w-0">
+                          <span className="text-[9px] font-bold text-lanka-cyan uppercase tracking-widest block">Last Updated</span>
+                          <span className="text-xs font-semibold text-slate-200 truncate block">{featured.last_updated ?? '2023'}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
