@@ -4,10 +4,11 @@ import type { Province } from '../services/provinceService';
 
 interface SriLankaMapProps {
   compact?: boolean;
+  mapOnly?: boolean;
   provinces?: Province[];
 }
 
-export const SriLankaMap: React.FC<SriLankaMapProps> = ({ compact = false, provinces = [] }) => {
+export const SriLankaMap: React.FC<SriLankaMapProps> = ({ compact = false, mapOnly = false, provinces = [] }) => {
   // The SVG paths key off province names — map API name → SVG id
   const provinceIdMap: Record<string, string> = {
     'Western':       'LK-1',
@@ -153,6 +154,35 @@ export const SriLankaMap: React.FC<SriLankaMapProps> = ({ compact = false, provi
             </>
           )}
         </div>
+      </div>
+    );
+  }
+
+  // ── Map-only mode: just the SVG, no surrounding panel ─────────────────────
+  if (mapOnly) {
+    return (
+      <div className="relative flex justify-center w-full">
+        <div className="absolute inset-0 bg-radial-gradient from-lanka-cyan-glow to-transparent filter blur-2xl opacity-30 pointer-events-none" />
+        <svg
+          viewBox="0 0 300 400"
+          className="w-full max-w-[300px] sm:max-w-[340px] h-[340px] sm:h-[380px] transition-transform duration-300 drop-shadow-[0_0_18px_rgba(0,210,255,0.25)] hover:scale-[1.02]"
+        >
+          {provincePaths.map((p) => {
+            const data = getProvinceByPathId(p.id);
+            const isSelected = hoveredProvince && provinceIdMap[hoveredProvince.province] === p.id;
+            return (
+              <path
+                key={p.id}
+                d={p.d}
+                className={`transition-all duration-300 stroke-2 cursor-pointer outline-none ${p.color} ${
+                  isSelected ? 'fill-lanka-cyan/30 stroke-lanka-cyan' : 'stroke-lanka-blue-light/20'
+                }`}
+                onMouseEnter={() => data && setHoveredProvince(data)}
+                onClick={() => data && setHoveredProvince(data)}
+              />
+            );
+          })}
+        </svg>
       </div>
     );
   }

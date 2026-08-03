@@ -42,10 +42,10 @@ export const MOCK_DISCOVER_STATS = [
 ];
 
 export const MOCK_FOOTER_METRICS = [
-  { label: 'NATIONAL FLOWER', value: 'Blue Water Lily' },
-  { label: 'NATIONAL TREE', value: 'Na Tree' },
-  { label: 'TIME ZONE', value: 'GMT +5:30' },
-  { label: 'CURRENCY', value: 'LKR (Rs)' }
+  { label: 'NATIONAL FLOWER', value: 'Blue Water Lily', icon: '🌸', desc: 'Nil Manel' },
+  { label: 'NATIONAL TREE', value: 'Na Tree', icon: '🌳', desc: 'Ironwood' },
+  { label: 'TIME ZONE', value: 'GMT +5:30', icon: '🕐', desc: 'SLST Standard' },
+  { label: 'CURRENCY', value: 'LKR (Rs)', icon: '💰', desc: 'Official Tender' }
 ];
 
 export const srilankaService = {

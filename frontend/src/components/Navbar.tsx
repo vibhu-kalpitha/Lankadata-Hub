@@ -80,9 +80,13 @@ export const Navbar: React.FC = () => {
     <nav className="sticky top-0 z-50 bg-[#070b13]/80 backdrop-blur-md border-b border-lanka-border shadow-glass px-6 py-4">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 rounded-lg bg-lanka-blue flex items-center justify-center shadow-blue-glow group-hover:scale-105 transition-transform">
-            <span className="text-white font-bold text-lg">L</span>
+        <Link to="/" className="flex items-center gap-3 group">
+          <div className="w-9 h-9 flex items-center justify-center group-hover:scale-105 transition-transform">
+            <img 
+              src="/logo-mark.png" 
+              alt="LankaData Hub Logo" 
+              className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(0,210,255,0.4)]" 
+            />
           </div>
           <span className="font-bold text-xl tracking-tight text-white group-hover:text-lanka-cyan transition-colors">
             LankaData Hub
