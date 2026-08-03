@@ -24,8 +24,9 @@ export const Footer: React.FC = () => {
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
         {/* Left Side */}
         <div className="flex flex-col items-center md:items-start gap-2">
-          <Link to="/" className="font-bold text-lg text-white tracking-tight hover:text-lanka-cyan transition-colors">
-            LankaData Hub
+          <Link to="/" className="flex items-center gap-2.5 font-bold text-lg text-white tracking-tight hover:text-lanka-cyan transition-colors group">
+            <img src="/logo-mark.png" alt="LankaData Hub Logo" className="w-6 h-6 object-contain filter drop-shadow-[0_0_6px_rgba(0,210,255,0.3)] group-hover:scale-105 transition-transform" />
+            <span>LankaData Hub</span>
           </Link>
           <p className="text-[11px] text-lanka-darkText text-center md:text-left">
             &copy; {currentYear} LankaData Hub. National Data Platform of Sri Lanka. All rights reserved.

@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import {
   ChevronLeft, ChevronRight, Activity,
   Zap, Database, ArrowRight, TrendingUp, Globe,
-  BarChart2, CloudRain, Cpu, Terminal
+  BarChart2, CloudRain, Cpu, Terminal, Landmark, Percent, Coins
 } from 'lucide-react';
 import {
   PieChart, Pie, Cell, BarChart, Bar, XAxis,
@@ -547,51 +547,205 @@ export const Home: React.FC = () => {
           DISCOVER SRI LANKA
       ══════════════════════════════════════════════════ */}
       <section className="max-w-7xl mx-auto px-6 py-10">
-        <div className="text-center mb-8">
-          <h2 className="text-2xl font-black text-white mb-2">Discover Sri Lanka</h2>
-          <p className="text-xs text-lanka-muted max-w-xl mx-auto leading-relaxed">
+        {/* Section header — Centered */}
+        <div className="text-center max-w-2xl mx-auto mb-8">
+          <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight mb-2">Discover Sri Lanka</h2>
+          <p className="text-xs sm:text-sm text-lanka-muted leading-relaxed">
             The macroeconomic and demographic portrait of the Pearl of the Indian Ocean.
           </p>
         </div>
-        <div className="mb-6">
-          {provincesLoading ? (
-            <div className="flex items-center justify-center h-[420px] glass-panel rounded-2xl">
-              <div className="flex flex-col items-center gap-3 text-lanka-muted">
-                <div className="w-8 h-8 border-2 border-lanka-cyan border-t-transparent rounded-full animate-spin" />
-                <span className="text-xs font-semibold uppercase tracking-wider">Loading province data…</span>
+
+        {/* ── Regional Overview Panel ── */}
+        <div className="bg-[#050d1a]/90 border border-lanka-border rounded-2xl overflow-hidden mb-5 shadow-glass">
+          {/* Panel header */}
+          <div className="flex items-center justify-between px-6 py-3.5 border-b border-lanka-border/60 bg-[#081324]/50">
+            <div>
+              <span className="text-xs font-black text-white tracking-wide uppercase">Regional Overview</span>
+              <span className="text-[10px] text-lanka-muted ml-3 uppercase tracking-widest hidden sm:inline">Interactive Geo-Spatial Data</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button className="px-3.5 py-1.5 text-xs font-bold bg-lanka-cyan/20 border border-lanka-cyan/50 text-lanka-cyan rounded-lg uppercase tracking-wider">Heatmap</button>
+              <button className="px-3.5 py-1.5 text-xs font-bold bg-white/[0.04] border border-lanka-border text-lanka-muted rounded-lg uppercase tracking-wider hover:border-lanka-border-hover hover:text-white transition-all">Boundary View</button>
+            </div>
+          </div>
+
+          {/* Map + Province detail */}
+          <div className="flex flex-col lg:flex-row items-stretch">
+            {/* Map Column — Scaled up */}
+            <div className="lg:w-[48%] p-6 flex items-center justify-center border-b lg:border-b-0 lg:border-r border-lanka-border/40 min-h-[380px] bg-[#030914]/40">
+              {provincesLoading ? (
+                <div className="flex flex-col items-center gap-3 text-lanka-muted py-12">
+                  <div className="w-8 h-8 border-2 border-lanka-cyan border-t-transparent rounded-full animate-spin" />
+                  <span className="text-xs uppercase tracking-wider font-semibold">Loading map data…</span>
+                </div>
+              ) : provincesError ? (
+                <p className="text-sm text-red-400">{provincesError}</p>
+              ) : (
+                <SriLankaMap provinces={provinces} mapOnly />
+              )}
+            </div>
+
+            {/* Province detail panel — Scaled up */}
+            <div className="flex-1 p-6 flex flex-col justify-between">
+              {(() => {
+                const featured = provinces.find(p => p.province === 'Eastern') ?? provinces[0] ?? null;
+                if (!featured) return (
+                  <div className="text-sm text-lanka-muted py-6">Select a province on the map to view data.</div>
+                );
+                return (
+                  <div className="h-full flex flex-col justify-between space-y-4">
+                    <div>
+                      <span className="text-[10px] font-extrabold text-lanka-cyan uppercase tracking-widest block">Selection Focus</span>
+                      <h3 className="text-2xl sm:text-3xl font-black text-white mt-1">{featured.province} Province</h3>
+                      <span className="text-xs text-lanka-muted">Data current as of {featured.last_updated ?? '2023'}</span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-white/[0.04] border border-lanka-border rounded-xl p-3.5">
+                        <span className="text-[9px] font-bold text-lanka-cyan uppercase tracking-widest block mb-1">Administrative Capital</span>
+                        <span className="text-base font-bold text-white">{featured.provincial_capital}</span>
+                      </div>
+                      <div className="bg-white/[0.04] border border-lanka-border rounded-xl p-3.5">
+                        <span className="text-[9px] font-bold text-lanka-cyan uppercase tracking-widest block mb-1">Total Land Area</span>
+                        <span className="text-base font-bold text-white">{featured.total_area_km2.toLocaleString()} <span className="text-xs text-lanka-muted font-normal">km²</span></span>
+                      </div>
+                      <div className="bg-white/[0.04] border border-lanka-border rounded-xl p-3.5">
+                        <span className="text-[9px] font-bold text-lanka-cyan uppercase tracking-widest block mb-1">Estimated Population</span>
+                        <span className="text-base font-bold text-white">{featured.estimated_population}</span>
+                      </div>
+                      <div className="bg-white/[0.04] border border-lanka-border rounded-xl p-3.5">
+                        <span className="text-[9px] font-bold text-lanka-cyan uppercase tracking-widest block mb-1">District Count</span>
+                        <span className="text-base font-bold text-white">{String(featured.districts_included.length).padStart(2, '0')}</span>
+                      </div>
+                    </div>
+
+                    <div className="bg-white/[0.04] border border-lanka-border rounded-xl p-3.5">
+                      <span className="text-[9px] font-bold text-lanka-cyan uppercase tracking-widest block mb-2">Constituent Districts</span>
+                      <div className="flex flex-wrap gap-2">
+                        {featured.districts_included.map((d, i) => (
+                          <span key={i} className="text-xs font-semibold px-3 py-1 rounded-lg bg-[#1e293b]/70 border border-slate-700/60 text-slate-200">{d}</span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+        </div>
+
+        {/* ── National Aggregates ── */}
+        <div className="bg-[#050d1a]/90 border border-lanka-border rounded-2xl p-5 mb-5 shadow-glass">
+          <div className="flex items-center justify-between px-1 mb-4">
+            <div>
+              <span className="text-xs font-black text-white uppercase tracking-wide">National Aggregates</span>
+              <p className="text-[10px] text-lanka-muted mt-0.5">Consolidated Island-wide metrics across all administrative zones</p>
+            </div>
+            <span className="text-xs font-bold text-lanka-cyan border border-lanka-cyan/40 px-3 py-1 rounded-full uppercase tracking-widest">+ Island-Wide</span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+            {discoverStats.map((s, i) => (
+              <div key={i} className="bg-white/[0.03] border border-lanka-border hover:border-lanka-border-hover rounded-xl p-3.5 text-center transition-all hover:scale-[1.03]">
+                <span className="text-[9px] font-bold text-lanka-darkText uppercase tracking-widest block mb-1.5 leading-tight">{s.label}</span>
+                <span className="text-lg sm:text-xl font-black text-white leading-none">{s.value}</span>
+                {s.unit && <span className="text-xs text-lanka-muted ml-0.5">{s.unit}</span>}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Bottom row: Economic Focus + National Symbols ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Key Economic Indicators — 4 Dev Boxes with Icons */}
+          <div className="bg-[#050d1a]/90 border border-lanka-border rounded-2xl p-5 shadow-glass">
+            <div className="flex items-center justify-between mb-3.5 px-1">
+              <div>
+                <span className="text-[10px] font-extrabold text-lanka-cyan uppercase tracking-widest block">Economic Focus</span>
+                <span className="text-xs sm:text-sm font-black text-white block mt-0.5">Macroeconomic Indicators</span>
+              </div>
+              <span className="text-[10px] font-bold text-slate-400 bg-white/[0.05] border border-lanka-border px-2.5 py-1 rounded-full uppercase tracking-wider">
+                CBSL 2024
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              {/* Box 1: GDP Growth */}
+              <div className="bg-white/[0.03] border border-lanka-border rounded-xl p-3 flex items-center gap-3 hover:border-lanka-border-hover transition-all">
+                <div className="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center shrink-0">
+                  <TrendingUp className="w-4.5 h-4.5 text-emerald-400" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[9px] font-bold text-lanka-darkText uppercase tracking-widest block leading-none mb-1">GDP Growth</span>
+                  <span className="text-base font-black text-white leading-none block">+4.5%</span>
+                  <span className="text-[10px] text-emerald-400 font-medium block mt-0.5">Real Expansion</span>
+                </div>
+              </div>
+
+              {/* Box 2: Inflation Rate */}
+              <div className="bg-white/[0.03] border border-lanka-border rounded-xl p-3 flex items-center gap-3 hover:border-lanka-border-hover transition-all">
+                <div className="w-9 h-9 rounded-lg bg-lanka-cyan/10 border border-lanka-cyan/30 flex items-center justify-center shrink-0">
+                  <Percent className="w-4.5 h-4.5 text-lanka-cyan" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[9px] font-bold text-lanka-darkText uppercase tracking-widest block leading-none mb-1">Inflation Rate</span>
+                  <span className="text-base font-black text-white leading-none block">0.8%</span>
+                  <span className="text-[10px] text-lanka-muted font-medium block mt-0.5">Headline CCPI</span>
+                </div>
+              </div>
+
+              {/* Box 3: Forex Reserves */}
+              <div className="bg-white/[0.03] border border-lanka-border rounded-xl p-3 flex items-center gap-3 hover:border-lanka-border-hover transition-all">
+                <div className="w-9 h-9 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center shrink-0">
+                  <Landmark className="w-4.5 h-4.5 text-amber-400" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[9px] font-bold text-lanka-darkText uppercase tracking-widest block leading-none mb-1">Forex Reserves</span>
+                  <span className="text-base font-black text-white leading-none block">$5.4B</span>
+                  <span className="text-[10px] text-amber-400/90 font-medium block mt-0.5">Official Reserves</span>
+                </div>
+              </div>
+
+              {/* Box 4: Policy Rate */}
+              <div className="bg-white/[0.03] border border-lanka-border rounded-xl p-3 flex items-center gap-3 hover:border-lanka-border-hover transition-all">
+                <div className="w-9 h-9 rounded-lg bg-purple-500/10 border border-purple-500/30 flex items-center justify-center shrink-0">
+                  <Coins className="w-4.5 h-4.5 text-purple-400" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[9px] font-bold text-lanka-darkText uppercase tracking-widest block leading-none mb-1">Policy Rate</span>
+                  <span className="text-base font-black text-white leading-none block">8.25%</span>
+                  <span className="text-[10px] text-purple-400/90 font-medium block mt-0.5">SDFR / SLFR</span>
+                </div>
               </div>
             </div>
-          ) : provincesError ? (
-            <div className="flex items-center justify-center h-[420px] glass-panel rounded-2xl">
-              <div className="text-center space-y-2">
-                <p className="text-sm font-semibold text-red-400">{provincesError}</p>
-                <p className="text-xs text-lanka-muted">Check that the FastAPI service is running.</p>
+          </div>
+
+          {/* National Identity & Symbols — 4 Dev Boxes with Icons */}
+          <div className="bg-[#050d1a]/90 border border-lanka-border rounded-2xl p-5 shadow-glass">
+            <div className="flex items-center justify-between mb-3.5 px-1">
+              <div>
+                <span className="text-[10px] font-extrabold text-lanka-cyan uppercase tracking-widest block">National Profile</span>
+                <span className="text-xs sm:text-sm font-black text-white block mt-0.5">National Identity & Specs</span>
               </div>
+              <span className="text-[10px] font-bold text-slate-400 bg-white/[0.05] border border-lanka-border px-2.5 py-1 rounded-full uppercase tracking-wider">
+                Official Specs
+              </span>
             </div>
-          ) : provinces.length === 0 ? (
-            <div className="flex items-center justify-center h-[420px] glass-panel rounded-2xl">
-              <p className="text-sm text-lanka-muted">No province data available.</p>
+
+            <div className="grid grid-cols-2 gap-3">
+              {srilankaService.getFooterMetrics().map((m: any, i: number) => (
+                <div key={i} className="bg-white/[0.03] border border-lanka-border rounded-xl p-3 flex items-center gap-3 hover:border-lanka-border-hover transition-all">
+                  <div className="w-9 h-9 rounded-lg bg-lanka-cyan/10 border border-lanka-cyan/30 flex items-center justify-center shrink-0 text-base">
+                    {m.icon || '🇱🇰'}
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-[9px] font-bold text-lanka-darkText uppercase tracking-widest block leading-none mb-1">{m.label}</span>
+                    <span className="text-base font-black text-white leading-none block truncate">{m.value}</span>
+                    <span className="text-[10px] text-lanka-muted font-medium block mt-0.5">{m.desc}</span>
+                  </div>
+                </div>
+              ))}
             </div>
-          ) : (
-            <SriLankaMap provinces={provinces} />
-          )}
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-          {discoverStats.map((s, i) => (
-            <div key={i} className="bg-white/[0.03] border border-lanka-border hover:border-lanka-border-hover rounded-2xl p-4 text-center transition-all hover:scale-[1.02]">
-              <span className="text-[9px] font-bold text-lanka-darkText uppercase tracking-widest block mb-2">{s.label}</span>
-              <span className="text-2xl font-black text-white">{s.value}</span>
-              {s.unit && <span className="text-xs text-lanka-muted ml-1">{s.unit}</span>}
-            </div>
-          ))}
-        </div>
-        <div className="mt-6 bg-[#050d1a]/70 border border-lanka-border rounded-2xl p-5 flex flex-wrap justify-around gap-6 text-center">
-          {srilankaService.getFooterMetrics().map((m, i) => (
-            <div key={i}>
-              <span className="text-[9px] font-bold text-lanka-darkText uppercase tracking-widest block">{m.label}</span>
-              <span className="text-xs font-black text-white mt-1 block">{m.value}</span>
-            </div>
-          ))}
+          </div>
         </div>
       </section>
 
