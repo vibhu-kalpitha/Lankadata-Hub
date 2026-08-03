@@ -6,9 +6,19 @@ interface SriLankaMapProps {
   compact?: boolean;
   mapOnly?: boolean;
   provinces?: Province[];
+  selectedProvince?: Province | null;
+  onHoverProvince?: (province: Province | null) => void;
+  onSelectProvince?: (province: Province | null) => void;
 }
 
-export const SriLankaMap: React.FC<SriLankaMapProps> = ({ compact = false, mapOnly = false, provinces = [] }) => {
+export const SriLankaMap: React.FC<SriLankaMapProps> = ({
+  compact = false,
+  mapOnly = false,
+  provinces = [],
+  selectedProvince = null,
+  onHoverProvince,
+  onSelectProvince
+}) => {
   // The SVG paths key off province names — map API name → SVG id
   const provinceIdMap: Record<string, string> = {
     'Western':       'LK-1',
@@ -24,7 +34,21 @@ export const SriLankaMap: React.FC<SriLankaMapProps> = ({ compact = false, mapOn
 
   // Default to Western province on load
   const defaultProvince = provinces.find(p => p.province === 'Western') ?? provinces[0] ?? null;
-  const [hoveredProvince, setHoveredProvince] = useState<Province | null>(defaultProvince);
+  const [internalHovered, setInternalHovered] = useState<Province | null>(defaultProvince);
+
+  // Active province is selectedProvince if provided, otherwise internal state
+  const activeProvince = selectedProvince ?? internalHovered;
+
+  const handleHover = (data: Province) => {
+    setInternalHovered(data);
+    onHoverProvince?.(data);
+  };
+
+  const handleClick = (data: Province) => {
+    setInternalHovered(data);
+    onSelectProvince?.(data);
+    onHoverProvince?.(data);
+  };
 
   // Stylized SVG paths for Sri Lanka's 9 provinces (scaled for viewBox="0 0 300 450")
   const provincePaths = [
@@ -101,7 +125,7 @@ export const SriLankaMap: React.FC<SriLankaMapProps> = ({ compact = false, mapOn
           >
             {provincePaths.map((p) => {
               const data = getProvinceByPathId(p.id);
-              const isSelected = hoveredProvince && provinceIdMap[hoveredProvince.province] === p.id;
+              const isSelected = activeProvince && provinceIdMap[activeProvince.province] === p.id;
               return (
                 <path
                   key={p.id}
@@ -109,8 +133,8 @@ export const SriLankaMap: React.FC<SriLankaMapProps> = ({ compact = false, mapOn
                   className={`transition-all duration-300 stroke-2 cursor-pointer outline-none ${p.color} ${
                     isSelected ? 'fill-lanka-cyan/40 stroke-lanka-cyan scale-[1.03] transform-origin-center' : 'stroke-lanka-blue-light/30'
                   }`}
-                  onMouseEnter={() => data && setHoveredProvince(data)}
-                  onClick={() => data && setHoveredProvince(data)}
+                  onMouseEnter={() => data && handleHover(data)}
+                  onClick={() => data && handleClick(data)}
                 />
               );
             })}
@@ -119,37 +143,37 @@ export const SriLankaMap: React.FC<SriLankaMapProps> = ({ compact = false, mapOn
 
         {/* Details Card on Right */}
         <div className="w-full sm:w-1/2 bg-[#07172b]/80 border border-lanka-border rounded-xl p-3 flex flex-col justify-between space-y-2 text-xs">
-          {hoveredProvince && (
+          {activeProvince && (
             <>
               <div>
                 <span className="text-[9px] font-bold text-cyan-400 uppercase tracking-widest block">Province Profile</span>
                 <h4 className="text-sm font-black text-white flex items-center gap-1.5 mt-0.5">
                   <MapPin size={13} className="text-cyan-400 animate-pulse" />
-                  {hoveredProvince.province} Province
+                  {activeProvince.province} Province
                 </h4>
               </div>
 
               <div className="grid grid-cols-2 gap-1.5 text-[10px]">
                 <div className="bg-white/5 border border-lanka-border p-1.5 rounded-lg">
                   <span className="text-[8px] font-bold text-lanka-darkText block uppercase">Capital</span>
-                  <span className="font-bold text-white truncate block">{hoveredProvince.provincial_capital}</span>
+                  <span className="font-bold text-white truncate block">{activeProvince.provincial_capital}</span>
                 </div>
                 <div className="bg-white/5 border border-lanka-border p-1.5 rounded-lg">
                   <span className="text-[8px] font-bold text-lanka-darkText block uppercase">Area</span>
-                  <span className="font-bold text-white truncate block">{formatArea(hoveredProvince.total_area_km2)}</span>
+                  <span className="font-bold text-white truncate block">{formatArea(activeProvince.total_area_km2)}</span>
                 </div>
               </div>
 
               <div className="bg-white/5 border border-lanka-border p-1.5 rounded-lg text-[10px]">
                 <span className="text-[8px] font-bold text-lanka-darkText block uppercase mb-0.5">Population</span>
                 <span className="font-bold text-teal-400 flex items-center gap-1">
-                  <Users size={11} /> {hoveredProvince.estimated_population}
+                  <Users size={11} /> {activeProvince.estimated_population}
                 </span>
               </div>
 
               <div className="text-[9px] text-lanka-muted pt-1 border-t border-lanka-border/50">
                 <span className="font-bold text-slate-300">Districts: </span>
-                <span className="line-clamp-1">{hoveredProvince.districts_included.join(', ')}</span>
+                <span className="line-clamp-1">{activeProvince.districts_included.join(', ')}</span>
               </div>
             </>
           )}
@@ -169,7 +193,7 @@ export const SriLankaMap: React.FC<SriLankaMapProps> = ({ compact = false, mapOn
         >
           {provincePaths.map((p) => {
             const data = getProvinceByPathId(p.id);
-            const isSelected = hoveredProvince && provinceIdMap[hoveredProvince.province] === p.id;
+            const isSelected = activeProvince && provinceIdMap[activeProvince.province] === p.id;
             return (
               <path
                 key={p.id}
@@ -177,8 +201,8 @@ export const SriLankaMap: React.FC<SriLankaMapProps> = ({ compact = false, mapOn
                 className={`transition-all duration-300 stroke-2 cursor-pointer outline-none ${p.color} ${
                   isSelected ? 'fill-lanka-cyan/30 stroke-lanka-cyan' : 'stroke-lanka-blue-light/20'
                 }`}
-                onMouseEnter={() => data && setHoveredProvince(data)}
-                onClick={() => data && setHoveredProvince(data)}
+                onMouseEnter={() => data && handleHover(data)}
+                onClick={() => data && handleClick(data)}
               />
             );
           })}
@@ -198,7 +222,7 @@ export const SriLankaMap: React.FC<SriLankaMapProps> = ({ compact = false, mapOn
         >
           {provincePaths.map((p) => {
             const data = getProvinceByPathId(p.id);
-            const isSelected = hoveredProvince && provinceIdMap[hoveredProvince.province] === p.id;
+            const isSelected = activeProvince && provinceIdMap[activeProvince.province] === p.id;
             return (
               <path
                 key={p.id}
@@ -206,8 +230,8 @@ export const SriLankaMap: React.FC<SriLankaMapProps> = ({ compact = false, mapOn
                 className={`transition-all duration-300 stroke-2 cursor-pointer outline-none ${p.color} ${
                   isSelected ? 'fill-lanka-cyan/30 stroke-lanka-cyan scale-[1.02] transform-origin-center' : 'stroke-lanka-blue-light/20'
                 }`}
-                onMouseEnter={() => data && setHoveredProvince(data)}
-                onClick={() => data && setHoveredProvince(data)}
+                onMouseEnter={() => data && handleHover(data)}
+                onClick={() => data && handleClick(data)}
               />
             );
           })}
@@ -220,33 +244,33 @@ export const SriLankaMap: React.FC<SriLankaMapProps> = ({ compact = false, mapOn
 
       {/* Stats Detail Section */}
       <div className="w-full lg:w-1/2 flex flex-col justify-center">
-        {hoveredProvince ? (
+        {activeProvince ? (
           <div className="space-y-4">
             <div className="border-b border-lanka-border pb-3">
               <span className="text-[10px] font-bold text-lanka-cyan uppercase tracking-wider">Province Profile</span>
               <h3 className="text-xl font-bold text-white flex items-center gap-2 mt-1">
                 <MapPin size={18} className="text-lanka-cyan animate-pulse" />
-                {hoveredProvince.province} Province
+                {activeProvince.province} Province
               </h3>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-lanka-bg-light/50 border border-lanka-border rounded-xl p-3">
                 <span className="text-[10px] font-semibold text-lanka-darkText uppercase block mb-1">PROVINCIAL CAPITAL</span>
-                <span className="text-sm font-bold text-white">{hoveredProvince.provincial_capital}</span>
+                <span className="text-sm font-bold text-white">{activeProvince.provincial_capital}</span>
               </div>
               <div className="bg-lanka-bg-light/50 border border-lanka-border rounded-xl p-3">
                 <span className="text-[10px] font-semibold text-lanka-darkText uppercase block mb-1">TOTAL AREA</span>
                 <span className="text-sm font-bold text-white flex items-center gap-1">
                   <Maximize2 size={12} className="text-lanka-muted" />
-                  {formatArea(hoveredProvince.total_area_km2)}
+                  {formatArea(activeProvince.total_area_km2)}
                 </span>
               </div>
               <div className="bg-lanka-bg-light/50 border border-lanka-border rounded-xl p-3 col-span-2">
                 <span className="text-[10px] font-semibold text-lanka-darkText uppercase block mb-1">ESTIMATED POPULATION</span>
                 <span className="text-sm font-bold text-white flex items-center gap-1.5">
                   <Users size={14} className="text-lanka-teal" />
-                  {hoveredProvince.estimated_population} Residents
+                  {activeProvince.estimated_population} Residents
                 </span>
               </div>
             </div>
@@ -254,7 +278,7 @@ export const SriLankaMap: React.FC<SriLankaMapProps> = ({ compact = false, mapOn
             <div className="bg-lanka-bg-light/50 border border-lanka-border rounded-xl p-3">
               <span className="text-[10px] font-semibold text-lanka-darkText uppercase block mb-1.5">DISTRICTS INCLUDED</span>
               <div className="flex flex-wrap gap-1.5">
-                {hoveredProvince.districts_included.map((dist, idx) => (
+                {activeProvince.districts_included.map((dist: string, idx: number) => (
                   <span
                     key={idx}
                     className="text-[11px] font-medium bg-[#1e293b]/55 border border-slate-700/50 text-slate-300 px-2 py-0.5 rounded-full"
@@ -267,21 +291,21 @@ export const SriLankaMap: React.FC<SriLankaMapProps> = ({ compact = false, mapOn
 
             {/* ── NEW: Data Source & Last Updated ──────────────────── */}
             <div className="grid grid-cols-2 gap-4">
-              {hoveredProvince.data_source && (
+              {activeProvince.data_source && (
                 <div className="bg-lanka-bg-light/50 border border-lanka-border rounded-xl p-3">
                   <span className="text-[10px] font-semibold text-lanka-darkText uppercase block mb-1">DATA SOURCE</span>
                   <span className="text-[11px] font-medium text-slate-300 flex items-center gap-1">
                     <Database size={11} className="text-lanka-muted shrink-0" />
-                    {hoveredProvince.data_source}
+                    {activeProvince.data_source}
                   </span>
                 </div>
               )}
-              {hoveredProvince.last_updated && (
+              {activeProvince.last_updated && (
                 <div className="bg-lanka-bg-light/50 border border-lanka-border rounded-xl p-3">
                   <span className="text-[10px] font-semibold text-lanka-darkText uppercase block mb-1">LAST UPDATED</span>
                   <span className="text-[11px] font-medium text-slate-300 flex items-center gap-1">
                     <Clock size={11} className="text-lanka-muted shrink-0" />
-                    {hoveredProvince.last_updated}
+                    {activeProvince.last_updated}
                   </span>
                 </div>
               )}
