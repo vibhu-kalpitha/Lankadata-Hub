@@ -5,7 +5,7 @@ Defines the database table schema for all entities.
 
 from sqlalchemy import (
     Column, Integer, String, Float, Boolean,
-    Text, DateTime, ForeignKey, ARRAY
+    Text, DateTime, Date, ForeignKey, ARRAY
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -108,7 +108,7 @@ class Province(Base):
     province = Column(String(100), nullable=False, unique=True, index=True)
     provincial_capital = Column(String(100), nullable=False)
     total_area_km2 = Column(Float, nullable=False)
-    estimated_population = Column(String(50), nullable=False)
+    estimated_population = Column(Integer, nullable=True)
     districts_included = Column(Text, nullable=False)  # comma-separated list
     data_source = Column(String(200), nullable=True)
-    last_updated = Column(String(50), nullable=True)
+    last_updated = Column(Date, nullable=True)
