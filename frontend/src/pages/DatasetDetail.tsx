@@ -2,9 +2,8 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   FileText, Eye, Download, Database, ChevronRight,
-  Calendar, Search, ArrowUpDown, Copy, Check,
-  Sparkles, RefreshCw, AlertTriangle, Maximize2, Minimize2,
-  TrendingUp, Activity, ExternalLink, Code, Layers
+  Search, ArrowUpDown, Sparkles, AlertTriangle, Maximize2, Minimize2,
+  Activity, Code, Layers
 } from 'lucide-react';
 import {
   LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip
@@ -65,8 +64,8 @@ const DynamicDatasetCharts: React.FC<{ rows: Array<Record<string, any>>; columns
     const sample = rows[0];
     const allKeys = columns && columns.length > 0 ? columns : Object.keys(sample);
 
-    let dateKey = allKeys.find(k => /date|year|time|month|day|period/i.test(k));
-    let labelKey = dateKey || allKeys.find(k => /region|district|province|name|category|title|code/i.test(k)) || allKeys[0];
+    const dateKey = allKeys.find(k => /date|year|time|month|day|period/i.test(k));
+    const labelKey = dateKey || allKeys.find(k => /region|district|province|name|category|title|code/i.test(k)) || allKeys[0];
 
     const numericKeys = allKeys.filter(k => {
       if (k === labelKey) return false;
@@ -178,13 +177,11 @@ export const DatasetDetail: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [copiedFormat, setCopiedFormat] = useState<string | null>(null);
 
   // Table controls
   const [searchTerm, setSearchTerm] = useState('');
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-  const [currentPage, setCurrentPage] = useState(1);
 
   const loadDataset = useCallback(async () => {
     if (!id) return;
@@ -239,8 +236,8 @@ export const DatasetDetail: React.FC = () => {
     const rawRows = recordsResponse?.rows || dataset?.preview_rows || [];
     let filtered = [...rawRows];
 
-    if (searchTerm.strip?.() || searchTerm) {
-      const s = searchTerm.toLowerCase();
+    if (searchTerm.trim()) {
+      const s = searchTerm.trim().toLowerCase();
       filtered = filtered.filter(r => Object.values(r).some(v => String(v).toLowerCase().includes(s)));
     }
 
@@ -264,14 +261,6 @@ export const DatasetDetail: React.FC = () => {
     if (!id) return;
     const url = datasetService.getDownloadUrl(id, format);
     window.open(url, '_blank');
-  };
-
-  const handleCopyLink = (format: string) => {
-    if (!id) return;
-    const url = datasetService.getDownloadUrl(id, format);
-    navigator.clipboard.writeText(url);
-    setCopiedFormat(format);
-    setTimeout(() => setCopiedFormat(null), 2000);
   };
 
   if (loading) return <PageSkeleton />;
@@ -574,3 +563,5 @@ export const DatasetDetail: React.FC = () => {
     </div>
   );
 };
+
+export default DatasetDetail;
