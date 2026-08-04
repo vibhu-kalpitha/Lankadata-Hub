@@ -6,6 +6,7 @@ export interface Dataset {
   title: string;
   description: string;
   category: string;
+  table_name?: string;
   formats: string[];
   updatedAt?: string;
   updated_at?: string;
