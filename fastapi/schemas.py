@@ -31,6 +31,7 @@ class DatasetBase(BaseModel):
     title: str
     description: str
     category: str
+    table_name: Optional[str] = None
     formats: List[str]
     maintainer: Optional[str] = None
     source: Optional[str] = None

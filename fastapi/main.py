@@ -442,6 +442,7 @@ DEFAULT_DATASETS_SEED = {
         "description": "Historical daily USD buying and selling exchange rates published by the Central Bank of Sri Lanka.",
         "full_description": "Comprehensive daily USD exchange rate dataset maintained by the Central Bank of Sri Lanka (CBSL). Contains buying and selling rates against LKR with historical coverage.",
         "category_id": "economy",
+        "table_name": "usd_exchange_rates",
         "formats": "CSV,JSON,SQL,API",
         "maintainer": "Central Bank of Sri Lanka",
         "source": "Central Bank of Sri Lanka",
@@ -456,6 +457,7 @@ DEFAULT_DATASETS_SEED = {
         "description": "Daily US Dollar buying and selling exchange rates published by Hatton National Bank (HNB), Sri Lanka.",
         "full_description": "Commercial bank exchange rates for USD published daily by Hatton National Bank (HNB), including buying and selling telegraphic transfers (TT) and note rates.",
         "category_id": "economy",
+        "table_name": "hnb_usd_exchange_rates",
         "formats": "CSV,JSON,SQL,API",
         "maintainer": "Hatton National Bank",
         "source": "Hatton National Bank",
@@ -477,7 +479,9 @@ def resolve_dataset_object(dataset_id: str, db: Session) -> models.Dataset:
 
     try:
         for cand_id in ids_to_try:
-            ds = db.query(models.Dataset).filter(models.Dataset.id == cand_id).first()
+            ds = db.query(models.Dataset).filter(
+                (models.Dataset.id == cand_id) | (models.Dataset.table_name == cand_id)
+            ).first()
             if ds:
                 return ds
     except Exception:
@@ -504,6 +508,7 @@ def resolve_dataset_object(dataset_id: str, db: Session) -> models.Dataset:
             "description": f"Official open dataset for {title_fmt}.",
             "full_description": f"Historical open data dataset for {title_fmt} maintained by LankaData Hub.",
             "category_id": "economy",
+            "table_name": raw_id.replace("-", "_"),
             "formats": "CSV,JSON,SQL,API",
             "maintainer": "LankaData Hub",
             "source": "Central Bank of Sri Lanka",
@@ -520,6 +525,7 @@ def resolve_dataset_object(dataset_id: str, db: Session) -> models.Dataset:
         description=seed_info["description"],
         full_description=seed_info.get("full_description", seed_info["description"]),
         category_id=seed_info.get("category_id", "economy"),
+        table_name=seed_info.get("table_name", raw_id.replace("-", "_")),
         formats=seed_info.get("formats", "CSV,JSON,SQL,API"),
         maintainer=seed_info.get("maintainer", "LankaData Hub"),
         source=seed_info.get("source", "Central Bank of Sri Lanka"),
@@ -537,6 +543,16 @@ def resolve_dataset_object(dataset_id: str, db: Session) -> models.Dataset:
 def get_dynamic_table_records(dataset_id: str, db: Session, search: Optional[str] = None, sort_by: Optional[str] = None, sort_order: Optional[str] = "asc", limit: Optional[int] = None, offset: Optional[int] = None):
     clean_id = (dataset_id or "").strip().lower()
     
+    explicit_table = None
+    try:
+        ds = db.query(models.Dataset).filter(
+            (models.Dataset.id == clean_id) | (models.Dataset.table_name == clean_id) | (models.Dataset.table_name == clean_id.replace("-", "_"))
+        ).first()
+        if ds and ds.table_name:
+            explicit_table = ds.table_name
+    except Exception:
+        db.rollback()
+
     try:
         bind = db.get_bind()
         inspector = inspect(bind)
@@ -544,10 +560,13 @@ def get_dynamic_table_records(dataset_id: str, db: Session, search: Optional[str
     except Exception:
         all_tables = []
 
-    candidate_tables = [
+    candidate_tables = []
+    if explicit_table:
+        candidate_tables.append(explicit_table)
+    candidate_tables.extend([
         clean_id.replace("-", "_"),
         clean_id,
-    ]
+    ])
     if clean_id in ["hnb-usd-exchange-rates", "hnb-usd-rates", "hnb-usd-exchange-rate"]:
         candidate_tables.extend(["hnb_usd_exchange_rates", "hnb_usd_rates"])
     if clean_id in ["usd-exchange-rates", "usd-exchange-rate"]:
