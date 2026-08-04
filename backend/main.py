@@ -164,38 +164,205 @@ def latest_datasets(
     ) for ds in items]
 
 
+# Helper to parse dataset records
+import json
+from fastapi.responses import Response
+
+def get_parsed_dataset_records(dataset_id: str, db: Session):
+    records = db.query(models.DatasetRecord).filter(
+        models.DatasetRecord.dataset_id == dataset_id
+    ).all()
+    
+    rows = []
+    columns_set = []
+    for r in records:
+        if r.extra_data:
+            try:
+                data_dict = json.loads(r.extra_data)
+                for k in data_dict.keys():
+                    if k not in columns_set:
+                        columns_set.append(k)
+                rows.append(data_dict)
+                continue
+            except Exception:
+                pass
+        
+        fallback_dict = {}
+        if r.year: fallback_dict["Date/Year"] = r.year
+        if r.region: fallback_dict["Region"] = r.region
+        if r.indicator_value is not None: fallback_dict["Value"] = r.indicator_value
+        if r.growth_pct is not None: fallback_dict["Growth %"] = r.growth_pct
+        for k in fallback_dict.keys():
+            if k not in columns_set:
+                columns_set.append(k)
+        rows.append(fallback_dict)
+        
+    return columns_set, rows
+
+
 @app.get("/api/datasets/{dataset_id}", response_model=schemas.DatasetDetailOut, tags=["Datasets"])
 def get_dataset(dataset_id: str, db: Session = Depends(get_db)):
-    """Return full details of a single dataset including preview rows."""
+    """Return full details of a single dataset including metadata and initial preview rows."""
     ds = db.query(models.Dataset).filter(models.Dataset.id == dataset_id).first()
     if not ds:
         raise HTTPException(status_code=404, detail=f"Dataset '{dataset_id}' not found.")
 
-    records = db.query(models.DatasetRecord).filter(
-        models.DatasetRecord.dataset_id == dataset_id
-    ).limit(10).all()
+    # Increment view count
+    ds.views = (ds.views or 0) + 1
+    db.commit()
 
-    preview_rows = [
-        schemas.DatasetPreviewRow(
-            year=r.year,
-            region=r.region,
-            indicator_value=r.indicator_value,
-            growth_pct=r.growth_pct
-        )
-        for r in records
-    ]
+    columns, rows = get_parsed_dataset_records(dataset_id, db)
+    total_recs = len(rows) if len(rows) > 0 else (ds.total_records or 0)
 
     return schemas.DatasetDetailOut(
-        id=ds.id, title=ds.title, description=ds.description,
-        full_description=ds.full_description,
+        id=ds.id,
+        title=ds.title,
+        description=ds.description,
+        full_description=ds.full_description or ds.description,
         category=ds.category_rel.name if ds.category_rel else ds.category_id,
-        formats=ds.formats.split(","), maintainer=ds.maintainer,
-        frequency=ds.frequency, coverage=ds.coverage,
-        live=ds.live, featured=ds.featured,
-        views=ds.views, downloads=ds.downloads,
-        preview_rows=preview_rows,
-        updated_at=str(ds.updated_at) if ds.updated_at else "Recently updated"
+        formats=ds.formats.split(",") if ds.formats else ["CSV", "JSON", "SQL"],
+        maintainer=ds.maintainer or "Central Bank of Sri Lanka",
+        source=ds.source or ds.maintainer or "Official Publisher",
+        frequency=ds.frequency or "Daily",
+        coverage=ds.coverage or "2005 - Present",
+        live=ds.live,
+        featured=ds.featured,
+        views=ds.views,
+        downloads=ds.downloads,
+        total_records=total_recs,
+        file_size=ds.file_size or "12.4 MB",
+        updated_at=str(ds.updated_at) if ds.updated_at else "Today",
+        columns=columns,
+        preview_rows=rows[:20]
     )
+
+
+@app.get("/api/datasets/{dataset_id}/preview", response_model=schemas.DatasetPreviewResponse, tags=["Datasets"])
+def get_dataset_preview(
+    dataset_id: str,
+    search: Optional[str] = Query(None),
+    sort_by: Optional[str] = Query(None),
+    sort_order: Optional[str] = Query("asc"),
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db)
+):
+    """Return preview rows for a dataset with search, sorting, and pagination."""
+    ds = db.query(models.Dataset).filter(models.Dataset.id == dataset_id).first()
+    if not ds:
+        raise HTTPException(status_code=404, detail=f"Dataset '{dataset_id}' not found.")
+
+    columns, rows = get_parsed_dataset_records(dataset_id, db)
+
+    # Apply search filter across values
+    if search:
+        s_lower = search.lower()
+        rows = [
+            r for r in rows
+            if any(s_lower in str(v).lower() for v in r.values())
+        ]
+
+    # Apply column sorting
+    if sort_by and sort_by in columns:
+        reverse = (sort_order == "desc")
+        rows = sorted(rows, key=lambda r: str(r.get(sort_by, "")), reverse=reverse)
+
+    total_rows = len(rows)
+    paginated_rows = rows[offset : offset + limit]
+
+    return schemas.DatasetPreviewResponse(
+        dataset_id=dataset_id,
+        columns=columns,
+        rows=paginated_rows,
+        total_rows=total_rows,
+        total_columns=len(columns)
+    )
+
+
+@app.get("/api/datasets/{dataset_id}/download", tags=["Datasets"])
+def download_dataset(
+    dataset_id: str,
+    format: str = Query("csv", description="Format: csv | json | sql"),
+    db: Session = Depends(get_db)
+):
+    """Generate and return downloadable CSV, JSON, or SQL dataset file."""
+    ds = db.query(models.Dataset).filter(models.Dataset.id == dataset_id).first()
+    if not ds:
+        raise HTTPException(status_code=404, detail=f"Dataset '{dataset_id}' not found.")
+
+    # Increment download count
+    ds.downloads = (ds.downloads or 0) + 1
+    db.commit()
+
+    columns, rows = get_parsed_dataset_records(dataset_id, db)
+    fmt = format.lower().strip()
+
+    if fmt == "json":
+        content = json.dumps(rows, indent=2)
+        media_type = "application/json"
+        filename = f"{dataset_id}.json"
+    elif fmt == "sql":
+        table_name = dataset_id.replace("-", "_")
+        lines = [f"-- LankaData Hub SQL Export for {ds.title}", f"CREATE TABLE IF NOT EXISTS {table_name} ("]
+        col_defs = [f"  {col.replace(' ', '_').replace('(', '').replace(')', '').replace('%', 'pct')} TEXT" for col in columns]
+        lines.append(",\n".join(col_defs))
+        lines.append(");\n")
+        
+        for r in rows:
+            row_vals = []
+            for c in columns:
+                val_str = str(r.get(c, '')).replace("'", "''")
+                row_vals.append(f"'{val_str}'")
+            lines.append(f"INSERT INTO {table_name} VALUES ({', '.join(row_vals)});")
+        content = "\n".join(lines)
+        media_type = "text/plain"
+        filename = f"{dataset_id}.sql"
+    else:
+        # Default CSV
+        import csv, io
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(columns)
+        for r in rows:
+            writer.writerow([r.get(c, "") for c in columns])
+        content = output.getvalue()
+        media_type = "text/csv"
+        filename = f"{dataset_id}.csv"
+
+    return Response(
+        content=content,
+        media_type=media_type,
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+
+@app.get("/api/datasets/{dataset_id}/similar", response_model=List[schemas.SimilarDatasetOut], tags=["Datasets"])
+def get_similar_datasets(dataset_id: str, db: Session = Depends(get_db)):
+    """Return similar datasets from the same category."""
+    ds = db.query(models.Dataset).filter(models.Dataset.id == dataset_id).first()
+    if not ds:
+        raise HTTPException(status_code=404, detail=f"Dataset '{dataset_id}' not found.")
+
+    similar = db.query(models.Dataset).filter(
+        models.Dataset.id != dataset_id,
+        models.Dataset.category_id == ds.category_id
+    ).limit(4).all()
+
+    if not similar:
+        similar = db.query(models.Dataset).filter(
+            models.Dataset.id != dataset_id
+        ).limit(4).all()
+
+    return [
+        schemas.SimilarDatasetOut(
+            id=d.id,
+            title=d.title,
+            description=d.description,
+            category=d.category_rel.name if d.category_rel else d.category_id,
+            updated_at=str(d.updated_at) if d.updated_at else "Today"
+        )
+        for d in similar
+    ]
 
 
 # ─── Dashboard Endpoints ──────────────────────────────────────────────────────

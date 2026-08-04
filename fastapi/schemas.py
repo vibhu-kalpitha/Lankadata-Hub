@@ -33,12 +33,15 @@ class DatasetBase(BaseModel):
     category: str
     formats: List[str]
     maintainer: Optional[str] = None
+    source: Optional[str] = None
     frequency: Optional[str] = None
     coverage: Optional[str] = None
     live: bool = False
     featured: bool = False
     views: int = 0
     downloads: int = 0
+    total_records: int = 0
+    file_size: Optional[str] = None
     updated_at: Optional[str] = None
 
 
@@ -48,15 +51,32 @@ class DatasetOut(DatasetBase):
 
 
 class DatasetPreviewRow(BaseModel):
-    year: Optional[str]
-    region: Optional[str]
-    indicator_value: Optional[float]
-    growth_pct: Optional[float]
+    year: Optional[str] = None
+    region: Optional[str] = None
+    indicator_value: Optional[float] = None
+    growth_pct: Optional[float] = None
 
 
 class DatasetDetailOut(DatasetOut):
     full_description: Optional[str] = None
-    preview_rows: List[DatasetPreviewRow] = []
+    columns: List[str] = []
+    preview_rows: List[dict] = []
+
+
+class DatasetPreviewResponse(BaseModel):
+    dataset_id: str
+    columns: List[str]
+    rows: List[dict]
+    total_rows: int
+    total_columns: int
+
+
+class SimilarDatasetOut(BaseModel):
+    id: str
+    title: str
+    description: str
+    category: str
+    updated_at: Optional[str] = None
 
 
 class DatasetListResponse(BaseModel):

@@ -7,25 +7,40 @@ export interface Dataset {
   description: string;
   category: string;
   formats: string[]; // ['CSV', 'JSON', 'API', 'Excel', 'SQL']
-  updatedAt: string;
+  updatedAt?: string;
+  updated_at?: string;
   views: number;
   downloads: number;
   maintainer: string;
+  source?: string;
   frequency: string;
   coverage: string;
   live: boolean;
   featured?: boolean;
+  total_records?: number;
+  file_size?: string;
 }
 
 export interface DatasetDetail extends Dataset {
-  fullDescription: string;
-  previewHeaders: string[];
-  previewRows: Array<Record<string, any>>;
-  relatedDashboards: Array<{ id: string; title: string }>;
-  relatedApis: Array<{ id: string; title: string; endpoint: string }>;
-  similarDatasets: Array<{ id: string; title: string; description: string; category: string }>;
-  quarterlyDistribution: Array<{ quarter: string; primary: number; secondary: number }>;
-  growthTrend: Array<{ year: string; growth: number }>;
+  fullDescription?: string;
+  full_description?: string;
+  columns?: string[];
+  previewHeaders?: string[];
+  previewRows?: Array<Record<string, any>>;
+  preview_rows?: Array<Record<string, any>>;
+  relatedDashboards?: Array<{ id: string; title: string }>;
+  relatedApis?: Array<{ id: string; title: string; endpoint: string }>;
+  similarDatasets?: Array<{ id: string; title: string; description: string; category: string; updated_at?: string }>;
+  quarterlyDistribution?: Array<{ quarter: string; primary: number; secondary: number }>;
+  growthTrend?: Array<{ year: string; growth: number }>;
+}
+
+export interface DatasetPreviewResponse {
+  dataset_id: string;
+  columns: string[];
+  rows: Array<Record<string, any>>;
+  total_rows: number;
+  total_columns: number;
 }
 
 export interface Category {
@@ -49,6 +64,75 @@ export const MOCK_CATEGORIES: Category[] = [
 
 // Rich datasets mock database
 export const MOCK_DATASETS: DatasetDetail[] = [
+  {
+    id: 'usd-exchange-rates',
+    title: 'USD Exchange Rates',
+    description: 'Historical daily USD buying and selling exchange rates published by the Central Bank of Sri Lanka.',
+    fullDescription: 'Historical daily USD buying and selling exchange rates published by the Central Bank of Sri Lanka. Spanning multi-year daily records, this dataset offers essential indicators for financial modeling, import-export analysis, and macroeconomic forecasting.',
+    category: 'Economy',
+    formats: ['CSV', 'JSON', 'SQL'],
+    updatedAt: 'Today',
+    views: 5640,
+    downloads: 1820,
+    maintainer: 'Central Bank of Sri Lanka',
+    source: 'Central Bank of Sri Lanka',
+    frequency: 'Daily',
+    coverage: '2005 - Present',
+    live: true,
+    featured: true,
+    total_records: 5620,
+    file_size: '12.4 MB',
+    columns: ['Date', 'Buying Rate (LKR)', 'Selling Rate (LKR)'],
+    previewHeaders: ['Date', 'Buying Rate (LKR)', 'Selling Rate (LKR)'],
+    previewRows: [
+      { Date: '2024-08-01', 'Buying Rate (LKR)': 302.50, 'Selling Rate (LKR)': 308.20 },
+      { Date: '2024-07-31', 'Buying Rate (LKR)': 302.10, 'Selling Rate (LKR)': 307.80 },
+      { Date: '2024-07-30', 'Buying Rate (LKR)': 301.90, 'Selling Rate (LKR)': 307.50 },
+      { Date: '2024-07-29', 'Buying Rate (LKR)': 301.60, 'Selling Rate (LKR)': 307.20 },
+      { Date: '2024-07-26', 'Buying Rate (LKR)': 301.20, 'Selling Rate (LKR)': 306.90 },
+      { Date: '2024-07-25', 'Buying Rate (LKR)': 300.90, 'Selling Rate (LKR)': 306.50 },
+      { Date: '2024-07-24', 'Buying Rate (LKR)': 300.50, 'Selling Rate (LKR)': 306.10 },
+      { Date: '2024-07-23', 'Buying Rate (LKR)': 300.20, 'Selling Rate (LKR)': 305.80 },
+      { Date: '2024-07-22', 'Buying Rate (LKR)': 299.80, 'Selling Rate (LKR)': 305.40 },
+      { Date: '2024-07-19', 'Buying Rate (LKR)': 299.50, 'Selling Rate (LKR)': 305.10 },
+    ],
+    similarDatasets: [
+      { id: 'hnb-usd-rates', title: 'HNB USD Exchange Rates', description: 'Daily commercial bank USD rates published by Hatton National Bank.', category: 'Economy', updated_at: 'Today' }
+    ]
+  },
+  {
+    id: 'hnb-usd-rates',
+    title: 'HNB USD Exchange Rates',
+    description: 'Daily USD buying, selling, and telegraphic transfer (TT) exchange rates published by Hatton National Bank.',
+    fullDescription: 'Daily commercial bank exchange rates for US Dollars published by Hatton National Bank (HNB PLC). Tracks counter buying, counter selling, and telegraphic transfer (TT) rates across business days.',
+    category: 'Economy',
+    formats: ['CSV', 'JSON', 'SQL'],
+    updatedAt: 'Today',
+    views: 3120,
+    downloads: 950,
+    maintainer: 'Hatton National Bank',
+    source: 'Hatton National Bank',
+    frequency: 'Daily',
+    coverage: '2015 - Present',
+    live: true,
+    featured: true,
+    total_records: 2840,
+    file_size: '6.8 MB',
+    columns: ['Date', 'Buying Rate (LKR)', 'Selling Rate (LKR)', 'TT Buying Rate (LKR)'],
+    previewHeaders: ['Date', 'Buying Rate (LKR)', 'Selling Rate (LKR)', 'TT Buying Rate (LKR)'],
+    previewRows: [
+      { Date: '2024-08-01', 'Buying Rate (LKR)': 301.80, 'Selling Rate (LKR)': 309.00, 'TT Buying Rate (LKR)': 300.50 },
+      { Date: '2024-07-31', 'Buying Rate (LKR)': 301.50, 'Selling Rate (LKR)': 308.70, 'TT Buying Rate (LKR)': 300.20 },
+      { Date: '2024-07-30', 'Buying Rate (LKR)': 301.20, 'Selling Rate (LKR)': 308.40, 'TT Buying Rate (LKR)': 299.90 },
+      { Date: '2024-07-29', 'Buying Rate (LKR)': 300.90, 'Selling Rate (LKR)': 308.10, 'TT Buying Rate (LKR)': 299.60 },
+      { Date: '2024-07-26', 'Buying Rate (LKR)': 300.50, 'Selling Rate (LKR)': 307.70, 'TT Buying Rate (LKR)': 299.20 },
+      { Date: '2024-07-25', 'Buying Rate (LKR)': 300.20, 'Selling Rate (LKR)': 307.40, 'TT Buying Rate (LKR)': 298.90 },
+      { Date: '2024-07-24', 'Buying Rate (LKR)': 299.80, 'Selling Rate (LKR)': 307.00, 'TT Buying Rate (LKR)': 298.50 },
+    ],
+    similarDatasets: [
+      { id: 'usd-exchange-rates', title: 'USD Exchange Rates', description: 'Historical daily USD exchange rates published by Central Bank of Sri Lanka.', category: 'Economy', updated_at: 'Today' }
+    ]
+  },
   {
     id: 'annual-gdp-growth',
     title: 'Annual GDP Growth Rates',
@@ -325,6 +409,54 @@ export const datasetService = {
     } catch {
       return null;
     }
+  },
+
+  // Fetch dataset preview data with optional search, sorting, and pagination
+  getDatasetPreview: async (id: string, params?: {
+    search?: string;
+    sort_by?: string;
+    sort_order?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<DatasetPreviewResponse | null> => {
+    if (USE_MOCK_DATA) {
+      const dataset = MOCK_DATASETS.find((d) => d.id === id);
+      if (!dataset) return null;
+      const rows = dataset.previewRows || dataset.preview_rows || [];
+      const cols = dataset.columns || dataset.previewHeaders || (rows.length > 0 ? Object.keys(rows[0]) : []);
+      return {
+        dataset_id: id,
+        columns: cols,
+        rows: rows,
+        total_rows: rows.length,
+        total_columns: cols.length
+      };
+    }
+    try {
+      const response = await axios.get(`${API_BASE_URL}/datasets/${id}/preview`, { params });
+      return response.data;
+    } catch {
+      return null;
+    }
+  },
+
+  // Fetch similar datasets
+  getSimilarDatasets: async (id: string): Promise<Array<{ id: string; title: string; description: string; category: string; updated_at?: string }>> => {
+    if (USE_MOCK_DATA) {
+      const dataset = MOCK_DATASETS.find((d) => d.id === id);
+      return dataset?.similarDatasets || [];
+    }
+    try {
+      const response = await axios.get(`${API_BASE_URL}/datasets/${id}/similar`);
+      return response.data;
+    } catch {
+      return [];
+    }
+  },
+
+  // Helper to build direct download link
+  getDownloadUrl: (id: string, format: string): string => {
+    return `${API_BASE_URL}/datasets/${id}/download?format=${format}`;
   },
 
   // Fetch featured / latest datasets for Homepage
