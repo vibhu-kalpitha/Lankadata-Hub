@@ -46,7 +46,7 @@ export const APIDetail: React.FC = () => {
     );
   }
 
-  const codeSample = api.sampleRequest[activeTab];
+  const codeSample = api.sampleRequest?.[activeTab] ?? '# No sample available';
 
   return (
     <div className="flex-1 bg-lanka-bg py-10 px-6 max-w-7xl mx-auto w-full grid-bg space-y-6">
@@ -108,7 +108,7 @@ export const APIDetail: React.FC = () => {
               Request Parameters
             </h3>
 
-            {api.parameters.length > 0 ? (
+            {(api.parameters || []).length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
@@ -120,7 +120,7 @@ export const APIDetail: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-lanka-border/50">
-                    {api.parameters.map((p, idx) => (
+                    {(api.parameters ?? []).map((p, idx) => (
                       <tr key={idx} className="hover:bg-white/2 transition-colors">
                         <td className="py-3 px-3 font-mono text-white font-semibold">{p.name}</td>
                         <td className="py-3 px-3 text-lanka-muted">{p.type}</td>

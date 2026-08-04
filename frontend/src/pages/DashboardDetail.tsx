@@ -126,7 +126,7 @@ export const DashboardDetail: React.FC = () => {
 
           {/* Metrics Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {dashboard.metrics.map((m, idx) => (
+            {(dashboard.metrics || []).map((m, idx) => (
               <div key={idx} className="bg-lanka-card border border-lanka-border rounded-xl p-4 flex flex-col justify-between h-28 hover:border-lanka-border-hover transition-colors">
                 <span className="text-[9px] font-bold text-lanka-darkText uppercase block">{m.title}</span>
                 <span className="text-xl md:text-2xl font-extrabold text-white block mt-1">{m.value}</span>
@@ -156,7 +156,7 @@ export const DashboardDetail: React.FC = () => {
               National Insights
             </h3>
             <ul className="space-y-3 text-xs leading-relaxed text-slate-300">
-              {dashboard.insights.map((insight, idx) => (
+              {(dashboard.insights || []).map((insight, idx) => (
                 <li key={idx} className="flex gap-2.5 pl-1.5 border-l-2 border-lanka-cyan/60 pb-1">
                   <span>{insight}</span>
                 </li>
@@ -165,11 +165,11 @@ export const DashboardDetail: React.FC = () => {
           </div>
 
           {/* Related Reports Card */}
-          {dashboard.relatedReports.length > 0 && (
+          {(dashboard.relatedReports || []).length > 0 && (
             <div className="bg-lanka-card border border-lanka-border rounded-xl p-5 space-y-4">
               <h3 className="text-xs font-bold text-white uppercase tracking-wider">Related Reports</h3>
               <div className="space-y-3">
-                {dashboard.relatedReports.map((r, idx) => (
+                {(dashboard.relatedReports || []).map((r, idx) => (
                   <div 
                     key={idx}
                     onClick={() => handleDownload(r.title + '.' + r.type.toLowerCase())}
