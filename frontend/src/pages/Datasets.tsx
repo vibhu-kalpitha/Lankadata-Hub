@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { Search, SlidersHorizontal, ArrowUpDown, ChevronLeft, ChevronRight, Database, Eye, Download, X } from 'lucide-react';
+import { Search, SlidersHorizontal, ArrowUpDown, ChevronLeft, ChevronRight, Database, X } from 'lucide-react';
 import { datasetService } from '../services/datasetService';
 import type { Dataset, Category } from '../services/datasetService';
 import { CardSkeleton } from '../components/SkeletonLoader';
@@ -166,29 +166,33 @@ export const Datasets: React.FC = () => {
                 const color = catColor(d.category.toLowerCase());
                 return (
                   <div key={d.id}
-                    className="group relative bg-gradient-to-br from-[#060f1e] to-[#040b16] border border-lanka-border hover:border-lanka-border-hover rounded-2xl p-5 flex flex-col justify-between h-56 transition-all hover:scale-[1.01] hover:shadow-[0_0_30px_rgba(37,99,235,0.12)] overflow-hidden">
+                    className="group relative bg-gradient-to-br from-[#060f1e] to-[#040b16] border border-lanka-border hover:border-lanka-border-hover rounded-2xl p-5 flex flex-col justify-between min-h-[260px] transition-all hover:scale-[1.01] hover:shadow-[0_0_30px_rgba(37,99,235,0.12)] overflow-hidden">
                     <div className="absolute bottom-0 right-0 w-28 h-28 bg-blue-600/5 group-hover:bg-blue-600/10 rounded-full blur-2xl transition-colors pointer-events-none" />
                     <div>
-                      <div className="flex justify-between items-start mb-3">
-                        <span className={`text-[9px] font-black bg-gradient-to-r ${color} border px-2.5 py-1 rounded-full uppercase tracking-wider`}>{d.category}</span>
-                        {d.live && <span className="flex items-center gap-1 text-[9px] font-bold text-red-400"><span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-ping" />LIVE</span>}
+                      <div className="flex justify-between items-start mb-2">
+                        <span className={`text-[9px] font-black bg-gradient-to-r ${color} border px-2.5 py-0.5 rounded-full uppercase tracking-wider`}>{d.category}</span>
+                        {d.live && <span className="flex items-center gap-1 text-[9px] font-bold text-teal-400"><span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-ping" />LIVE</span>}
                       </div>
-                      <h3 className="text-sm font-black text-white leading-tight mb-2">{d.title}</h3>
-                      <p className="text-[11px] text-lanka-muted line-clamp-2 leading-relaxed">{d.description}</p>
+                      <h3 className="text-sm font-black text-white leading-tight mb-1">{d.title}</h3>
+                      <p className="text-[11px] text-lanka-muted line-clamp-2 leading-relaxed mb-3">{d.description}</p>
                     </div>
+
                     <div>
-                      <div className="flex items-center gap-4 text-[10px] text-lanka-darkText mb-3">
-                        <span className="flex items-center gap-1"><Eye size={11} /> {d.views.toLocaleString()} views</span>
-                        <span className="flex items-center gap-1"><Download size={11} /> {d.downloads.toLocaleString()}</span>
-                        <span className="flex items-center gap-1"><Database size={11} /> {d.frequency}</span>
+                      {/* Metadata Row */}
+                      <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[10px] text-lanka-muted bg-white/[0.02] border border-lanka-border/50 rounded-xl p-2.5 mb-3">
+                        <div className="truncate"><span className="text-[9px] font-bold text-lanka-darkText uppercase block">Maintainer</span><span className="text-white font-medium">{d.source || d.maintainer || 'Official'}</span></div>
+                        <div className="truncate"><span className="text-[9px] font-bold text-lanka-darkText uppercase block">Frequency</span><span className="text-white font-medium">{d.frequency || 'Daily'}</span></div>
+                        <div className="truncate"><span className="text-[9px] font-bold text-lanka-darkText uppercase block">Coverage</span><span className="text-white font-medium">{d.coverage || 'Historical'}</span></div>
+                        <div className="truncate"><span className="text-[9px] font-bold text-lanka-darkText uppercase block">Updated</span><span className="text-white font-medium">{d.updated_at || d.updatedAt || 'Recently'}</span></div>
                       </div>
-                      <div className="flex justify-between items-center pt-3 border-t border-lanka-border">
-                        <div className="flex gap-1.5">
-                          {d.formats.slice(0, 3).map((f, i) => (
+
+                      <div className="flex justify-between items-center pt-2.5 border-t border-lanka-border">
+                        <div className="flex gap-1">
+                          {(d.formats || ['CSV', 'JSON']).slice(0, 3).map((f, i) => (
                             <span key={i} className="text-[8px] font-black text-cyan-300 bg-cyan-500/10 border border-cyan-500/25 px-1.5 py-0.5 rounded uppercase">{f}</span>
                           ))}
                         </div>
-                        <Link to={`/datasets/${d.id}`} className="text-[11px] font-bold text-blue-400 hover:text-white flex items-center gap-1 transition-colors">
+                        <Link to={`/datasets/${d.id}`} className="text-[11px] font-bold text-cyan-400 hover:text-white flex items-center gap-1 transition-colors">
                           View Data <ChevronRight size={12} className="group-hover:translate-x-0.5 transition-transform" />
                         </Link>
                       </div>
