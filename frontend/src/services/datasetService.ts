@@ -49,9 +49,7 @@ export interface Category {
 
 const normalizeDatasetId = (id: string): string => {
   if (!id) return '';
-  const clean = decodeURIComponent(id).trim().toLowerCase();
-  if (clean === 'hnb-usd-exchange-rates' || clean === 'hnb-usd-exchange-rate') return 'hnb-usd-rates';
-  return clean;
+  return decodeURIComponent(id).trim().toLowerCase();
 };
 
 export const datasetService = {
