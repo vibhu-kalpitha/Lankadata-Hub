@@ -345,6 +345,57 @@ def download_dataset(
     )
 
 
+@app.get("/api/datasets/{dataset_id}/records", response_model=schemas.DatasetPreviewResponse, tags=["Datasets"])
+def get_dataset_records(
+    dataset_id: str,
+    search: Optional[str] = Query(None),
+    sort_by: Optional[str] = Query(None),
+    sort_order: Optional[str] = Query("asc"),
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db)
+):
+    """Alias for /preview — returns paginated dataset records with optional search and sort."""
+    clean_id = normalize_dataset_id(dataset_id)
+    ds = db.query(models.Dataset).filter(models.Dataset.id == clean_id).first()
+    if not ds:
+        raise HTTPException(status_code=404, detail=f"Dataset '{dataset_id}' not found.")
+
+    columns, rows = get_parsed_dataset_records(clean_id, db)
+
+    if search:
+        s_lower = search.lower()
+        rows = [r for r in rows if any(s_lower in str(v).lower() for v in r.values())]
+
+    if sort_by and sort_by in columns:
+        reverse = (sort_order == "desc")
+        rows = sorted(rows, key=lambda r: str(r.get(sort_by, "")), reverse=reverse)
+
+    total_rows = len(rows)
+    # Support both page+limit and raw offset+limit
+    computed_offset = offset if offset > 0 else (page - 1) * limit
+    paginated_rows = rows[computed_offset : computed_offset + limit]
+
+    return schemas.DatasetPreviewResponse(
+        dataset_id=clean_id,
+        columns=columns,
+        rows=paginated_rows,
+        total_rows=total_rows,
+        total_columns=len(columns)
+    )
+
+
+@app.get("/api/datasets/{dataset_id}/download/{file_format}", tags=["Datasets"])
+def download_dataset_by_path(
+    dataset_id: str,
+    file_format: str,
+    db: Session = Depends(get_db)
+):
+    """Path-based alias for download — /api/datasets/:id/download/csv|json|sql."""
+    return download_dataset(dataset_id=dataset_id, format=file_format, db=db)
+
+
 @app.get("/api/datasets/{dataset_id}/similar", response_model=List[schemas.SimilarDatasetOut], tags=["Datasets"])
 def get_similar_datasets(dataset_id: str, db: Session = Depends(get_db)):
     """Return similar datasets from the same category."""

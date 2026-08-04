@@ -1,19 +1,10 @@
 // Service configuration for LankaData Hub
 
-// Backend base URL
+// Backend base URL — all API calls go through nginx proxy to the FastAPI backend
 export const BACKEND_API_URL = import.meta.env.VITE_BACKEND_API_URL || '/api';
 
-// FastAPI service base URL
+// FastAPI service base URL (used by province map and other specialized endpoints)
 export const FASTAPI_API_URL = import.meta.env.VITE_FASTAPI_API_URL || '/fastapi-api';
 
-// Alias for backwards compatibility
+// Primary alias used by all services
 export const API_BASE_URL = BACKEND_API_URL;
-
-// Config flag to toggle between local mock services and real backend REST APIs.
-// If set to true, mock data will be used. If false, it makes axios calls.
-export const USE_MOCK_DATA = import.meta.env.VITE_USE_MOCK_DATA === 'true' || false;
-
-// Helper to determine if we should call the live API
-export const getServiceMode = (): boolean => {
-  return USE_MOCK_DATA;
-};
