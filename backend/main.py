@@ -168,9 +168,15 @@ def latest_datasets(
 import json
 from fastapi.responses import Response
 
+def normalize_dataset_id(dataset_id: str) -> str:
+    if dataset_id in ["hnb-usd-exchange-rates", "hnb-usd-exchange-rate"]:
+        return "hnb-usd-rates"
+    return dataset_id
+
 def get_parsed_dataset_records(dataset_id: str, db: Session):
+    clean_id = normalize_dataset_id(dataset_id)
     records = db.query(models.DatasetRecord).filter(
-        models.DatasetRecord.dataset_id == dataset_id
+        models.DatasetRecord.dataset_id == clean_id
     ).all()
     
     rows = []
@@ -203,7 +209,8 @@ def get_parsed_dataset_records(dataset_id: str, db: Session):
 @app.get("/api/datasets/{dataset_id}", response_model=schemas.DatasetDetailOut, tags=["Datasets"])
 def get_dataset(dataset_id: str, db: Session = Depends(get_db)):
     """Return full details of a single dataset including metadata and initial preview rows."""
-    ds = db.query(models.Dataset).filter(models.Dataset.id == dataset_id).first()
+    clean_id = normalize_dataset_id(dataset_id)
+    ds = db.query(models.Dataset).filter(models.Dataset.id == clean_id).first()
     if not ds:
         raise HTTPException(status_code=404, detail=f"Dataset '{dataset_id}' not found.")
 
@@ -211,7 +218,7 @@ def get_dataset(dataset_id: str, db: Session = Depends(get_db)):
     ds.views = (ds.views or 0) + 1
     db.commit()
 
-    columns, rows = get_parsed_dataset_records(dataset_id, db)
+    columns, rows = get_parsed_dataset_records(clean_id, db)
     total_recs = len(rows) if len(rows) > 0 else (ds.total_records or 0)
 
     return schemas.DatasetDetailOut(
@@ -248,11 +255,12 @@ def get_dataset_preview(
     db: Session = Depends(get_db)
 ):
     """Return preview rows for a dataset with search, sorting, and pagination."""
-    ds = db.query(models.Dataset).filter(models.Dataset.id == dataset_id).first()
+    clean_id = normalize_dataset_id(dataset_id)
+    ds = db.query(models.Dataset).filter(models.Dataset.id == clean_id).first()
     if not ds:
         raise HTTPException(status_code=404, detail=f"Dataset '{dataset_id}' not found.")
 
-    columns, rows = get_parsed_dataset_records(dataset_id, db)
+    columns, rows = get_parsed_dataset_records(clean_id, db)
 
     # Apply search filter across values
     if search:
@@ -271,7 +279,7 @@ def get_dataset_preview(
     paginated_rows = rows[offset : offset + limit]
 
     return schemas.DatasetPreviewResponse(
-        dataset_id=dataset_id,
+        dataset_id=clean_id,
         columns=columns,
         rows=paginated_rows,
         total_rows=total_rows,
@@ -286,7 +294,8 @@ def download_dataset(
     db: Session = Depends(get_db)
 ):
     """Generate and return downloadable CSV, JSON, or SQL dataset file."""
-    ds = db.query(models.Dataset).filter(models.Dataset.id == dataset_id).first()
+    clean_id = normalize_dataset_id(dataset_id)
+    ds = db.query(models.Dataset).filter(models.Dataset.id == clean_id).first()
     if not ds:
         raise HTTPException(status_code=404, detail=f"Dataset '{dataset_id}' not found.")
 
@@ -294,15 +303,15 @@ def download_dataset(
     ds.downloads = (ds.downloads or 0) + 1
     db.commit()
 
-    columns, rows = get_parsed_dataset_records(dataset_id, db)
+    columns, rows = get_parsed_dataset_records(clean_id, db)
     fmt = format.lower().strip()
 
     if fmt == "json":
         content = json.dumps(rows, indent=2)
         media_type = "application/json"
-        filename = f"{dataset_id}.json"
+        filename = f"{clean_id}.json"
     elif fmt == "sql":
-        table_name = dataset_id.replace("-", "_")
+        table_name = clean_id.replace("-", "_")
         lines = [f"-- LankaData Hub SQL Export for {ds.title}", f"CREATE TABLE IF NOT EXISTS {table_name} ("]
         col_defs = [f"  {col.replace(' ', '_').replace('(', '').replace(')', '').replace('%', 'pct')} TEXT" for col in columns]
         lines.append(",\n".join(col_defs))
@@ -316,7 +325,7 @@ def download_dataset(
             lines.append(f"INSERT INTO {table_name} VALUES ({', '.join(row_vals)});")
         content = "\n".join(lines)
         media_type = "text/plain"
-        filename = f"{dataset_id}.sql"
+        filename = f"{clean_id}.sql"
     else:
         # Default CSV
         import csv, io
@@ -327,7 +336,7 @@ def download_dataset(
             writer.writerow([r.get(c, "") for c in columns])
         content = output.getvalue()
         media_type = "text/csv"
-        filename = f"{dataset_id}.csv"
+        filename = f"{clean_id}.csv"
 
     return Response(
         content=content,
@@ -339,18 +348,19 @@ def download_dataset(
 @app.get("/api/datasets/{dataset_id}/similar", response_model=List[schemas.SimilarDatasetOut], tags=["Datasets"])
 def get_similar_datasets(dataset_id: str, db: Session = Depends(get_db)):
     """Return similar datasets from the same category."""
-    ds = db.query(models.Dataset).filter(models.Dataset.id == dataset_id).first()
+    clean_id = normalize_dataset_id(dataset_id)
+    ds = db.query(models.Dataset).filter(models.Dataset.id == clean_id).first()
     if not ds:
         raise HTTPException(status_code=404, detail=f"Dataset '{dataset_id}' not found.")
 
     similar = db.query(models.Dataset).filter(
-        models.Dataset.id != dataset_id,
+        models.Dataset.id != clean_id,
         models.Dataset.category_id == ds.category_id
     ).limit(4).all()
 
     if not similar:
         similar = db.query(models.Dataset).filter(
-            models.Dataset.id != dataset_id
+            models.Dataset.id != clean_id
         ).limit(4).all()
 
     return [

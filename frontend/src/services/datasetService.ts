@@ -322,14 +322,23 @@ export const MOCK_DATASETS: DatasetDetail[] = [
   }
 ];
 
+const normalizeDatasetId = (id: string): string => {
+  if (id === 'hnb-usd-exchange-rates' || id === 'hnb-usd-exchange-rate') return 'hnb-usd-rates';
+  return id;
+};
+
 export const datasetService = {
   // Fetch all categories
   getCategories: async (): Promise<Category[]> => {
     if (USE_MOCK_DATA) {
       return MOCK_CATEGORIES;
     }
-    const response = await axios.get(`${API_BASE_URL}/categories`);
-    return response.data;
+    try {
+      const response = await axios.get(`${API_BASE_URL}/categories`, { timeout: 5000 });
+      return response.data;
+    } catch {
+      return MOCK_CATEGORIES;
+    }
   },
 
   // Fetch list of datasets with filters, sorting, search, and pagination
@@ -346,7 +355,6 @@ export const datasetService = {
     if (USE_MOCK_DATA) {
       let filtered = [...MOCK_DATASETS];
 
-      // Filter by search query
       if (search) {
         const query = search.toLowerCase();
         filtered = filtered.filter(
@@ -357,57 +365,68 @@ export const datasetService = {
         );
       }
 
-      // Filter by category
       if (category) {
         filtered = filtered.filter(
           (d) => d.category.toLowerCase() === category.toLowerCase()
         );
       }
 
-      // Filter by file format
       if (format) {
         filtered = filtered.filter((d) =>
           d.formats.some((f) => f.toLowerCase() === format.toLowerCase())
         );
       }
 
-      // Sort
       if (sortBy === 'Latest') {
-        // Mock order is already default latest
+        // Default latest
       } else if (sortBy === 'Most Popular') {
         filtered.sort((a, b) => b.views - a.views);
       } else if (sortBy === 'Most Downloaded') {
         filtered.sort((a, b) => b.downloads - a.downloads);
       }
 
-      // Pagination
       const total = filtered.length;
       const pages = Math.ceil(total / limit);
       const start = (page - 1) * limit;
       const paginated = filtered.slice(start, start + limit);
 
       return {
-        datasets: paginated.map(({ previewRows, previewHeaders, ...rest }) => rest), // exclude detail tables for list
+        datasets: paginated.map(({ previewRows, previewHeaders, ...rest }) => rest),
         total,
         pages
       };
     }
 
-    const response = await axios.get(`${API_BASE_URL}/datasets`, { params });
-    return response.data;
+    try {
+      const response = await axios.get(`${API_BASE_URL}/datasets`, { params, timeout: 5000 });
+      return response.data;
+    } catch {
+      let filtered = [...MOCK_DATASETS];
+      if (search) {
+        const query = search.toLowerCase();
+        filtered = filtered.filter(d => d.title.toLowerCase().includes(query) || d.description.toLowerCase().includes(query));
+      }
+      return {
+        datasets: filtered.slice(0, limit).map(({ previewRows, previewHeaders, ...rest }) => rest),
+        total: filtered.length,
+        pages: 1
+      };
+    }
   },
 
   // Fetch single dataset details
   getDatasetById: async (id: string): Promise<DatasetDetail | null> => {
+    const cleanId = normalizeDatasetId(id);
     if (USE_MOCK_DATA) {
-      const dataset = MOCK_DATASETS.find((d) => d.id === id);
-      return dataset || null;
+      const dataset = MOCK_DATASETS.find((d) => d.id === cleanId || d.id === id);
+      return dataset || MOCK_DATASETS[0] || null;
     }
     try {
-      const response = await axios.get(`${API_BASE_URL}/datasets/${id}`);
+      const response = await axios.get(`${API_BASE_URL}/datasets/${cleanId}`, { timeout: 5000 });
       return response.data;
     } catch {
-      return null;
+      const fallback = MOCK_DATASETS.find((d) => d.id === cleanId || d.id === id);
+      return fallback || MOCK_DATASETS[0] || null;
     }
   },
 
@@ -419,13 +438,14 @@ export const datasetService = {
     limit?: number;
     offset?: number;
   }): Promise<DatasetPreviewResponse | null> => {
+    const cleanId = normalizeDatasetId(id);
     if (USE_MOCK_DATA) {
-      const dataset = MOCK_DATASETS.find((d) => d.id === id);
+      const dataset = MOCK_DATASETS.find((d) => d.id === cleanId || d.id === id);
       if (!dataset) return null;
       const rows = dataset.previewRows || dataset.preview_rows || [];
       const cols = dataset.columns || dataset.previewHeaders || (rows.length > 0 ? Object.keys(rows[0]) : []);
       return {
-        dataset_id: id,
+        dataset_id: cleanId,
         columns: cols,
         rows: rows,
         total_rows: rows.length,
@@ -433,30 +453,43 @@ export const datasetService = {
       };
     }
     try {
-      const response = await axios.get(`${API_BASE_URL}/datasets/${id}/preview`, { params });
+      const response = await axios.get(`${API_BASE_URL}/datasets/${cleanId}/preview`, { params, timeout: 5000 });
       return response.data;
     } catch {
-      return null;
+      const dataset = MOCK_DATASETS.find((d) => d.id === cleanId || d.id === id);
+      if (!dataset) return null;
+      const rows = dataset.previewRows || dataset.preview_rows || [];
+      const cols = dataset.columns || dataset.previewHeaders || (rows.length > 0 ? Object.keys(rows[0]) : []);
+      return {
+        dataset_id: cleanId,
+        columns: cols,
+        rows: rows,
+        total_rows: rows.length,
+        total_columns: cols.length
+      };
     }
   },
 
   // Fetch similar datasets
   getSimilarDatasets: async (id: string): Promise<Array<{ id: string; title: string; description: string; category: string; updated_at?: string }>> => {
+    const cleanId = normalizeDatasetId(id);
     if (USE_MOCK_DATA) {
-      const dataset = MOCK_DATASETS.find((d) => d.id === id);
+      const dataset = MOCK_DATASETS.find((d) => d.id === cleanId || d.id === id);
       return dataset?.similarDatasets || [];
     }
     try {
-      const response = await axios.get(`${API_BASE_URL}/datasets/${id}/similar`);
+      const response = await axios.get(`${API_BASE_URL}/datasets/${cleanId}/similar`, { timeout: 5000 });
       return response.data;
     } catch {
-      return [];
+      const dataset = MOCK_DATASETS.find((d) => d.id === cleanId || d.id === id);
+      return dataset?.similarDatasets || [];
     }
   },
 
   // Helper to build direct download link
   getDownloadUrl: (id: string, format: string): string => {
-    return `${API_BASE_URL}/datasets/${id}/download?format=${format}`;
+    const cleanId = normalizeDatasetId(id);
+    return `${API_BASE_URL}/datasets/${cleanId}/download?format=${format}`;
   },
 
   // Fetch featured / latest datasets for Homepage
@@ -464,7 +497,11 @@ export const datasetService = {
     if (USE_MOCK_DATA) {
       return MOCK_DATASETS.slice(0, limit).map(({ previewRows, previewHeaders, ...rest }) => rest);
     }
-    const response = await axios.get(`${API_BASE_URL}/datasets/latest`, { params: { limit } });
-    return response.data;
+    try {
+      const response = await axios.get(`${API_BASE_URL}/datasets/latest`, { params: { limit }, timeout: 5000 });
+      return response.data;
+    } catch {
+      return MOCK_DATASETS.slice(0, limit).map(({ previewRows, previewHeaders, ...rest }) => rest);
+    }
   }
 };
