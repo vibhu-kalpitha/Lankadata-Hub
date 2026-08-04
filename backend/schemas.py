@@ -4,8 +4,8 @@ Request/Response validation schemas for the FastAPI layer.
 """
 
 from pydantic import BaseModel
-from typing import List, Optional
-from datetime import datetime
+from typing import List, Optional, Union
+from datetime import date, datetime
 
 
 # ─── Category Schemas ─────────────────────────────────────────────────────────
@@ -42,7 +42,7 @@ class DatasetBase(BaseModel):
     downloads: int = 0
     total_records: int = 0
     file_size: Optional[str] = None
-    updated_at: Optional[str] = None
+    updated_at: Optional[Union[str, date, datetime]] = None
 
 
 class DatasetOut(DatasetBase):
@@ -76,7 +76,7 @@ class SimilarDatasetOut(BaseModel):
     title: str
     description: str
     category: str
-    updated_at: Optional[str] = None
+    updated_at: Optional[Union[str, date, datetime]] = None
 
 
 class DatasetListResponse(BaseModel):
@@ -97,7 +97,7 @@ class DashboardOut(BaseModel):
     featured: bool = False
     views: int = 0
     api_endpoint: Optional[str] = None
-    updated_at: Optional[str] = None
+    updated_at: Optional[Union[str, date, datetime]] = None
 
     class Config:
         from_attributes = True
@@ -115,6 +115,22 @@ class APISpecOut(BaseModel):
     pricing: str
     status: str
     dataset_id: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+# ─── Province Schemas ─────────────────────────────────────────────────────────
+
+class ProvinceOut(BaseModel):
+    id: int
+    province: str
+    provincial_capital: str
+    total_area_km2: float
+    estimated_population: Optional[Union[int, str]] = None
+    districts_included: List[str]   # returned as list, stored as comma-separated
+    data_source: Optional[str] = None
+    last_updated: Optional[Union[date, datetime, str]] = None
 
     class Config:
         from_attributes = True
