@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { MOCK_CATEGORIES } from '../services/datasetService';
+import { datasetService } from '../services/datasetService';
+import type { Category } from '../services/datasetService';
 import { TrendingUp, Activity, CloudRain, Leaf, GraduationCap, Compass, Truck, ArrowRight } from 'lucide-react';
 
 const catStyles: Record<string, { gradient: string; glow: string; iconColor: string; accent: string }> = {
@@ -28,6 +29,12 @@ const getIcon = (name: string, color: string) => {
 };
 
 export const Categories: React.FC = () => {
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    datasetService.getCategories().then(c => setCategories(c));
+  }, []);
+
   return (
     <div className="flex-1 bg-lanka-bg min-h-screen">
 
@@ -53,7 +60,7 @@ export const Categories: React.FC = () => {
       {/* ── Category Grid ──────────────────────────────── */}
       <div className="max-w-7xl mx-auto px-6 py-14">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {MOCK_CATEGORIES.map(cat => {
+          {categories.map((cat: Category) => {
             const style = catStyles[cat.id] || catStyles.economy;
             return (
               <Link key={cat.id} to={`/categories/${cat.id}`}

@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { 
   FileText, Eye, Download, Database, Key, ChevronRight, 
   Calendar, Clock, LineChart as LineIcon, Search, ArrowUpDown, 
-  Copy, Check, Building2, Layers, Table as TableIcon, Sparkles, RefreshCw
+  Copy, Check, Building2, Layers, Table as TableIcon, Sparkles, RefreshCw,
+  AlertTriangle, AreaChart as AreaIcon
 } from 'lucide-react';
 import { 
-  LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, Legend 
+  LineChart, Line, AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip, Legend 
 } from 'recharts';
 
 import { datasetService } from '../services/datasetService';
@@ -18,75 +19,109 @@ const CHART_COLORS = ['#38bdf8', '#10b981', '#3b82f6', '#a855f7', '#f59e0b'];
 export const DatasetDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [dataset, setDataset] = useState<DatasetDetailType | null>(null);
-  const [previewData, setPreviewData] = useState<DatasetPreviewResponse | null>(null);
+  const [recordsResponse, setRecordsResponse] = useState<DatasetPreviewResponse | null>(null);
   const [similarDatasets, setSimilarDatasets] = useState<Array<{ id: string; title: string; description: string; category: string; updated_at?: string }>>([]);
+  
+  // Page Loading & Error State
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Table state
+  // Table State
   const [searchTerm, setSearchTerm] = useState('');
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(20);
   const [copiedApi, setCopiedApi] = useState(false);
 
+  // Fetch initial Dataset Metadata & Similar Datasets
   useEffect(() => {
     if (!id) return;
     setLoading(true);
+    setErrorMsg(null);
     setCurrentPage(1);
     setSearchTerm('');
     setSortColumn(null);
 
+    const decodedId = decodeURIComponent(id);
+
     Promise.all([
-      datasetService.getDatasetById(id),
-      datasetService.getDatasetPreview(id),
-      datasetService.getSimilarDatasets(id)
-    ]).then(([dsRes, prevRes, simRes]) => {
-      setDataset(dsRes);
-      setPreviewData(prevRes);
-      setSimilarDatasets(simRes);
-      setLoading(false);
-    }).catch(() => {
-      setLoading(false);
-    });
+      datasetService.getDatasetById(decodedId),
+      datasetService.getDatasetRecords(decodedId, { page: 1, limit: 100 }),
+      datasetService.getSimilarDatasets(decodedId)
+    ])
+      .then(([dsRes, recsRes, simRes]) => {
+        if (!dsRes) {
+          setErrorMsg(`Dataset '${decodedId}' could not be found in the database.`);
+          setDataset(null);
+        } else {
+          setDataset(dsRes);
+          setRecordsResponse(recsRes);
+          setSimilarDatasets(simRes || []);
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching dataset details:", err);
+        setErrorMsg("Failed to connect to LankaData Hub backend service.");
+        setLoading(false);
+      });
   }, [id]);
 
-  // Dynamic Column & Chart Analytics Detection
+  // Fetch paginated/filtered records when search, page, limit or sort changes
+  const fetchRecords = useCallback(() => {
+    if (!id) return;
+    const decodedId = decodeURIComponent(id);
+    datasetService.getDatasetRecords(decodedId, {
+      search: searchTerm.trim() || undefined,
+      sort_by: sortColumn || undefined,
+      sort_order: sortOrder,
+      page: currentPage,
+      limit: pageSize
+    }).then(res => {
+      if (res) setRecordsResponse(res);
+    }).catch(err => {
+      console.error("Error updating dataset records:", err);
+    });
+  }, [id, searchTerm, sortColumn, sortOrder, currentPage, pageSize]);
+
+  useEffect(() => {
+    if (dataset) {
+      fetchRecords();
+    }
+  }, [fetchRecords, dataset]);
+
+  // Columns & Rows extracted cleanly from API response
   const columns = useMemo(() => {
-    if (previewData?.columns && previewData.columns.length > 0) {
-      return previewData.columns;
+    if (recordsResponse?.columns && recordsResponse.columns.length > 0) {
+      return recordsResponse.columns;
     }
     if (dataset?.columns && dataset.columns.length > 0) {
       return dataset.columns;
     }
-    if (dataset?.previewHeaders && dataset.previewHeaders.length > 0) {
-      return dataset.previewHeaders;
-    }
-    const rows = previewData?.rows || dataset?.previewRows || dataset?.preview_rows || [];
+    const rows = recordsResponse?.rows || dataset?.preview_rows || dataset?.previewRows || [];
     return rows.length > 0 ? Object.keys(rows[0]) : [];
-  }, [previewData, dataset]);
+  }, [recordsResponse, dataset]);
 
   const allRows = useMemo(() => {
-    return previewData?.rows || dataset?.previewRows || dataset?.preview_rows || [];
-  }, [previewData, dataset]);
+    return recordsResponse?.rows || dataset?.preview_rows || dataset?.previewRows || [];
+  }, [recordsResponse, dataset]);
 
   // Identify Date/Time column and Numeric columns automatically
   const { dateKey, numericKeys } = useMemo(() => {
-    if (allRows.length === 0 || columns.length === 0) {
+    if (!allRows || allRows.length === 0 || !columns || columns.length === 0) {
       return { dateKey: null, numericKeys: [] };
     }
 
-    // Look for Date/Year/Time column
     let dateCol = columns.find(c => {
       const l = c.toLowerCase();
       return l.includes('date') || l.includes('year') || l.includes('month') || l.includes('time');
     });
     if (!dateCol) dateCol = columns[0];
 
-    // Look for numeric columns
     const numCols = columns.filter(c => {
       if (c === dateCol) return false;
-      return allRows.slice(0, 5).some(r => {
+      return allRows.slice(0, 10).some(r => {
         const val = r[c];
         return typeof val === 'number' || (!isNaN(parseFloat(val)) && isFinite(val));
       });
@@ -95,15 +130,15 @@ export const DatasetDetail: React.FC = () => {
     return { dateKey: dateCol, numericKeys: numCols };
   }, [columns, allRows]);
 
-  // Prepare chart data chronologically (reversed if date is descending)
+  // Chart data formatted for Recharts
   const chartData = useMemo(() => {
-    if (!dateKey || numericKeys.length === 0 || allRows.length === 0) return [];
+    if (!dateKey || numericKeys.length === 0 || !allRows || allRows.length === 0) return [];
     
     const formatted = allRows.map(r => {
-      const item: Record<string, any> = { date: r[dateKey] };
+      const item: Record<string, any> = { date: String(r[dateKey] || '') };
       numericKeys.forEach(k => {
         const v = r[k];
-        item[k] = typeof v === 'number' ? v : parseFloat(v) || 0;
+        item[k] = typeof v === 'number' ? v : (parseFloat(v) || 0);
       });
       return item;
     });
@@ -111,45 +146,8 @@ export const DatasetDetail: React.FC = () => {
     return [...formatted].reverse();
   }, [allRows, dateKey, numericKeys]);
 
-  // Filtered & Sorted Table Rows
-  const processedRows = useMemo(() => {
-    let result = [...allRows];
-
-    // Search filter
-    if (searchTerm.trim()) {
-      const q = searchTerm.toLowerCase();
-      result = result.filter(r => 
-        Object.values(r).some(v => String(v).toLowerCase().includes(q))
-      );
-    }
-
-    // Sort filter
-    if (sortColumn) {
-      result.sort((a, b) => {
-        const valA = a[sortColumn];
-        const valB = b[sortColumn];
-        const numA = parseFloat(valA);
-        const numB = parseFloat(valB);
-
-        if (!isNaN(numA) && !isNaN(numB)) {
-          return sortOrder === 'asc' ? numA - numB : numB - numA;
-        }
-        return sortOrder === 'asc' 
-          ? String(valA).localeCompare(String(valB))
-          : String(valB).localeCompare(String(valA));
-      });
-    }
-
-    return result;
-  }, [allRows, searchTerm, sortColumn, sortOrder]);
-
-  // Paginated Rows
-  const totalTableRows = processedRows.length;
-  const totalPages = Math.ceil(totalTableRows / pageSize);
-  const paginatedRows = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
-    return processedRows.slice(start, start + pageSize);
-  }, [processedRows, currentPage, pageSize]);
+  const totalTableRows = recordsResponse?.total_rows || dataset?.total_records || allRows.length;
+  const totalPages = Math.max(1, Math.ceil(totalTableRows / pageSize));
 
   const handleSort = (col: string) => {
     if (sortColumn === col) {
@@ -161,17 +159,20 @@ export const DatasetDetail: React.FC = () => {
   };
 
   const handleCopyApiUrl = () => {
-    const url = `${window.location.origin}/api/datasets/${id}/preview`;
+    const cleanId = dataset?.id || id || '';
+    const url = `${window.location.origin}/api/datasets/${cleanId}/records`;
     navigator.clipboard.writeText(url);
     setCopiedApi(true);
     setTimeout(() => setCopiedApi(false), 2500);
   };
 
   const handleFileDownload = (format: string) => {
-    const downloadUrl = datasetService.getDownloadUrl(id || '', format);
+    const cleanId = dataset?.id || id || '';
+    const downloadUrl = datasetService.getDownloadUrl(cleanId, format);
     window.open(downloadUrl, '_blank');
   };
 
+  // Loading State
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto px-6 py-10 w-full space-y-6 bg-lanka-bg">
@@ -181,22 +182,32 @@ export const DatasetDetail: React.FC = () => {
     );
   }
 
-  if (!dataset) {
+  // Error State / Not Found
+  if (errorMsg || !dataset) {
     return (
-      <div className="max-w-7xl mx-auto px-6 py-20 text-center space-y-4 bg-lanka-bg">
-        <Database size={48} className="text-white/10 mx-auto" />
-        <h2 className="text-xl font-black text-white">Dataset Not Found</h2>
-        <p className="text-xs text-lanka-muted">The requested dataset does not exist or has been archived.</p>
-        <Link to="/datasets" className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 text-white text-xs font-bold px-6 py-3 rounded-xl shadow-lg">
-          Back to Datasets
+      <div className="max-w-7xl mx-auto px-6 py-20 text-center space-y-5 bg-lanka-bg min-h-screen flex flex-col items-center justify-center">
+        <div className="w-16 h-16 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 mb-2">
+          <AlertTriangle size={32} />
+        </div>
+        <h2 className="text-2xl font-black text-white">Dataset Not Found</h2>
+        <p className="text-xs text-lanka-muted max-w-md leading-relaxed">
+          {errorMsg || `The requested dataset '${id}' could not be retrieved from the backend API.`}
+        </p>
+        <Link 
+          to="/datasets" 
+          className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 text-white text-xs font-bold px-6 py-3 rounded-xl shadow-lg hover:brightness-110 transition-all mt-4"
+        >
+          <ChevronRight size={14} className="rotate-180" />
+          Back to All Datasets
         </Link>
       </div>
     );
   }
 
   const maintainerName = dataset.source || dataset.maintainer || 'Central Bank of Sri Lanka';
-  const totalRecords = dataset.total_records || allRows.length || 5620;
+  const totalRecords = dataset.total_records || recordsResponse?.total_rows || allRows.length || 0;
   const fileSize = dataset.file_size || '12.4 MB';
+  const datasetIdClean = dataset.id || id || 'dataset';
 
   return (
     <div className="flex-1 bg-lanka-bg min-h-screen">
@@ -221,17 +232,17 @@ export const DatasetDetail: React.FC = () => {
           <div className="flex flex-wrap items-center gap-3 mb-3">
             <span className="text-[10px] font-black bg-blue-500/15 text-cyan-300 border border-blue-500/30 px-3 py-1 rounded-full uppercase tracking-widest flex items-center gap-1.5">
               <Building2 size={11} />
-              {dataset.category}
+              {dataset.category || 'Economy'}
             </span>
             {dataset.live && (
               <div className="flex items-center gap-1.5 text-[10px] font-bold text-teal-400 bg-teal-500/10 border border-teal-500/25 px-2.5 py-1 rounded-full">
                 <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-ping" />
-                Live Feed Sync
+                Live Sync Active
               </div>
             )}
             <span className="text-[10px] text-lanka-muted flex items-center gap-1">
               <Clock size={11} className="text-cyan-400" />
-              Frequency: <strong className="text-white font-semibold">{dataset.frequency}</strong>
+              Frequency: <strong className="text-white font-semibold">{dataset.frequency || 'Daily'}</strong>
             </span>
           </div>
 
@@ -247,23 +258,23 @@ export const DatasetDetail: React.FC = () => {
           <div className="flex flex-wrap items-center gap-6 pt-4 border-t border-white/5 text-xs text-lanka-muted">
             <div className="flex items-center gap-2">
               <Building2 size={15} className="text-blue-400" />
-              <span>Source: <strong className="text-white font-semibold">{maintainerName}</strong></span>
+              <span>Data Source: <strong className="text-white font-semibold">{maintainerName}</strong></span>
             </div>
             <div className="flex items-center gap-2">
               <Calendar size={15} className="text-cyan-400" />
-              <span>Coverage: <strong className="text-white font-semibold">{dataset.coverage}</strong></span>
+              <span>Coverage: <strong className="text-white font-semibold">{dataset.coverage || 'Historical'}</strong></span>
             </div>
             <div className="flex items-center gap-2">
               <TableIcon size={15} className="text-teal-400" />
-              <span>Total Rows: <strong className="text-white font-semibold">{totalRecords.toLocaleString()}</strong></span>
+              <span>Total Records: <strong className="text-white font-semibold">{totalRecords.toLocaleString()}</strong></span>
             </div>
             <div className="flex items-center gap-2">
               <Eye size={15} className="text-purple-400" />
-              <span>Views: <strong className="text-white font-semibold">{dataset.views.toLocaleString()}</strong></span>
+              <span>Views: <strong className="text-white font-semibold">{(dataset.views || 0).toLocaleString()}</strong></span>
             </div>
             <div className="flex items-center gap-2">
               <Download size={15} className="text-amber-400" />
-              <span>Downloads: <strong className="text-white font-semibold">{dataset.downloads.toLocaleString()}</strong></span>
+              <span>Downloads: <strong className="text-white font-semibold">{(dataset.downloads || 0).toLocaleString()}</strong></span>
             </div>
           </div>
 
@@ -274,7 +285,7 @@ export const DatasetDetail: React.FC = () => {
       <div className="max-w-7xl mx-auto px-6 py-10">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* ════ LEFT COLUMN: 70% (Overview, Charts, Preview, Similar) ════ */}
+          {/* ════ LEFT COLUMN: 70% (Overview, Charts, Preview Table, Similar) ════ */}
           <div className="lg:col-span-2 space-y-8">
             
             {/* 1. Dataset Overview Card */}
@@ -285,13 +296,13 @@ export const DatasetDetail: React.FC = () => {
                   Dataset Overview
                 </h2>
                 <span className="text-[10px] font-bold text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-2.5 py-0.5 rounded-full">
-                  Verified Data Source
+                  PostgreSQL Driven
                 </span>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
                 <div className="bg-[#081326] border border-lanka-border/60 rounded-xl p-3.5 space-y-1">
-                  <span className="text-[10px] text-lanka-muted uppercase font-bold block">TOTAL ROWS</span>
+                  <span className="text-[10px] text-lanka-muted uppercase font-bold block">TOTAL RECORDS</span>
                   <span className="text-sm font-black text-white">{totalRecords.toLocaleString()}</span>
                 </div>
                 <div className="bg-[#081326] border border-lanka-border/60 rounded-xl p-3.5 space-y-1">
@@ -304,11 +315,11 @@ export const DatasetDetail: React.FC = () => {
                 </div>
                 <div className="bg-[#081326] border border-lanka-border/60 rounded-xl p-3.5 space-y-1">
                   <span className="text-[10px] text-lanka-muted uppercase font-bold block">UPDATE FREQUENCY</span>
-                  <span className="text-sm font-bold text-white">{dataset.frequency}</span>
+                  <span className="text-sm font-bold text-white">{dataset.frequency || 'Daily'}</span>
                 </div>
                 <div className="bg-[#081326] border border-lanka-border/60 rounded-xl p-3.5 space-y-1">
                   <span className="text-[10px] text-lanka-muted uppercase font-bold block">TIME SPAN</span>
-                  <span className="text-sm font-bold text-white">{dataset.coverage}</span>
+                  <span className="text-sm font-bold text-white">{dataset.coverage || '2005 - Present'}</span>
                 </div>
                 <div className="bg-[#081326] border border-lanka-border/60 rounded-xl p-3.5 space-y-1">
                   <span className="text-[10px] text-lanka-muted uppercase font-bold block">LAST UPDATED</span>
@@ -335,72 +346,106 @@ export const DatasetDetail: React.FC = () => {
               </div>
             </div>
 
-            {/* 2. Dynamic Auto-Generated Line Charts */}
+            {/* 2. Automatic Charts Generation (Line Chart & Area Chart) */}
             {chartData.length > 0 && numericKeys.length > 0 && (
-              <div className="bg-[#050d1a] border border-lanka-border rounded-2xl p-6 space-y-4">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h2 className="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
-                      <LineIcon size={14} className="text-teal-400" />
-                      Auto-Generated Interactive Charts
-                    </h2>
-                    <p className="text-[11px] text-lanka-muted mt-0.5">
-                      Visualizing daily rates timeline ({dateKey} vs {numericKeys.join(', ')})
-                    </p>
+              <div className="space-y-6">
+                
+                {/* Chart 1: Line Chart (Buying & Selling Rates Timeline) */}
+                <div className="bg-[#050d1a] border border-lanka-border rounded-2xl p-6 space-y-4">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h2 className="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
+                        <LineIcon size={14} className="text-cyan-400" />
+                        Exchange Rate Line Chart
+                      </h2>
+                      <p className="text-[11px] text-lanka-muted mt-0.5">
+                        Historical timeline ({dateKey} vs {numericKeys.join(', ')})
+                      </p>
+                    </div>
+                    <span className="text-[10px] font-bold text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-2.5 py-1 rounded-full flex items-center gap-1">
+                      <Sparkles size={11} /> Recharts Line
+                    </span>
                   </div>
-                  <span className="text-[10px] font-bold text-teal-400 bg-teal-500/10 border border-teal-500/20 px-2.5 py-1 rounded-full flex items-center gap-1">
-                    <Sparkles size={11} /> Recharts Driven
-                  </span>
+
+                  <div className="h-72 w-full pt-4">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={chartData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
+                        <XAxis dataKey="date" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
+                        <YAxis stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} domain={['auto', 'auto']} />
+                        <Tooltip contentStyle={{ backgroundColor: '#0b1424', borderColor: '#1e293b', borderRadius: '12px', fontSize: '11px', color: '#f8fafc' }} />
+                        <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+                        {numericKeys.map((key, i) => (
+                          <Line
+                            key={key}
+                            type="monotone"
+                            dataKey={key}
+                            name={key}
+                            stroke={CHART_COLORS[i % CHART_COLORS.length]}
+                            strokeWidth={2.5}
+                            dot={{ r: 3 }}
+                            activeDot={{ r: 6 }}
+                          />
+                        ))}
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
 
-                <div className="h-80 w-full pt-4">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={chartData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
-                      <XAxis 
-                        dataKey="date" 
-                        stroke="#64748b" 
-                        fontSize={10} 
-                        tickLine={false} 
-                        axisLine={false} 
-                      />
-                      <YAxis 
-                        stroke="#64748b" 
-                        fontSize={10} 
-                        tickLine={false} 
-                        axisLine={false} 
-                        domain={['auto', 'auto']} 
-                      />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: '#0b1424', 
-                          borderColor: '#1e293b', 
-                          borderRadius: '12px',
-                          fontSize: '11px',
-                          color: '#f8fafc'
-                        }} 
-                      />
-                      <Legend 
-                        wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }}
-                      />
-                      {numericKeys.map((key, i) => (
-                        <Line
-                          key={key}
-                          type="monotone"
-                          dataKey={key}
-                          name={key}
-                          stroke={CHART_COLORS[i % CHART_COLORS.length]}
-                          strokeWidth={2.5}
-                          dot={{ r: 3 }}
-                          activeDot={{ r: 6 }}
-                        />
-                      ))}
-                    </LineChart>
-                  </ResponsiveContainer>
+                {/* Chart 2: Area Chart (Rate Spread over Time) */}
+                <div className="bg-[#050d1a] border border-lanka-border rounded-2xl p-6 space-y-4">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h2 className="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
+                        <AreaIcon size={14} className="text-teal-400" />
+                        Buying vs Selling Rate Area Trend
+                      </h2>
+                      <p className="text-[11px] text-lanka-muted mt-0.5">
+                        Area distribution tracking over historical business days
+                      </p>
+                    </div>
+                    <span className="text-[10px] font-bold text-teal-400 bg-teal-500/10 border border-teal-500/20 px-2.5 py-1 rounded-full flex items-center gap-1">
+                      <Sparkles size={11} /> Recharts Area
+                    </span>
+                  </div>
+
+                  <div className="h-72 w-full pt-4">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={chartData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
+                        <defs>
+                          <linearGradient id="areaColor1" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.4}/>
+                            <stop offset="95%" stopColor="#38bdf8" stopOpacity={0}/>
+                          </linearGradient>
+                          <linearGradient id="areaColor2" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.4}/>
+                            <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <XAxis dataKey="date" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
+                        <YAxis stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} domain={['auto', 'auto']} />
+                        <Tooltip contentStyle={{ backgroundColor: '#0b1424', borderColor: '#1e293b', borderRadius: '12px', fontSize: '11px', color: '#f8fafc' }} />
+                        <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+                        {numericKeys.slice(0, 2).map((key, i) => (
+                          <Area
+                            key={key}
+                            type="monotone"
+                            dataKey={key}
+                            name={key}
+                            stroke={CHART_COLORS[i % CHART_COLORS.length]}
+                            fillOpacity={1}
+                            fill={`url(#areaColor${i + 1})`}
+                            strokeWidth={2}
+                          />
+                        ))}
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
+
               </div>
             )}
 
-            {/* 3. Dynamic Data Preview Table */}
+            {/* 3. Database Records Preview Table */}
             <div className="bg-[#050d1a] border border-lanka-border rounded-2xl overflow-hidden space-y-0">
               
               {/* Header & Controls Bar */}
@@ -408,10 +453,10 @@ export const DatasetDetail: React.FC = () => {
                 <div>
                   <h2 className="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
                     <TableIcon size={14} className="text-cyan-400" />
-                    Dataset Preview Table
+                    Database Records Preview
                   </h2>
                   <span className="text-[10px] text-lanka-muted">
-                    Showing {paginatedRows.length} of {totalTableRows} loaded records
+                    Showing {allRows.length} of {totalRecords} PostgreSQL records
                   </span>
                 </div>
 
@@ -421,7 +466,7 @@ export const DatasetDetail: React.FC = () => {
                     <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-lanka-muted" />
                     <input 
                       type="text" 
-                      placeholder="Search inside table..."
+                      placeholder="Search records..."
                       value={searchTerm}
                       onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                       className="w-full bg-[#081326] border border-lanka-border text-xs text-white placeholder-lanka-muted pl-8 pr-3 py-1.5 rounded-xl focus:outline-none focus:border-cyan-500 transition-colors"
@@ -433,9 +478,9 @@ export const DatasetDetail: React.FC = () => {
                     onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}
                     className="bg-[#081326] border border-lanka-border text-xs text-white px-2.5 py-1.5 rounded-xl focus:outline-none cursor-pointer"
                   >
-                    <option value={5}>5 / page</option>
                     <option value={10}>10 / page</option>
                     <option value={20}>20 / page</option>
+                    <option value={50}>50 / page</option>
                   </select>
                 </div>
               </div>
@@ -460,8 +505,8 @@ export const DatasetDetail: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-lanka-border/40">
-                    {paginatedRows.length > 0 ? (
-                      paginatedRows.map((row, rowIdx) => (
+                    {allRows.length > 0 ? (
+                      allRows.map((row, rowIdx) => (
                         <tr key={rowIdx} className="hover:bg-white/[0.04] transition-colors">
                           {columns.map((col, colIdx) => (
                             <td key={colIdx} className="p-3.5 text-slate-300 font-medium whitespace-nowrap">
@@ -473,7 +518,7 @@ export const DatasetDetail: React.FC = () => {
                     ) : (
                       <tr>
                         <td colSpan={columns.length || 1} className="p-8 text-center text-lanka-muted">
-                          No matching records found.
+                          No database records match your filter criteria.
                         </td>
                       </tr>
                     )}
@@ -481,7 +526,7 @@ export const DatasetDetail: React.FC = () => {
                 </table>
               </div>
 
-              {/* Pagination Controls */}
+              {/* Server-Side Pagination Controls */}
               {totalPages > 1 && (
                 <div className="p-4 border-t border-lanka-border flex justify-between items-center bg-[#070e1c] text-xs">
                   <span className="text-[11px] text-lanka-muted">
@@ -508,12 +553,12 @@ export const DatasetDetail: React.FC = () => {
             </div>
 
             {/* 4. Similar Datasets Section */}
-            {similarDatasets.length > 0 && (
-              <div className="bg-[#050d1a] border border-lanka-border rounded-2xl p-6 space-y-4">
-                <h2 className="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
-                  <Database size={14} className="text-cyan-400" />
-                  Similar Category Datasets
-                </h2>
+            <div className="bg-[#050d1a] border border-lanka-border rounded-2xl p-6 space-y-4">
+              <h2 className="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
+                <Database size={14} className="text-cyan-400" />
+                Similar Datasets
+              </h2>
+              {similarDatasets && similarDatasets.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {similarDatasets.map((d) => (
                     <Link
@@ -541,12 +586,16 @@ export const DatasetDetail: React.FC = () => {
                     </Link>
                   ))}
                 </div>
-              </div>
-            )}
+              ) : (
+                <div className="text-center py-6 border border-dashed border-lanka-border/60 rounded-xl text-lanka-muted text-xs">
+                  No similar datasets found.
+                </div>
+              )}
+            </div>
 
           </div>
 
-          {/* ════ RIGHT COLUMN: 30% (Downloads, API Info, Sidebar Specs) ════ */}
+          {/* ════ RIGHT COLUMN: 30% (Downloads, API Integration, Sidebar Metadata) ════ */}
           <div className="space-y-6">
             
             {/* Download Resources Card */}
@@ -557,7 +606,7 @@ export const DatasetDetail: React.FC = () => {
                   Download Resource
                 </h3>
                 <span className="text-[10px] font-bold text-teal-400 bg-teal-500/10 border border-teal-500/20 px-2 py-0.5 rounded-full">
-                  {dataset.downloads.toLocaleString()} Downloads
+                  {(dataset.downloads || 0).toLocaleString()} Downloads
                 </span>
               </div>
 
@@ -572,9 +621,9 @@ export const DatasetDetail: React.FC = () => {
                   </div>
                   <div className="min-w-0">
                     <span className="text-xs font-bold text-white block group-hover:text-cyan-300 transition-colors truncate">
-                      {dataset.id.replace(/-/g, '_')}.csv
+                      {datasetIdClean.replace(/-/g, '_')}.csv
                     </span>
-                    <span className="text-[10px] text-lanka-muted block mt-0.5">{fileSize} • Full Daily Export</span>
+                    <span className="text-[10px] text-lanka-muted block mt-0.5">{fileSize} • PostgreSQL Stream</span>
                   </div>
                 </div>
                 <Download size={16} className="text-cyan-400 group-hover:scale-110 transition-transform" />
@@ -587,14 +636,14 @@ export const DatasetDetail: React.FC = () => {
                   className="flex items-center justify-center gap-2 bg-[#081326] hover:bg-white/5 border border-lanka-border py-2.5 px-3 rounded-xl text-xs font-bold text-slate-200 hover:text-white transition-colors"
                 >
                   <Key size={13} className="text-cyan-400" />
-                  <span>JSON Format</span>
+                  <span>Download JSON</span>
                 </button>
                 <button 
                   onClick={() => handleFileDownload('sql')}
                   className="flex items-center justify-center gap-2 bg-[#081326] hover:bg-white/5 border border-lanka-border py-2.5 px-3 rounded-xl text-xs font-bold text-slate-200 hover:text-white transition-colors"
                 >
                   <Database size={13} className="text-teal-400" />
-                  <span>SQL Dump</span>
+                  <span>Download SQL</span>
                 </button>
               </div>
 
@@ -617,18 +666,18 @@ export const DatasetDetail: React.FC = () => {
               </button>
             </div>
 
-            {/* API Access Information Card */}
+            {/* REST API Integration Card */}
             <div className="bg-[#050d1a] border border-lanka-border rounded-2xl p-6 space-y-4">
               <h3 className="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
                 <Key size={14} className="text-cyan-400" />
                 REST API Integration
               </h3>
               <p className="text-[11px] text-lanka-muted leading-relaxed">
-                Fetch live rows programmatically via JSON REST endpoint:
+                Programmatically fetch live records from PostgreSQL:
               </p>
               
               <div className="bg-[#030a14] border border-lanka-border rounded-xl p-3 text-[11px] font-mono text-cyan-300 break-all select-all">
-                GET /api/datasets/{dataset.id}/preview
+                GET /api/datasets/{datasetIdClean}/records
               </div>
 
               <Link 
@@ -644,7 +693,7 @@ export const DatasetDetail: React.FC = () => {
             <div className="bg-[#050d1a] border border-lanka-border rounded-2xl p-6 space-y-4">
               <h3 className="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
                 <Building2 size={14} className="text-blue-400" />
-                Publisher Metadata
+                Dataset Metadata
               </h3>
 
               <div className="space-y-4 text-xs">
@@ -664,7 +713,7 @@ export const DatasetDetail: React.FC = () => {
                   </span>
                   <span className="font-bold text-white flex items-center gap-2">
                     <RefreshCw size={13} className="text-teal-400" />
-                    {dataset.frequency}
+                    {dataset.frequency || 'Daily'}
                   </span>
                 </div>
 
@@ -674,7 +723,7 @@ export const DatasetDetail: React.FC = () => {
                   </span>
                   <span className="font-bold text-white flex items-center gap-2">
                     <Calendar size={13} className="text-blue-400" />
-                    {dataset.coverage}
+                    {dataset.coverage || '2005 - Present'}
                   </span>
                 </div>
 

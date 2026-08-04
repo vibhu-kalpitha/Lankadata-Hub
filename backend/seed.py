@@ -83,6 +83,24 @@ def seed_data():
                 total_records=2840,
                 file_size="6.8 MB"
             ),
+            models.Dataset(
+                id="hnb-usd-exchange-rates",
+                title="HNB USD Exchange Rates",
+                description="Daily USD buying, selling, and telegraphic transfer (TT) exchange rates published by Hatton National Bank.",
+                full_description="Daily commercial bank exchange rates for US Dollars published by Hatton National Bank (HNB PLC). Tracks counter buying, counter selling, and telegraphic transfer (TT) rates across business days.",
+                category_id="economy",
+                formats="CSV,JSON,SQL",
+                maintainer="Hatton National Bank",
+                source="Hatton National Bank",
+                frequency="Daily",
+                coverage="2015 - Present",
+                live=True,
+                featured=True,
+                views=3120,
+                downloads=950,
+                total_records=2840,
+                file_size="6.8 MB"
+            ),
         ]
 
         for ds in datasets_data:
@@ -169,6 +187,17 @@ def seed_data():
             for row in hnb_rows:
                 db.add(models.DatasetRecord(
                     dataset_id="hnb-usd-rates",
+                    year=row["Date"][:4],
+                    region="National",
+                    indicator_value=row["Buying Rate (LKR)"],
+                    growth_pct=0.0,
+                    extra_data=json.dumps(row)
+                ))
+
+        if db.query(models.DatasetRecord).filter_by(dataset_id="hnb-usd-exchange-rates").count() == 0:
+            for row in hnb_rows:
+                db.add(models.DatasetRecord(
+                    dataset_id="hnb-usd-exchange-rates",
                     year=row["Date"][:4],
                     region="National",
                     indicator_value=row["Buying Rate (LKR)"],
