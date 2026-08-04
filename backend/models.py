@@ -40,8 +40,9 @@ class Dataset(Base):
     coverage = Column(String(100), nullable=True)
     live = Column(Boolean, default=False)
     featured = Column(Boolean, default=False)
-    views = Column(Integer, default=0)
-    downloads = Column(Integer, default=0)
+    source = Column(String(200), nullable=True)
+    total_records = Column(Integer, default=0)
+    file_size = Column(String(50), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
