@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Database, LayoutGrid, Cpu, ArrowRight } from 'lucide-react';
-import { datasetService, MOCK_CATEGORIES } from '../services/datasetService';
-import type { Dataset } from '../services/datasetService';
+import { datasetService } from '../services/datasetService';
+import type { Dataset, Category } from '../services/datasetService';
 import { dashboardService } from '../services/dashboardService';
 import type { Dashboard } from '../services/dashboardService';
 import { apiService } from '../services/apiService';
@@ -11,13 +11,19 @@ import type { ApiEndpoint } from '../services/apiService';
 export const CategoryDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [activeTab, setActiveTab] = useState<'datasets' | 'dashboards' | 'apis'>('datasets');
+  const [categoryInfo, setCategoryInfo] = useState<Category | null>(null);
   
   const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [dashboards, setDashboards] = useState<Dashboard[]>([]);
   const [apis, setApis] = useState<ApiEndpoint[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const categoryInfo = MOCK_CATEGORIES.find(c => c.id === id);
+  useEffect(() => {
+    datasetService.getCategories().then(cats => {
+      const found = cats.find((c: Category) => c.id === id || c.name.toLowerCase() === id?.toLowerCase());
+      setCategoryInfo(found || { id: id || 'category', name: id || 'Category', count: 0, iconName: 'TrendingUp', description: '' });
+    });
+  }, [id]);
 
   useEffect(() => {
     if (!id || !categoryInfo) return;

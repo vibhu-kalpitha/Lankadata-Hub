@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { Search, Menu, X } from 'lucide-react';
-import { MOCK_DATASETS } from '../services/datasetService';
+import { datasetService } from '../services/datasetService';
 import { MOCK_DASHBOARDS, MOCK_POPULAR_DASHBOARDS } from '../services/dashboardService';
 import { MOCK_APIS } from '../services/apiService';
 
@@ -38,23 +38,19 @@ export const Navbar: React.FC = () => {
 
     const query = searchQuery.toLowerCase();
 
-    const matchedDatasets = MOCK_DATASETS.filter(d => 
-      d.title.toLowerCase().includes(query) || d.category.toLowerCase().includes(query)
-    ).slice(0, 3).map(d => ({ id: d.id, title: d.title }));
+    datasetService.getDatasets({ search: searchQuery, limit: 3 }).then(res => {
+      const matchedDatasets = (res.datasets || []).map((d: any) => ({ id: d.id, title: d.title }));
+      
+      const allDashboards = [...MOCK_DASHBOARDS, ...MOCK_POPULAR_DASHBOARDS];
+      const matchedDashboards = allDashboards.filter(d => 
+        d.title.toLowerCase().includes(query) || d.category.toLowerCase().includes(query)
+      ).slice(0, 3).map(d => ({ id: d.id, title: d.title }));
 
-    const allDashboards = [...MOCK_DASHBOARDS, ...MOCK_POPULAR_DASHBOARDS];
-    const matchedDashboards = allDashboards.filter(d => 
-      d.title.toLowerCase().includes(query) || d.category.toLowerCase().includes(query)
-    ).slice(0, 3).map(d => ({ id: d.id, title: d.title }));
+      const matchedApis = MOCK_APIS.filter(a => 
+        a.title.toLowerCase().includes(query) || a.category.toLowerCase().includes(query)
+      ).slice(0, 3).map(a => ({ id: a.id, title: a.title }));
 
-    const matchedApis = MOCK_APIS.filter(a => 
-      a.title.toLowerCase().includes(query) || a.category.toLowerCase().includes(query)
-    ).slice(0, 3).map(a => ({ id: a.id, title: a.title }));
-
-    setResults({
-      datasets: matchedDatasets,
-      dashboards: matchedDashboards,
-      apis: matchedApis
+      setResults({ datasets: matchedDatasets, dashboards: matchedDashboards, apis: matchedApis });
     });
   }, [searchQuery]);
 

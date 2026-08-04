@@ -45,6 +45,8 @@ export const App: React.FC = () => {
               <Route path="/" element={<Home />} />
               <Route path="/datasets" element={<Datasets />} />
               <Route path="/datasets/:id" element={<DatasetDetail />} />
+              <Route path="/datasets/:id/records" element={<DatasetDetail />} />
+              <Route path="/datasets/:id/preview" element={<DatasetDetail />} />
               <Route path="/dashboards" element={<Dashboards />} />
               <Route path="/dashboards/:id" element={<DashboardDetail />} />
               <Route path="/apis" element={<APIMarketplace />} />
