@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { API_BASE_URL, USE_MOCK_DATA } from './config';
+import { API_BASE_URL } from './config';
 
 export interface Dashboard {
   id: string;
@@ -169,7 +169,7 @@ export const MOCK_POPULAR_DASHBOARDS: Dashboard[] = [
 
 export const dashboardService = {
   getDashboards: async (): Promise<DashboardDetail[]> => {
-    if (USE_MOCK_DATA) {
+    if (false) {
       return MOCK_DASHBOARDS;
     }
     const response = await axios.get(`${API_BASE_URL}/dashboards`);
@@ -177,7 +177,7 @@ export const dashboardService = {
   },
 
   getPopularDashboards: async (): Promise<Dashboard[]> => {
-    if (USE_MOCK_DATA) {
+    if (false) {
       return MOCK_POPULAR_DASHBOARDS;
     }
     const response = await axios.get(`${API_BASE_URL}/dashboards/popular`);
@@ -185,31 +185,6 @@ export const dashboardService = {
   },
 
   getDashboardById: async (id: string): Promise<DashboardDetail | null> => {
-    if (USE_MOCK_DATA) {
-      const db = MOCK_DASHBOARDS.find((d) => d.id === id);
-      if (db) return db;
-      // Fallback details for popular dashboards
-      const popular = MOCK_POPULAR_DASHBOARDS.find((d) => d.id === id);
-      if (popular) {
-        return {
-          ...popular,
-          chartData: [
-            { month: 'Q1', Projected: 100, Actual: 105 },
-            { month: 'Q2', Projected: 120, Actual: 118 },
-            { month: 'Q3', Projected: 150, Actual: 142 },
-          ],
-          insights: ['Mock analysis indicators for ' + popular.title],
-          metrics: [
-            { title: 'Total Volume', value: '1.2M', change: '+8%', isPositive: true, type: 'GENERIC' },
-            { title: 'Growth Rate', value: '4.8%', change: '+1.2%', isPositive: true, type: 'GENERIC' },
-          ],
-          relatedReports: [],
-          relatedDatasets: [],
-          apiEndpoint: '/api/v1/custom/' + popular.id
-        };
-      }
-      return null;
-    }
     try {
       const response = await axios.get(`${API_BASE_URL}/dashboards/${id}`);
       return response.data;

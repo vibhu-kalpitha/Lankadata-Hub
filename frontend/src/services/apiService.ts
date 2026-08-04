@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { FASTAPI_API_URL, USE_MOCK_DATA } from './config';
+import { FASTAPI_API_URL } from './config';
 
 export interface ApiEndpoint {
   id: string;
@@ -120,7 +120,7 @@ export const MOCK_PRICING = [
 
 export const apiService = {
   getApis: async (): Promise<ApiEndpoint[]> => {
-    if (USE_MOCK_DATA) {
+    if (false) {
       return MOCK_APIS;
     }
     const response = await axios.get(`${FASTAPI_API_URL}/apis`);
@@ -128,7 +128,7 @@ export const apiService = {
   },
 
   getApiById: async (id: string): Promise<ApiEndpoint | null> => {
-    if (USE_MOCK_DATA) {
+    if (false) {
       const api = MOCK_APIS.find((a) => a.id === id);
       return api || null;
     }
