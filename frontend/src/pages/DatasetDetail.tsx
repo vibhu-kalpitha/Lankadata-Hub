@@ -411,75 +411,69 @@ export const DatasetDetail: React.FC = () => {
             {/* 2. Auto-generated charts (only when data exists) */}
             {chartData.length > 0 && numericKeys.length > 0 && (
               <div className="space-y-6">
-
-                {/* Line Chart */}
-                <div className="bg-[#050d1a] border border-lanka-border rounded-2xl p-6 space-y-4">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h2 className="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
-                        <LineIcon size={13} className="text-cyan-400" /> Rate Timeline
-                      </h2>
-                      <p className="text-[11px] text-lanka-muted mt-0.5">
-                        {dateKey} vs {numericKeys.join(', ')}
-                      </p>
+                {/* Dynamically generated individual line chart for every numeric column */}
+                {numericKeys.map((numKey) => (
+                  <div key={numKey} className="bg-[#050d1a] border border-lanka-border rounded-2xl p-6 space-y-4">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h2 className="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
+                          <LineIcon size={13} className="text-cyan-400" /> {dateKey} vs {numKey}
+                        </h2>
+                        <p className="text-[11px] text-lanka-muted mt-0.5">
+                          Automated timeline chart for {numKey}
+                        </p>
+                      </div>
+                      <span className="text-[10px] font-bold text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-2.5 py-1 rounded-full flex items-center gap-1">
+                        <Sparkles size={11} /> Line Chart
+                      </span>
                     </div>
-                    <span className="text-[10px] font-bold text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-2.5 py-1 rounded-full flex items-center gap-1">
-                      <Sparkles size={11} /> Line Chart
-                    </span>
-                  </div>
-                  <div className="h-72 w-full pt-2">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={chartData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
-                        <XAxis dataKey="date" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
-                        <YAxis stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} domain={['auto', 'auto']} />
-                        <Tooltip contentStyle={{ backgroundColor: '#0b1424', borderColor: '#1e293b', borderRadius: '12px', fontSize: '11px', color: '#f8fafc' }} />
-                        <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
-                        {numericKeys.map((key, i) => (
-                          <Line key={key} type="monotone" dataKey={key} name={key}
-                            stroke={CHART_COLORS[i % CHART_COLORS.length]} strokeWidth={2.5}
-                            dot={{ r: 3 }} activeDot={{ r: 6 }} />
-                        ))}
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-
-                {/* Area Chart */}
-                <div className="bg-[#050d1a] border border-lanka-border rounded-2xl p-6 space-y-4">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h2 className="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
-                        <AreaIcon size={13} className="text-teal-400" /> Area Trend
-                      </h2>
-                      <p className="text-[11px] text-lanka-muted mt-0.5">Buying vs Selling rate distribution</p>
+                    <div className="h-72 w-full pt-2">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={chartData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
+                          <XAxis dataKey="date" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
+                          <YAxis stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} domain={['auto', 'auto']} />
+                          <Tooltip contentStyle={{ backgroundColor: '#0b1424', borderColor: '#1e293b', borderRadius: '12px', fontSize: '11px', color: '#f8fafc' }} />
+                          <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
+                          <Line type="monotone" dataKey={numKey} name={numKey} stroke="#38bdf8" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 6 }} />
+                        </LineChart>
+                      </ResponsiveContainer>
                     </div>
-                    <span className="text-[10px] font-bold text-teal-400 bg-teal-500/10 border border-teal-500/20 px-2.5 py-1 rounded-full flex items-center gap-1">
-                      <Sparkles size={11} /> Area Chart
-                    </span>
                   </div>
-                  <div className="h-72 w-full pt-2">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={chartData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
-                        <defs>
-                          {numericKeys.slice(0, 2).map((_, i) => (
-                            <linearGradient key={i} id={`fill${i}`} x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor={CHART_COLORS[i]} stopOpacity={0.4} />
-                              <stop offset="95%" stopColor={CHART_COLORS[i]} stopOpacity={0} />
-                            </linearGradient>
+                ))}
+
+                {/* Combined Line Chart if multiple numeric columns */}
+                {numericKeys.length > 1 && (
+                  <div className="bg-[#050d1a] border border-lanka-border rounded-2xl p-6 space-y-4">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h2 className="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
+                          <LineIcon size={13} className="text-cyan-400" /> Combined Rates Timeline
+                        </h2>
+                        <p className="text-[11px] text-lanka-muted mt-0.5">
+                          {dateKey} vs {numericKeys.join(', ')}
+                        </p>
+                      </div>
+                      <span className="text-[10px] font-bold text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-2.5 py-1 rounded-full flex items-center gap-1">
+                        <Sparkles size={11} /> Overview Chart
+                      </span>
+                    </div>
+                    <div className="h-72 w-full pt-2">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={chartData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
+                          <XAxis dataKey="date" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
+                          <YAxis stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} domain={['auto', 'auto']} />
+                          <Tooltip contentStyle={{ backgroundColor: '#0b1424', borderColor: '#1e293b', borderRadius: '12px', fontSize: '11px', color: '#f8fafc' }} />
+                          <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
+                          {numericKeys.map((key, i) => (
+                            <Line key={key} type="monotone" dataKey={key} name={key}
+                              stroke={i === 0 ? '#38bdf8' : i === 1 ? '#0284c7' : '#06b6d4'} strokeWidth={2.5}
+                              dot={{ r: 3 }} activeDot={{ r: 6 }} />
                           ))}
-                        </defs>
-                        <XAxis dataKey="date" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
-                        <YAxis stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} domain={['auto', 'auto']} />
-                        <Tooltip contentStyle={{ backgroundColor: '#0b1424', borderColor: '#1e293b', borderRadius: '12px', fontSize: '11px', color: '#f8fafc' }} />
-                        <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
-                        {numericKeys.slice(0, 2).map((key, i) => (
-                          <Area key={key} type="monotone" dataKey={key} name={key}
-                            stroke={CHART_COLORS[i]} fillOpacity={1} fill={`url(#fill${i})`} strokeWidth={2} />
-                        ))}
-                      </AreaChart>
-                    </ResponsiveContainer>
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             )}
 

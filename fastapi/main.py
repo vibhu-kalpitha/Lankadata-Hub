@@ -164,21 +164,160 @@ def latest_datasets(
     ) for ds in items]
 
 
-# Helper to parse dataset records
+# Helper to parse dataset records dynamically from Postgres tables or DatasetRecord
 import json
 from fastapi.responses import Response
+from sqlalchemy import inspect, text
 
-def normalize_dataset_id(dataset_id: str) -> str:
-    if dataset_id in ["hnb-usd-exchange-rates", "hnb-usd-exchange-rate"]:
-        return "hnb-usd-rates"
-    return dataset_id
+DEFAULT_DATASETS_SEED = {
+    "usd-exchange-rates": {
+        "title": "USD Exchange Rates",
+        "description": "Historical daily USD buying and selling exchange rates published by the Central Bank of Sri Lanka.",
+        "full_description": "Comprehensive daily USD exchange rate dataset maintained by the Central Bank of Sri Lanka (CBSL). Contains buying and selling rates against LKR with historical coverage.",
+        "category_id": "economy",
+        "formats": "CSV,JSON,SQL,API",
+        "maintainer": "Central Bank of Sri Lanka",
+        "source": "Central Bank of Sri Lanka",
+        "frequency": "Daily",
+        "coverage": "2005 - Present",
+        "live": True,
+        "featured": True,
+        "file_size": "12.4 MB"
+    },
+    "hnb-usd-exchange-rates": {
+        "title": "HNB USD Exchange Rates",
+        "description": "Daily US Dollar buying and selling exchange rates published by Hatton National Bank (HNB), Sri Lanka.",
+        "full_description": "Commercial bank exchange rates for USD published daily by Hatton National Bank (HNB), including buying and selling telegraphic transfers (TT) and note rates.",
+        "category_id": "economy",
+        "formats": "CSV,JSON,SQL,API",
+        "maintainer": "Hatton National Bank",
+        "source": "Hatton National Bank",
+        "frequency": "Daily",
+        "coverage": "2020 - Present",
+        "live": True,
+        "featured": True,
+        "file_size": "8.1 MB"
+    }
+}
 
-def get_parsed_dataset_records(dataset_id: str, db: Session):
-    clean_id = normalize_dataset_id(dataset_id)
-    records = db.query(models.DatasetRecord).filter(
-        models.DatasetRecord.dataset_id == clean_id
-    ).all()
+def resolve_dataset_object(dataset_id: str, db: Session) -> Optional[models.Dataset]:
+    raw_id = (dataset_id or "").strip().lower()
+    if not raw_id:
+        return None
+
+    if raw_id in ["hnb-usd-exchange-rates", "hnb-usd-rates", "hnb-usd-exchange-rate", "hnb_usd_exchange_rates"]:
+        ids_to_try = ["hnb-usd-exchange-rates", "hnb-usd-rates", "hnb_usd_exchange_rates"]
+    elif raw_id in ["usd-exchange-rates", "usd-exchange-rate", "usd_exchange_rates"]:
+        ids_to_try = ["usd-exchange-rates", "usd_exchange_rates"]
+    else:
+        ids_to_try = [raw_id, raw_id.replace("_", "-"), raw_id.replace("-", "_")]
+
+    for cand_id in ids_to_try:
+        ds = db.query(models.Dataset).filter(models.Dataset.id == cand_id).first()
+        if ds:
+            return ds
+
+    # Auto-seed default dataset metadata if missing from DB
+    for seed_id, seed_data in DEFAULT_DATASETS_SEED.items():
+        if seed_id in ids_to_try or raw_id == seed_id:
+            try:
+                cat = db.query(models.Category).filter(models.Category.id == seed_data["category_id"]).first()
+                if not cat:
+                    cat = models.Category(id="economy", name="Economy", icon_name="TrendingUp", description="National GDP and financial statistics.")
+                    db.add(cat)
+                    db.commit()
+
+                new_ds = models.Dataset(id=seed_id, **seed_data)
+                db.add(new_ds)
+                db.commit()
+                db.refresh(new_ds)
+                return new_ds
+            except Exception:
+                db.rollback()
+
+    return db.query(models.Dataset).filter(models.Dataset.id.ilike(f"%{raw_id}%")).first()
+
+
+def get_dynamic_table_records(dataset_id: str, db: Session, search: Optional[str] = None, sort_by: Optional[str] = None, sort_order: Optional[str] = "asc", limit: Optional[int] = None, offset: Optional[int] = None):
+    clean_id = (dataset_id or "").strip().lower()
     
+    try:
+        bind = db.get_bind()
+        inspector = inspect(bind)
+        all_tables = inspector.get_table_names(schema="public")
+    except Exception:
+        all_tables = []
+
+    candidate_tables = [
+        clean_id.replace("-", "_"),
+        clean_id,
+    ]
+    if clean_id in ["hnb-usd-exchange-rates", "hnb-usd-rates", "hnb-usd-exchange-rate"]:
+        candidate_tables.extend(["hnb_usd_exchange_rates", "hnb_usd_rates"])
+    if clean_id in ["usd-exchange-rates", "usd-exchange-rate"]:
+        candidate_tables.extend(["usd_exchange_rates", "usd_exchange_rate"])
+
+    target_table = None
+    for cand in candidate_tables:
+        if cand in all_tables:
+            target_table = cand
+            break
+
+    if target_table:
+        try:
+            col_info = inspector.get_columns(target_table, schema="public")
+            all_cols = [c["name"] for c in col_info]
+            display_columns = [c for c in all_cols if c.lower() != 'id'] if len(all_cols) > 1 else all_cols
+
+            where_clause = ""
+            params = {}
+            if search and search.strip():
+                s_val = f"%{search.strip()}%"
+                search_conds = []
+                for i, c in enumerate(display_columns):
+                    param_key = f"search_{i}"
+                    search_conds.append(f'CAST("{c}" AS TEXT) ILIKE :{param_key}')
+                    params[param_key] = s_val
+                if search_conds:
+                    where_clause = " WHERE " + " OR ".join(search_conds)
+
+            order_clause = ""
+            if sort_by and sort_by in display_columns:
+                direction = "DESC" if sort_order and sort_order.lower() == "desc" else "ASC"
+                order_clause = f' ORDER BY "{sort_by}" {direction}'
+
+            count_sql = text(f'SELECT COUNT(*) FROM "{target_table}"{where_clause}')
+            total_count = db.execute(count_sql, params).scalar() or 0
+
+            limit_clause = ""
+            if limit is not None:
+                limit_clause = f" LIMIT {int(limit)}"
+                if offset is not None:
+                    limit_clause += f" OFFSET {int(offset)}"
+
+            col_select = ", ".join([f'"{c}"' for c in display_columns])
+            data_sql = text(f'SELECT {col_select} FROM "{target_table}"{where_clause}{order_clause}{limit_clause}')
+            result = db.execute(data_sql, params)
+
+            rows = []
+            for row in result.mappings():
+                r_dict = {}
+                for k, v in row.items():
+                    if hasattr(v, 'isoformat'):
+                        r_dict[k] = v.isoformat()
+                    else:
+                        r_dict[k] = v
+                rows.append(r_dict)
+
+            return display_columns, rows, total_count
+        except Exception:
+            pass
+
+    # Fallback to DatasetRecord table
+    records = db.query(models.DatasetRecord).filter(
+        models.DatasetRecord.dataset_id.in_([clean_id, clean_id.replace("-", "_"), clean_id.replace("_", "-")])
+    ).all()
+
     rows = []
     columns_set = []
     for r in records:
@@ -202,24 +341,35 @@ def get_parsed_dataset_records(dataset_id: str, db: Session):
             if k not in columns_set:
                 columns_set.append(k)
         rows.append(fallback_dict)
-        
-    return columns_set, rows
+
+    if search and search.strip():
+        s_lower = search.strip().lower()
+        rows = [r for r in rows if any(s_lower in str(v).lower() for v in r.values())]
+
+    if sort_by and sort_by in columns_set:
+        reverse = (sort_order == "desc")
+        rows = sorted(rows, key=lambda r: str(r.get(sort_by, "")), reverse=reverse)
+
+    total_count = len(rows)
+    if limit is not None:
+        off = offset or 0
+        rows = rows[off : off + limit]
+
+    return columns_set, rows, total_count
 
 
 @app.get("/api/datasets/{dataset_id}", response_model=schemas.DatasetDetailOut, tags=["Datasets"])
 def get_dataset(dataset_id: str, db: Session = Depends(get_db)):
     """Return full details of a single dataset including metadata and initial preview rows."""
-    clean_id = normalize_dataset_id(dataset_id)
-    ds = db.query(models.Dataset).filter(models.Dataset.id == clean_id).first()
+    ds = resolve_dataset_object(dataset_id, db)
     if not ds:
         raise HTTPException(status_code=404, detail=f"Dataset '{dataset_id}' not found.")
 
-    # Increment view count
     ds.views = (ds.views or 0) + 1
     db.commit()
 
-    columns, rows = get_parsed_dataset_records(dataset_id, db)
-    total_recs = len(rows) if len(rows) > 0 else (ds.total_records or 0)
+    columns, rows, total_count = get_dynamic_table_records(ds.id, db, limit=20)
+    total_recs = total_count if total_count > 0 else (ds.total_records or 0)
 
     return schemas.DatasetDetailOut(
         id=ds.id,
@@ -240,7 +390,7 @@ def get_dataset(dataset_id: str, db: Session = Depends(get_db)):
         file_size=ds.file_size or "12.4 MB",
         updated_at=str(ds.updated_at) if ds.updated_at else "Today",
         columns=columns,
-        preview_rows=rows[:20]
+        preview_rows=rows
     )
 
 
@@ -255,34 +405,19 @@ def get_dataset_preview(
     db: Session = Depends(get_db)
 ):
     """Return preview rows for a dataset with search, sorting, and pagination."""
-    clean_id = normalize_dataset_id(dataset_id)
-    ds = db.query(models.Dataset).filter(models.Dataset.id == clean_id).first()
+    ds = resolve_dataset_object(dataset_id, db)
     if not ds:
         raise HTTPException(status_code=404, detail=f"Dataset '{dataset_id}' not found.")
 
-    columns, rows = get_parsed_dataset_records(clean_id, db)
-
-    # Apply search filter across values
-    if search:
-        s_lower = search.lower()
-        rows = [
-            r for r in rows
-            if any(s_lower in str(v).lower() for v in r.values())
-        ]
-
-    # Apply column sorting
-    if sort_by and sort_by in columns:
-        reverse = (sort_order == "desc")
-        rows = sorted(rows, key=lambda r: str(r.get(sort_by, "")), reverse=reverse)
-
-    total_rows = len(rows)
-    paginated_rows = rows[offset : offset + limit]
+    columns, rows, total_count = get_dynamic_table_records(
+        ds.id, db, search=search, sort_by=sort_by, sort_order=sort_order, limit=limit, offset=offset
+    )
 
     return schemas.DatasetPreviewResponse(
-        dataset_id=clean_id,
+        dataset_id=ds.id,
         columns=columns,
-        rows=paginated_rows,
-        total_rows=total_rows,
+        rows=rows,
+        total_rows=total_count,
         total_columns=len(columns)
     )
 
@@ -294,49 +429,47 @@ def download_dataset(
     db: Session = Depends(get_db)
 ):
     """Generate and return downloadable CSV, JSON, or SQL dataset file."""
-    clean_id = normalize_dataset_id(dataset_id)
-    ds = db.query(models.Dataset).filter(models.Dataset.id == clean_id).first()
+    ds = resolve_dataset_object(dataset_id, db)
     if not ds:
         raise HTTPException(status_code=404, detail=f"Dataset '{dataset_id}' not found.")
 
-    # Increment download count
     ds.downloads = (ds.downloads or 0) + 1
     db.commit()
 
-    columns, rows = get_parsed_dataset_records(clean_id, db)
+    columns, rows, _ = get_dynamic_table_records(ds.id, db)
     fmt = format.lower().strip()
+    clean_filename = ds.id.replace("-", "_")
 
     if fmt == "json":
         content = json.dumps(rows, indent=2)
         media_type = "application/json"
-        filename = f"{clean_id}.json"
+        filename = f"{clean_filename}.json"
     elif fmt == "sql":
-        table_name = clean_id.replace("-", "_")
+        table_name = clean_filename
         lines = [f"-- LankaData Hub SQL Export for {ds.title}", f"CREATE TABLE IF NOT EXISTS {table_name} ("]
-        col_defs = [f"  {col.replace(' ', '_').replace('(', '').replace(')', '').replace('%', 'pct')} TEXT" for col in columns]
+        col_defs = [f'  "{col}" TEXT' for col in columns]
         lines.append(",\n".join(col_defs))
         lines.append(");\n")
         
         for r in rows:
             row_vals = []
             for c in columns:
-                val_str = str(r.get(c, '')).replace("'", "''")
+                val_str = str(r.get(c, '') if r.get(c) is not None else '').replace("'", "''")
                 row_vals.append(f"'{val_str}'")
             lines.append(f"INSERT INTO {table_name} VALUES ({', '.join(row_vals)});")
         content = "\n".join(lines)
         media_type = "text/plain"
-        filename = f"{clean_id}.sql"
+        filename = f"{clean_filename}.sql"
     else:
-        # Default CSV
         import csv, io
         output = io.StringIO()
         writer = csv.writer(output)
         writer.writerow(columns)
         for r in rows:
-            writer.writerow([r.get(c, "") for c in columns])
+            writer.writerow([r.get(c, "") if r.get(c) is not None else "" for c in columns])
         content = output.getvalue()
         media_type = "text/csv"
-        filename = f"{clean_id}.csv"
+        filename = f"{clean_filename}.csv"
 
     return Response(
         content=content,
@@ -357,30 +490,20 @@ def get_dataset_records(
     db: Session = Depends(get_db)
 ):
     """Alias for /preview — returns paginated dataset records with optional search and sort."""
-    clean_id = normalize_dataset_id(dataset_id)
-    ds = db.query(models.Dataset).filter(models.Dataset.id == clean_id).first()
+    ds = resolve_dataset_object(dataset_id, db)
     if not ds:
         raise HTTPException(status_code=404, detail=f"Dataset '{dataset_id}' not found.")
 
-    columns, rows = get_parsed_dataset_records(clean_id, db)
-
-    if search:
-        s_lower = search.lower()
-        rows = [r for r in rows if any(s_lower in str(v).lower() for v in r.values())]
-
-    if sort_by and sort_by in columns:
-        reverse = (sort_order == "desc")
-        rows = sorted(rows, key=lambda r: str(r.get(sort_by, "")), reverse=reverse)
-
-    total_rows = len(rows)
     computed_offset = offset if offset > 0 else (page - 1) * limit
-    paginated_rows = rows[computed_offset : computed_offset + limit]
+    columns, rows, total_count = get_dynamic_table_records(
+        ds.id, db, search=search, sort_by=sort_by, sort_order=sort_order, limit=limit, offset=computed_offset
+    )
 
     return schemas.DatasetPreviewResponse(
-        dataset_id=clean_id,
+        dataset_id=ds.id,
         columns=columns,
-        rows=paginated_rows,
-        total_rows=total_rows,
+        rows=rows,
+        total_rows=total_count,
         total_columns=len(columns)
     )
 
@@ -398,13 +521,12 @@ def download_dataset_by_path(
 @app.get("/api/datasets/{dataset_id}/similar", response_model=List[schemas.SimilarDatasetOut], tags=["Datasets"])
 def get_similar_datasets(dataset_id: str, db: Session = Depends(get_db)):
     """Return similar datasets from the same category."""
-    clean_id = normalize_dataset_id(dataset_id)
-    ds = db.query(models.Dataset).filter(models.Dataset.id == clean_id).first()
+    ds = resolve_dataset_object(dataset_id, db)
     if not ds:
         raise HTTPException(status_code=404, detail=f"Dataset '{dataset_id}' not found.")
 
     similar = db.query(models.Dataset).filter(
-        models.Dataset.id != clean_id,
+        models.Dataset.id != ds.id,
         models.Dataset.category_id == ds.category_id
     ).limit(4).all()
 
