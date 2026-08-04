@@ -79,6 +79,86 @@ def list_categories(db: Session = Depends(get_db)):
     return result
 
 
+def ensure_default_datasets_seeded(db: Session):
+    """Ensure default dataset records and any postgres dynamic tables exist in datasets metadata table."""
+    try:
+        for seed_id, seed_data in DEFAULT_DATASETS_SEED.items():
+            exists = db.query(models.Dataset).filter(
+                (models.Dataset.id == seed_id) | (models.Dataset.id == seed_id.replace("-", "_"))
+            ).first()
+            if not exists:
+                cat_id = seed_data.get("category_id", "economy")
+                cat = db.query(models.Category).filter(models.Category.id == cat_id).first()
+                if not cat:
+                    cat = models.Category(
+                        id=cat_id,
+                        name=cat_id.capitalize(),
+                        icon_name="TrendingUp",
+                        description="National GDP, trade, and financial statistics."
+                    )
+                    db.add(cat)
+                    db.commit()
+
+                new_ds = models.Dataset(
+                    id=seed_id,
+                    title=seed_data["title"],
+                    description=seed_data["description"],
+                    full_description=seed_data.get("full_description"),
+                    category_id=cat_id,
+                    formats=seed_data.get("formats", "CSV,JSON,SQL,API"),
+                    maintainer=seed_data.get("maintainer", "Official Publisher"),
+                    source=seed_data.get("source", "Official Publisher"),
+                    frequency=seed_data.get("frequency", "Daily"),
+                    coverage=seed_data.get("coverage", "Historical"),
+                    live=True,
+                    featured=True,
+                    file_size=seed_data.get("file_size", "10 MB")
+                )
+                db.add(new_ds)
+                db.commit()
+
+        bind = db.get_bind()
+        inspector = inspect(bind)
+        all_tables = inspector.get_table_names(schema="public")
+        system_tables = {
+            "dashboards", "categories", "datasets", "dataset_records",
+            "provinces", "api_specs", "spatial_ref_sys"
+        }
+        for table in all_tables:
+            if table.lower() not in system_tables and not table.startswith("pg_") and not table.startswith("mage_"):
+                ds_id = table.replace("_", "-")
+                ds_exists = db.query(models.Dataset).filter(
+                    (models.Dataset.id == ds_id) | (models.Dataset.id == table)
+                ).first()
+                if not ds_exists:
+                    cat = db.query(models.Category).filter(models.Category.id == "economy").first()
+                    if not cat:
+                        cat = models.Category(id="economy", name="Economy", icon_name="TrendingUp", description="Financial and economic indicators.")
+                        db.add(cat)
+                        db.commit()
+
+                    title_formatted = table.replace("_", " ").title()
+                    new_ds = models.Dataset(
+                        id=ds_id,
+                        title=title_formatted,
+                        description=f"Open dataset table '{table}' from LankaData Hub database.",
+                        full_description=f"Auto-indexed dataset table '{table}' stored directly in PostgreSQL.",
+                        category_id="economy",
+                        formats="CSV,JSON,SQL,API",
+                        maintainer="LankaData Hub",
+                        source="PostgreSQL Database",
+                        frequency="Daily",
+                        coverage="Historical",
+                        live=True,
+                        featured=False,
+                        file_size="5 MB"
+                    )
+                    db.add(new_ds)
+                    db.commit()
+    except Exception:
+        db.rollback()
+
+
 # ─── Dataset Endpoints ────────────────────────────────────────────────────────
 @app.get("/api/datasets", response_model=schemas.DatasetListResponse, tags=["Datasets"])
 def list_datasets(
@@ -91,6 +171,7 @@ def list_datasets(
     db: Session = Depends(get_db)
 ):
     """List datasets with optional filtering, search, and pagination."""
+    ensure_default_datasets_seeded(db)
     query = db.query(models.Dataset)
 
     # Apply search filter
@@ -127,20 +208,24 @@ def list_datasets(
     # Map to response schema
     datasets_out = []
     for ds in items:
-        cat_name = ds.category_rel.name if ds.category_rel else ds.category_id
+        cat_name = ds.category_rel.name if ds.category_rel else (ds.category_id or "Economy").capitalize()
+        fmt_list = [f.strip() for f in ds.formats.split(",") if f.strip()] if ds.formats else ["CSV", "JSON", "SQL"]
         datasets_out.append(schemas.DatasetOut(
             id=ds.id,
             title=ds.title,
             description=ds.description,
             category=cat_name,
-            formats=ds.formats.split(","),
-            maintainer=ds.maintainer,
-            frequency=ds.frequency,
-            coverage=ds.coverage,
-            live=ds.live,
-            featured=ds.featured,
-            views=ds.views,
-            downloads=ds.downloads,
+            formats=fmt_list,
+            maintainer=ds.maintainer or "Official Publisher",
+            source=ds.source or ds.maintainer or "Official Publisher",
+            frequency=ds.frequency or "Daily",
+            coverage=ds.coverage or "Historical",
+            live=ds.live if ds.live is not None else True,
+            featured=ds.featured if ds.featured is not None else False,
+            views=ds.views or 0,
+            downloads=ds.downloads or 0,
+            total_records=ds.total_records or 0,
+            file_size=ds.file_size or "10 MB",
             updated_at=str(ds.updated_at) if ds.updated_at else "Recently updated"
         ))
 
@@ -153,15 +238,32 @@ def latest_datasets(
     db: Session = Depends(get_db)
 ):
     """Return the most recently published datasets."""
+    ensure_default_datasets_seeded(db)
     items = db.query(models.Dataset).order_by(models.Dataset.created_at.desc()).limit(limit).all()
-    return [schemas.DatasetOut(
-        id=ds.id, title=ds.title, description=ds.description,
-        category=ds.category_rel.name if ds.category_rel else ds.category_id,
-        formats=ds.formats.split(","), maintainer=ds.maintainer,
-        frequency=ds.frequency, coverage=ds.coverage, live=ds.live,
-        featured=ds.featured, views=ds.views, downloads=ds.downloads,
-        updated_at=str(ds.updated_at) if ds.updated_at else "Recently updated"
-    ) for ds in items]
+    out = []
+    for ds in items:
+        cat_name = ds.category_rel.name if ds.category_rel else (ds.category_id or "Economy").capitalize()
+        fmt_list = [f.strip() for f in ds.formats.split(",") if f.strip()] if ds.formats else ["CSV", "JSON", "SQL"]
+        out.append(schemas.DatasetOut(
+            id=ds.id,
+            title=ds.title,
+            description=ds.description,
+            category=cat_name,
+            formats=fmt_list,
+            maintainer=ds.maintainer or "Official Publisher",
+            source=ds.source or ds.maintainer or "Official Publisher",
+            frequency=ds.frequency or "Daily",
+            coverage=ds.coverage or "Historical",
+            live=ds.live if ds.live is not None else True,
+            featured=ds.featured if ds.featured is not None else False,
+            views=ds.views or 0,
+            downloads=ds.downloads or 0,
+            total_records=ds.total_records or 0,
+            file_size=ds.file_size or "10 MB",
+            updated_at=str(ds.updated_at) if ds.updated_at else "Recently updated"
+        ))
+    return out
+
 
 
 # Helper to parse dataset records dynamically from Postgres tables or DatasetRecord
