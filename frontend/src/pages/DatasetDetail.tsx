@@ -4,18 +4,15 @@ import {
   FileText, Eye, Download, Database, Key, ChevronRight,
   Calendar, Clock, Search, ArrowUpDown, Copy, Check,
   Building2, Layers, Table as TableIcon, Sparkles, RefreshCw,
-  AlertTriangle, Loader2, LineChart as LineIcon, AreaChart as AreaIcon
+  AlertTriangle, Loader2, LineChart as LineIcon
 } from 'lucide-react';
 import {
-  LineChart, Line, AreaChart, Area,
+  LineChart, Line,
   XAxis, YAxis, ResponsiveContainer, Tooltip, Legend
 } from 'recharts';
 
 import { datasetService } from '../services/datasetService';
 import type { DatasetDetail as DatasetDetailType, DatasetPreviewResponse } from '../services/datasetService';
-
-// ── Color palette for auto-generated charts ──────────────────────────────────
-const CHART_COLORS = ['#38bdf8', '#10b981', '#f59e0b', '#a855f7', '#ef4444'];
 
 // ── Loading skeleton components ───────────────────────────────────────────────
 const SkeletonBox: React.FC<{ className?: string }> = ({ className = '' }) => (
