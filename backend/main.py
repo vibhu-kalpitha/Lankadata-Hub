@@ -120,20 +120,31 @@ from fastapi.responses import Response
 from sqlalchemy import inspect, text
 
 def get_dataset_stats(table_name: Optional[str], db: Session) -> tuple:
-    """Calculate total records count and human-readable file size dynamically from PostgreSQL."""
-    if not table_name:
+    """Calculate total records count and human-readable file size dynamically from PostgreSQL safely."""
+    if not table_name or not str(table_name).strip():
         return 0, "0 KB"
     
+    clean_tbl = str(table_name).strip()
+    
+    try:
+        bind = db.get_bind()
+        inspector = inspect(bind)
+        if not inspector.has_table(clean_tbl, schema="public"):
+            return 0, "0 KB"
+    except Exception:
+        db.rollback()
+        return 0, "0 KB"
+
     total_records = 0
     file_size = "0 KB"
     
     try:
         # Total records count
-        count_res = db.execute(text(f'SELECT COUNT(*) FROM "{table_name}"')).scalar()
+        count_res = db.execute(text(f'SELECT COUNT(*) FROM "{clean_tbl}"')).scalar()
         total_records = count_res if count_res is not None else 0
 
         # Relation size from PostgreSQL engine
-        size_bytes = db.execute(text(f"SELECT pg_total_relation_size('{table_name}')")).scalar() or 0
+        size_bytes = db.execute(text(f"SELECT pg_total_relation_size('{clean_tbl}')")).scalar() or 0
         if size_bytes < 1024:
             file_size = f"{size_bytes} B"
         elif size_bytes < 1024 * 1024:
@@ -141,19 +152,24 @@ def get_dataset_stats(table_name: Optional[str], db: Session) -> tuple:
         else:
             file_size = f"{size_bytes / (1024 * 1024):.1f} MB"
     except Exception:
-        pass
+        db.rollback()
 
     return total_records, file_size
 
 
 def dataset_model_to_out(ds: models.Dataset, db: Session) -> schemas.DatasetOut:
     """Convert a Dataset ORM model to DatasetOut Pydantic schema using dynamic PostgreSQL stats."""
-    tbl_name = ds.table_name or ds.id.replace("-", "_")
+    tbl_name = ds.table_name or (ds.id.replace("-", "_") if ds.id else None)
     total_records, file_size = get_dataset_stats(tbl_name, db)
 
-    cat_name = ds.category_id.capitalize() if ds.category_id else "Economy"
-    if hasattr(ds, 'category_rel') and ds.category_rel and ds.category_rel.name:
-        cat_name = ds.category_rel.name
+    cat_name = "Economy"
+    if ds.category_id:
+        cat_name = str(ds.category_id).capitalize()
+    try:
+        if hasattr(ds, 'category_rel') and ds.category_rel and ds.category_rel.name:
+            cat_name = str(ds.category_rel.name)
+    except Exception:
+        db.rollback()
 
     if ds.formats:
         if isinstance(ds.formats, list):
@@ -165,10 +181,10 @@ def dataset_model_to_out(ds: models.Dataset, db: Session) -> schemas.DatasetOut:
 
     return schemas.DatasetOut(
         id=str(ds.id),
-        title=str(ds.title),
-        description=str(ds.description),
+        title=str(ds.title or ds.id),
+        description=str(ds.description or ""),
         category=cat_name,
-        table_name=tbl_name,
+        table_name=ds.table_name,
         primary_date_column=ds.primary_date_column,
         formats=fmt_list,
         maintainer=str(ds.maintainer) if ds.maintainer else "LankaData Hub",
@@ -187,15 +203,19 @@ def dataset_model_to_out(ds: models.Dataset, db: Session) -> schemas.DatasetOut:
 
 
 def resolve_dataset_from_db(dataset_id: str, db: Session) -> models.Dataset:
-    """Look up a dataset in the datasets master registry table."""
+    """Look up a dataset in the datasets master registry table safely."""
     clean_id = (dataset_id or "").strip().lower()
     
-    ds = db.query(models.Dataset).filter(
-        (models.Dataset.id == clean_id) |
-        (models.Dataset.table_name == clean_id) |
-        (models.Dataset.table_name == clean_id.replace("-", "_")) |
-        (models.Dataset.id == clean_id.replace("_", "-"))
-    ).first()
+    try:
+        ds = db.query(models.Dataset).filter(
+            (models.Dataset.id == clean_id) |
+            (models.Dataset.table_name == clean_id) |
+            (models.Dataset.table_name == clean_id.replace("-", "_")) |
+            (models.Dataset.id == clean_id.replace("_", "-"))
+        ).first()
+    except Exception:
+        db.rollback()
+        ds = None
 
     if not ds:
         raise HTTPException(
@@ -207,7 +227,7 @@ def resolve_dataset_from_db(dataset_id: str, db: Session) -> models.Dataset:
 
 
 def query_dynamic_table(
-    table_name: str,
+    table_name: Optional[str],
     db: Session,
     search: Optional[str] = None,
     sort_by: Optional[str] = None,
@@ -215,13 +235,23 @@ def query_dynamic_table(
     limit: Optional[int] = None,
     offset: Optional[int] = None
 ):
-    """Execute dynamic query on any PostgreSQL dataset table without hardcoding."""
-    bind = db.get_bind()
-    inspector = inspect(bind)
+    """Execute dynamic query on any PostgreSQL dataset table safely without hardcoding."""
+    if not table_name or not str(table_name).strip():
+        return [], [], 0
 
-    col_info = inspector.get_columns(table_name, schema="public")
+    clean_tbl = str(table_name).strip()
+
+    try:
+        bind = db.get_bind()
+        inspector = inspect(bind)
+        if not inspector.has_table(clean_tbl, schema="public"):
+            return [], [], 0
+        col_info = inspector.get_columns(clean_tbl, schema="public")
+    except Exception:
+        db.rollback()
+        return [], [], 0
+
     all_cols = [c["name"] for c in col_info]
-
     if not all_cols:
         return [], [], 0
 
@@ -243,30 +273,34 @@ def query_dynamic_table(
         direction = "DESC" if sort_order and sort_order.lower() == "desc" else "ASC"
         order_clause = f' ORDER BY "{sort_by}" {direction}'
 
-    count_sql = text(f'SELECT COUNT(*) FROM "{table_name}"{where_clause}')
-    total_count = db.execute(count_sql, params).scalar() or 0
+    try:
+        count_sql = text(f'SELECT COUNT(*) FROM "{clean_tbl}"{where_clause}')
+        total_count = db.execute(count_sql, params).scalar() or 0
 
-    limit_clause = ""
-    if limit is not None:
-        limit_clause = f" LIMIT {int(limit)}"
-        if offset is not None:
-            limit_clause += f" OFFSET {int(offset)}"
+        limit_clause = ""
+        if limit is not None:
+            limit_clause = f" LIMIT {int(limit)}"
+            if offset is not None:
+                limit_clause += f" OFFSET {int(offset)}"
 
-    col_select = ", ".join([f'"{c}"' for c in all_cols])
-    data_sql = text(f'SELECT {col_select} FROM "{table_name}"{where_clause}{order_clause}{limit_clause}')
-    result = db.execute(data_sql, params)
+        col_select = ", ".join([f'"{c}"' for c in all_cols])
+        data_sql = text(f'SELECT {col_select} FROM "{clean_tbl}"{where_clause}{order_clause}{limit_clause}')
+        result = db.execute(data_sql, params)
 
-    rows = []
-    for row in result.mappings():
-        r_dict = {}
-        for k, v in row.items():
-            if hasattr(v, 'isoformat'):
-                r_dict[k] = v.isoformat()
-            else:
-                r_dict[k] = v
-        rows.append(r_dict)
+        rows = []
+        for row in result.mappings():
+            r_dict = {}
+            for k, v in row.items():
+                if hasattr(v, 'isoformat'):
+                    r_dict[k] = v.isoformat()
+                else:
+                    r_dict[k] = v
+            rows.append(r_dict)
 
-    return all_cols, rows, total_count
+        return all_cols, rows, total_count
+    except Exception:
+        db.rollback()
+        return all_cols, [], 0
 
 
 # ─── Dataset Endpoints ────────────────────────────────────────────────────────
@@ -282,34 +316,38 @@ def list_datasets(
     db: Session = Depends(get_db)
 ):
     """Return all datasets directly from datasets master registry in PostgreSQL."""
-    query = db.query(models.Dataset)
+    try:
+        query = db.query(models.Dataset)
 
-    if search and search.strip():
-        s_term = f"%{search.strip()}%"
-        query = query.filter(
-            (models.Dataset.title.ilike(s_term)) |
-            (models.Dataset.description.ilike(s_term))
-        )
+        if search and search.strip():
+            s_term = f"%{search.strip()}%"
+            query = query.filter(
+                (models.Dataset.title.ilike(s_term)) |
+                (models.Dataset.description.ilike(s_term))
+            )
 
-    if category and category.strip():
-        query = query.filter(models.Dataset.category_id.ilike(f"%{category.strip()}%"))
+        if category and category.strip():
+            query = query.filter(models.Dataset.category_id.ilike(f"%{category.strip()}%"))
 
-    if format and format.strip():
-        query = query.filter(models.Dataset.formats.ilike(f"%{format.strip()}%"))
+        if format and format.strip():
+            query = query.filter(models.Dataset.formats.ilike(f"%{format.strip()}%"))
 
-    query = query.order_by(models.Dataset.id.asc())
+        query = query.order_by(models.Dataset.id.asc())
 
-    total = query.count()
+        total = query.count()
 
-    if page is not None and limit is not None:
-        items = query.offset((page - 1) * limit).limit(limit).all()
-        total_pages = max(1, (total + limit - 1) // limit)
-    else:
-        items = query.all()
-        total_pages = 1
+        if page is not None and limit is not None:
+            items = query.offset((page - 1) * limit).limit(limit).all()
+            total_pages = max(1, (total + limit - 1) // limit)
+        else:
+            items = query.all()
+            total_pages = 1
 
-    datasets_out = [dataset_model_to_out(ds, db) for ds in items]
-    return schemas.DatasetListResponse(datasets=datasets_out, total=total, pages=total_pages)
+        datasets_out = [dataset_model_to_out(ds, db) for ds in items]
+        return schemas.DatasetListResponse(datasets=datasets_out, total=total, pages=total_pages)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/api/datasets/latest", response_model=List[schemas.DatasetOut], tags=["Datasets"])
@@ -318,8 +356,12 @@ def latest_datasets(
     db: Session = Depends(get_db)
 ):
     """Return the most recently published datasets from PostgreSQL."""
-    items = db.query(models.Dataset).order_by(models.Dataset.created_at.desc(), models.Dataset.id.asc()).limit(limit).all()
-    return [dataset_model_to_out(ds, db) for ds in items]
+    try:
+        items = db.query(models.Dataset).order_by(models.Dataset.created_at.desc(), models.Dataset.id.asc()).limit(limit).all()
+        return [dataset_model_to_out(ds, db) for ds in items]
+    except Exception:
+        db.rollback()
+        return []
 
 
 @app.get("/api/datasets/{dataset_id}", response_model=schemas.DatasetDetailOut, tags=["Datasets"])
@@ -337,9 +379,14 @@ def get_dataset(dataset_id: str, db: Session = Depends(get_db)):
     columns, rows, total_count = query_dynamic_table(tbl_name, db, limit=100)
     _, file_size = get_dataset_stats(tbl_name, db)
 
-    cat_name = ds.category_id.capitalize() if ds.category_id else "Economy"
-    if hasattr(ds, 'category_rel') and ds.category_rel and ds.category_rel.name:
-        cat_name = ds.category_rel.name
+    cat_name = "Economy"
+    if ds.category_id:
+        cat_name = str(ds.category_id).capitalize()
+    try:
+        if hasattr(ds, 'category_rel') and ds.category_rel and ds.category_rel.name:
+            cat_name = str(ds.category_rel.name)
+    except Exception:
+        db.rollback()
 
     if ds.formats:
         if isinstance(ds.formats, list):
@@ -426,7 +473,7 @@ def download_dataset(
     columns, rows, _ = query_dynamic_table(tbl_name, db)
 
     fmt = (file_format or format or "csv").lower().strip()
-    clean_filename = tbl_name
+    clean_filename = tbl_name or ds.id.replace("-", "_")
 
     if fmt == "json":
         content = json.dumps(rows, indent=2)
@@ -468,16 +515,24 @@ def download_dataset(
 def get_similar_datasets(dataset_id: str, db: Session = Depends(get_db)):
     """Return similar datasets under the same category directly from PostgreSQL."""
     ds = resolve_dataset_from_db(dataset_id, db)
-    similar = db.query(models.Dataset).filter(
-        models.Dataset.id != ds.id,
-        models.Dataset.category_id == ds.category_id
-    ).limit(5).all()
+    try:
+        similar = db.query(models.Dataset).filter(
+            models.Dataset.id != ds.id,
+            models.Dataset.category_id == ds.category_id
+        ).limit(5).all()
+    except Exception:
+        db.rollback()
+        similar = []
 
     out = []
     for s in similar:
         cat_name = s.category_id.capitalize() if s.category_id else "Economy"
-        if hasattr(s, 'category_rel') and s.category_rel and s.category_rel.name:
-            cat_name = s.category_rel.name
+        try:
+            if hasattr(s, 'category_rel') and s.category_rel and s.category_rel.name:
+                cat_name = s.category_rel.name
+        except Exception:
+            db.rollback()
+
         out.append(schemas.SimilarDatasetOut(
             id=str(s.id),
             title=str(s.title),
