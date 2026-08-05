@@ -161,7 +161,7 @@ def ensure_default_datasets_seeded(db: Session):
             if table.lower() not in system_tables and not table.startswith("pg_") and not table.startswith("mage_"):
                 ds_id = table.replace("_", "-")
                 ds_exists = db.query(models.Dataset).filter(
-                    (models.Dataset.id == ds_id) | (models.Dataset.id == table)
+                    (models.Dataset.id == ds_id) | (models.Dataset.id == table) | (models.Dataset.table_name == table)
                 ).first()
                 if not ds_exists:
                     cat = db.query(models.Category).filter(models.Category.id == "economy").first()
@@ -177,6 +177,7 @@ def ensure_default_datasets_seeded(db: Session):
                         description=f"Open dataset table '{table}' from LankaData Hub database.",
                         full_description=f"Auto-indexed dataset table '{table}' stored directly in PostgreSQL.",
                         category_id="economy",
+                        table_name=table,
                         formats="CSV,JSON,SQL,API",
                         maintainer="LankaData Hub",
                         source="PostgreSQL Database",
@@ -242,46 +243,52 @@ def list_datasets(
 
         datasets_out = []
         for ds in items:
-            title_str = str(ds.title or ds.id or "Untitled Dataset")
-            desc_str = str(ds.description or ds.full_description or "Open data dataset from LankaData Hub.")
-            cat_name = str(ds.category_id or "Economy").capitalize()
-            if hasattr(ds, 'category_rel') and ds.category_rel and ds.category_rel.name:
-                cat_name = str(ds.category_rel.name)
+            try:
+                title_str = str(ds.title or ds.id or "Untitled Dataset")
+                desc_str = str(ds.description or ds.full_description or "Open data dataset from LankaData Hub.")
+                cat_name = str(ds.category_id or "Economy").capitalize()
+                if hasattr(ds, 'category_rel') and ds.category_rel and ds.category_rel.name:
+                    cat_name = str(ds.category_rel.name)
 
-            if ds.formats:
-                if isinstance(ds.formats, list):
-                    fmt_list = ds.formats
+                tbl_name = str(getattr(ds, 'table_name', None) or ds.id.replace("-", "_"))
+
+                if ds.formats:
+                    if isinstance(ds.formats, list):
+                        fmt_list = ds.formats
+                    else:
+                        fmt_list = [f.strip() for f in str(ds.formats).split(",") if f.strip()]
                 else:
-                    fmt_list = [f.strip() for f in str(ds.formats).split(",") if f.strip()]
-            else:
-                fmt_list = ["CSV", "JSON", "SQL"]
-            if not fmt_list:
-                fmt_list = ["CSV", "JSON", "SQL"]
+                    fmt_list = ["CSV", "JSON", "SQL"]
+                if not fmt_list:
+                    fmt_list = ["CSV", "JSON", "SQL"]
 
-            updated_str = "Recently updated"
-            if getattr(ds, 'updated_at', None):
-                updated_str = str(ds.updated_at)
-            elif getattr(ds, 'created_at', None):
-                updated_str = str(ds.created_at)
+                updated_str = "Recently updated"
+                if getattr(ds, 'updated_at', None):
+                    updated_str = str(ds.updated_at)
+                elif getattr(ds, 'created_at', None):
+                    updated_str = str(ds.created_at)
 
-            datasets_out.append(schemas.DatasetOut(
-                id=str(ds.id),
-                title=title_str,
-                description=desc_str,
-                category=cat_name,
-                formats=fmt_list,
-                maintainer=str(ds.maintainer) if getattr(ds, 'maintainer', None) else "Central Bank of Sri Lanka",
-                source=str(ds.source) if getattr(ds, 'source', None) else "Official Publisher",
-                frequency=str(ds.frequency) if getattr(ds, 'frequency', None) else "Daily",
-                coverage=str(ds.coverage) if getattr(ds, 'coverage', None) else "2005 - Present",
-                live=bool(ds.live) if getattr(ds, 'live', None) is not None else True,
-                featured=bool(ds.featured) if getattr(ds, 'featured', None) is not None else False,
-                views=int(ds.views) if getattr(ds, 'views', None) is not None else 0,
-                downloads=int(ds.downloads) if getattr(ds, 'downloads', None) is not None else 0,
-                total_records=int(ds.total_records) if getattr(ds, 'total_records', None) is not None else 0,
-                file_size=str(ds.file_size) if getattr(ds, 'file_size', None) else "10 MB",
-                updated_at=updated_str
-            ))
+                datasets_out.append(schemas.DatasetOut(
+                    id=str(ds.id),
+                    title=title_str,
+                    description=desc_str,
+                    category=cat_name,
+                    table_name=tbl_name,
+                    formats=fmt_list,
+                    maintainer=str(ds.maintainer) if getattr(ds, 'maintainer', None) else "Central Bank of Sri Lanka",
+                    source=str(ds.source) if getattr(ds, 'source', None) else "Official Publisher",
+                    frequency=str(ds.frequency) if getattr(ds, 'frequency', None) else "Daily",
+                    coverage=str(ds.coverage) if getattr(ds, 'coverage', None) else "2005 - Present",
+                    live=bool(ds.live) if getattr(ds, 'live', None) is not None else True,
+                    featured=bool(ds.featured) if getattr(ds, 'featured', None) is not None else False,
+                    views=int(ds.views) if getattr(ds, 'views', None) is not None else 0,
+                    downloads=int(ds.downloads) if getattr(ds, 'downloads', None) is not None else 0,
+                    total_records=int(ds.total_records) if getattr(ds, 'total_records', None) is not None else 0,
+                    file_size=str(ds.file_size) if getattr(ds, 'file_size', None) else "10 MB",
+                    updated_at=updated_str
+                ))
+            except Exception:
+                pass
 
         if len(datasets_out) > 0:
             return schemas.DatasetListResponse(datasets=datasets_out, total=total, pages=total_pages)
