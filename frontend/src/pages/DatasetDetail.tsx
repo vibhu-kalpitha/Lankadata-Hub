@@ -6,7 +6,8 @@ import {
   Activity, Code, Layers
 } from 'lucide-react';
 import {
-  LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip
+  LineChart, Line, BarChart, Bar, AreaChart, Area, PieChart, Pie, Cell,
+  XAxis, YAxis, ResponsiveContainer, Tooltip
 } from 'recharts';
 
 import { datasetService } from '../services/datasetService';
@@ -56,112 +57,216 @@ const DatasetNotFound: React.FC<{ datasetId: string; message?: string }> = ({ da
   </div>
 );
 
-// ── Automatic Dynamic Chart Analyzer & Renderer Component ────────────────────
-const DynamicDatasetCharts: React.FC<{ rows: Array<Record<string, any>>; columns: string[] }> = ({ rows, columns }) => {
-  const chartAnalysis = useMemo(() => {
-    if (!rows || rows.length === 0) return null;
+// ── Automatic Dynamic Chart Generator Component ──────────────────────────────
+const DynamicDatasetCharts: React.FC<{ rows: Array<Record<string, any>>; columns: string[]; primaryDateCol?: string }> = ({ rows, columns, primaryDateCol }) => {
+  const chartConfigs = useMemo(() => {
+    if (!rows || rows.length === 0 || !columns || columns.length === 0) return null;
 
     const sample = rows[0];
-    const allKeys = columns && columns.length > 0 ? columns : Object.keys(sample);
+    const allKeys = columns.length > 0 ? columns : Object.keys(sample);
 
-    const dateKey = allKeys.find(k => /date|year|time|month|day|period/i.test(k));
-    const labelKey = dateKey || allKeys.find(k => /region|district|province|name|category|title|code/i.test(k)) || allKeys[0];
+    // 1. Identify Date/Time column
+    let dateKey = primaryDateCol && allKeys.includes(primaryDateCol) ? primaryDateCol : undefined;
+    if (!dateKey) {
+      dateKey = allKeys.find(k => /date|year|time|month|day|period|effective_date/i.test(k));
+    }
+    if (!dateKey) {
+      dateKey = allKeys.find(k => {
+        const val = String(sample[k] || '');
+        return !isNaN(Date.parse(val)) && (val.includes('-') || val.includes('/') || val.length === 4);
+      });
+    }
 
+    // 2. Identify Numeric columns
     const numericKeys = allKeys.filter(k => {
-      if (k === labelKey) return false;
+      if (k === dateKey) return false;
       const val = sample[k];
       if (typeof val === 'number') return true;
-      if (typeof val === 'string' && !isNaN(Number(val.replace(/,/g, '')))) return true;
+      if (typeof val === 'string' && val.trim() !== '' && !isNaN(Number(val.replace(/,/g, '')))) return true;
       return false;
     });
 
-    const formattedData = rows.slice(0, 25).map(r => {
-      const item: Record<string, any> = { [labelKey]: String(r[labelKey] || '') };
-      numericKeys.forEach(nk => {
-        const raw = r[nk];
-        if (typeof raw === 'number') item[nk] = raw;
-        else if (typeof raw === 'string') item[nk] = parseFloat(raw.replace(/,/g, '')) || 0;
-        else item[nk] = 0;
+    // 3. Identify Categorical columns
+    const categoricalKeys = allKeys.filter(k => k !== dateKey && !numericKeys.includes(k));
+
+    // Prepare chart data rows (top 30 records)
+    const chartData = rows.slice(0, 30).map((r, i) => {
+      const item: Record<string, any> = { _index: i + 1 };
+      allKeys.forEach(k => {
+        const raw = r[k];
+        if (numericKeys.includes(k)) {
+          if (typeof raw === 'number') item[k] = raw;
+          else if (typeof raw === 'string') item[k] = parseFloat(raw.replace(/,/g, '')) || 0;
+          else item[k] = 0;
+        } else {
+          item[k] = raw !== undefined && raw !== null ? String(raw) : '';
+        }
       });
       return item;
     });
 
-    return {
-      labelKey,
-      numericKeys: numericKeys.slice(0, 3),
-      data: formattedData
-    };
-  }, [rows, columns]);
+    // Determine Chart 1 and Chart 2 algorithms based on column types
+    let chart1: { type: 'line' | 'bar' | 'area' | 'pie'; xKey: string; yKeys: string[]; title: string } | null = null;
+    let chart2: { type: 'line' | 'bar' | 'area' | 'pie'; xKey: string; yKeys: string[]; title: string } | null = null;
 
-  if (!chartAnalysis || chartAnalysis.numericKeys.length === 0) {
-    return null;
-  }
+    if (dateKey && numericKeys.length > 0) {
+      // Date + Numeric -> Line Chart & Area Chart
+      chart1 = {
+        type: 'line',
+        xKey: dateKey,
+        yKeys: numericKeys.slice(0, 2),
+        title: `${numericKeys[0].replace(/_/g, ' ').toUpperCase()} OVER TIME`
+      };
 
-  const { labelKey, numericKeys, data } = chartAnalysis;
-  const primaryKey = numericKeys[0];
-  const secondaryKey = numericKeys[1];
+      if (numericKeys.length >= 2) {
+        chart2 = {
+          type: 'area',
+          xKey: dateKey,
+          yKeys: numericKeys.slice(0, 3),
+          title: `METRIC TREND COMPARISON`
+        };
+      } else if (categoricalKeys.length > 0) {
+        chart2 = {
+          type: 'bar',
+          xKey: categoricalKeys[0],
+          yKeys: [numericKeys[0]],
+          title: `${numericKeys[0].replace(/_/g, ' ').toUpperCase()} BY ${categoricalKeys[0].replace(/_/g, ' ').toUpperCase()}`
+        };
+      } else {
+        chart2 = {
+          type: 'bar',
+          xKey: dateKey,
+          yKeys: [numericKeys[0]],
+          title: `PERIODIC DISTRIBUTION`
+        };
+      }
+    } else if (categoricalKeys.length > 0 && numericKeys.length > 0) {
+      // Category + Numeric -> Bar Chart / Pie Chart
+      const catKey = categoricalKeys[0];
+      const uniqueCats = Array.from(new Set(rows.map(r => String(r[catKey]))));
 
-  let trendPct = '+12.4%';
-  if (data.length >= 2) {
-    const firstVal = data[0][primaryKey] || 1;
-    const lastVal = data[data.length - 1][primaryKey] || 1;
-    const pct = (((lastVal - firstVal) / firstVal) * 100).toFixed(1);
-    trendPct = `${Number(pct) >= 0 ? '+' : ''}${pct}% YoY`;
-  }
+      chart1 = {
+        type: 'bar',
+        xKey: catKey,
+        yKeys: [numericKeys[0]],
+        title: `${numericKeys[0].replace(/_/g, ' ').toUpperCase()} BY ${catKey.replace(/_/g, ' ').toUpperCase()}`
+      };
 
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
-      {/* ── Chart 1: Distribution / Primary Metric ─────────────────────── */}
-      <div className="bg-[#050d1a] border border-lanka-border rounded-2xl p-5 flex flex-col justify-between">
+      if (uniqueCats.length <= 6) {
+        chart2 = {
+          type: 'pie',
+          xKey: catKey,
+          yKeys: [numericKeys[0]],
+          title: `${catKey.replace(/_/g, ' ').toUpperCase()} SHARE`
+        };
+      } else {
+        chart2 = {
+          type: 'line',
+          xKey: catKey,
+          yKeys: numericKeys.slice(0, 2),
+          title: `DISTRIBUTION CURVE`
+        };
+      }
+    } else if (numericKeys.length >= 2) {
+      // Multi-numeric -> Line & Area
+      chart1 = {
+        type: 'line',
+        xKey: '_index',
+        yKeys: [numericKeys[0], numericKeys[1]],
+        title: `${numericKeys[0].replace(/_/g, ' ')} vs ${numericKeys[1].replace(/_/g, ' ')}`
+      };
+      chart2 = {
+        type: 'area',
+        xKey: '_index',
+        yKeys: numericKeys.slice(0, 3),
+        title: `NUMERIC SPECTRUM ANALYSIS`
+      };
+    } else if (numericKeys.length === 1) {
+      chart1 = {
+        type: 'line',
+        xKey: '_index',
+        yKeys: [numericKeys[0]],
+        title: `${numericKeys[0].replace(/_/g, ' ').toUpperCase()} SEQUENCE`
+      };
+      chart2 = {
+        type: 'bar',
+        xKey: '_index',
+        yKeys: [numericKeys[0]],
+        title: `VALUE DISTRIBUTION`
+      };
+    }
+
+    return { chartData, chart1, chart2 };
+  }, [rows, columns, primaryDateCol]);
+
+  if (!chartConfigs || !chartConfigs.chart1) return null;
+
+  const COLORS = ['#3b82f6', '#38bdf8', '#2dd4bf', '#a855f7', '#f43f5e', '#fbbf24'];
+
+  const renderSingleChart = (cfg: { type: 'line' | 'bar' | 'area' | 'pie'; xKey: string; yKeys: string[]; title: string }, index: number) => {
+    const { chartData } = chartConfigs;
+
+    return (
+      <div key={index} className="bg-[#050d1a] border border-lanka-border rounded-2xl p-5 flex flex-col justify-between">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xs font-black text-white tracking-wide uppercase flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-blue-500" />
-            {primaryKey ? primaryKey.replace(/_/g, ' ').toUpperCase() : 'DISTRIBUTION'}
+            <span className={`w-2 h-2 rounded-full ${index === 0 ? 'bg-blue-500' : 'bg-cyan-400'}`} />
+            {cfg.title}
           </h3>
-          <div className="flex items-center gap-3 text-[9px] font-black tracking-wider uppercase">
-            <span className="text-white/90 flex items-center gap-1.5"><span className="w-2 h-2 rounded-sm bg-blue-500" /> PRIMARY</span>
-            {secondaryKey && (
-              <span className="text-cyan-300 flex items-center gap-1.5"><span className="w-2 h-2 rounded-sm bg-cyan-400" /> SECONDARY</span>
-            )}
-          </div>
-        </div>
-
-        <div className="h-48 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-              <XAxis dataKey={labelKey} stroke="#475569" fontSize={10} tickLine={false} axisLine={false} />
-              <YAxis stroke="#475569" fontSize={10} tickLine={false} axisLine={false} />
-              <Tooltip contentStyle={{ backgroundColor: '#091527', borderColor: '#1e293b', borderRadius: '12px', fontSize: '11px', color: '#fff' }} />
-              <Line type="monotone" dataKey={primaryKey} stroke="#3b82f6" strokeWidth={2.5} dot={false} />
-              {secondaryKey && <Line type="monotone" dataKey={secondaryKey} stroke="#38bdf8" strokeWidth={2} strokeDasharray="3 3" dot={false} />}
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* ── Chart 2: Curved Area Trend Analysis ────────────────────────── */}
-      <div className="bg-[#050d1a] border border-lanka-border rounded-2xl p-5 flex flex-col justify-between">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xs font-black text-white tracking-wide uppercase flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-cyan-400" />
-            Growth Trend Analysis
-          </h3>
-          <span className="text-[10px] font-black text-cyan-300 bg-cyan-500/10 border border-cyan-500/30 px-2.5 py-0.5 rounded-full">
-            {trendPct}
+          <span className="text-[9px] font-mono font-bold text-cyan-300 bg-cyan-500/10 border border-cyan-500/30 px-2 py-0.5 rounded-full uppercase">
+            Auto-{cfg.type}
           </span>
         </div>
 
         <div className="h-48 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-              <XAxis dataKey={labelKey} stroke="#475569" fontSize={10} tickLine={false} axisLine={false} />
-              <YAxis stroke="#475569" fontSize={10} tickLine={false} axisLine={false} />
-              <Tooltip contentStyle={{ backgroundColor: '#091527', borderColor: '#1e293b', borderRadius: '12px', fontSize: '11px', color: '#fff' }} />
-              <Line type="monotone" dataKey={primaryKey} stroke="#38bdf8" strokeWidth={3} dot={{ r: 3, fill: '#38bdf8' }} activeDot={{ r: 6, fill: '#67e8f9' }} />
-            </LineChart>
+            {cfg.type === 'bar' ? (
+              <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <XAxis dataKey={cfg.xKey} stroke="#475569" fontSize={10} tickLine={false} axisLine={false} />
+                <YAxis stroke="#475569" fontSize={10} tickLine={false} axisLine={false} />
+                <Tooltip contentStyle={{ backgroundColor: '#091527', borderColor: '#1e293b', borderRadius: '12px', fontSize: '11px', color: '#fff' }} />
+                {cfg.yKeys.map((yK, i) => (
+                  <Bar key={yK} dataKey={yK} fill={COLORS[i % COLORS.length]} radius={[4, 4, 0, 0]} />
+                ))}
+              </BarChart>
+            ) : cfg.type === 'area' ? (
+              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <XAxis dataKey={cfg.xKey} stroke="#475569" fontSize={10} tickLine={false} axisLine={false} />
+                <YAxis stroke="#475569" fontSize={10} tickLine={false} axisLine={false} />
+                <Tooltip contentStyle={{ backgroundColor: '#091527', borderColor: '#1e293b', borderRadius: '12px', fontSize: '11px', color: '#fff' }} />
+                {cfg.yKeys.map((yK, i) => (
+                  <Area key={yK} type="monotone" dataKey={yK} stroke={COLORS[i % COLORS.length]} fill={`${COLORS[i % COLORS.length]}33`} strokeWidth={2} />
+                ))}
+              </AreaChart>
+            ) : cfg.type === 'pie' ? (
+              <PieChart>
+                <Tooltip contentStyle={{ backgroundColor: '#091527', borderColor: '#1e293b', borderRadius: '12px', fontSize: '11px', color: '#fff' }} />
+                <Pie data={chartData} dataKey={cfg.yKeys[0]} nameKey={cfg.xKey} cx="50%" cy="50%" outerRadius={70} fill="#3b82f6" labelLine={false}>
+                  {chartData.map((_, idx) => (
+                    <Cell key={`cell-${idx}`} fill={COLORS[idx % COLORS.length]} />
+                  ))}
+                </Pie>
+              </PieChart>
+            ) : (
+              <LineChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <XAxis dataKey={cfg.xKey} stroke="#475569" fontSize={10} tickLine={false} axisLine={false} />
+                <YAxis stroke="#475569" fontSize={10} tickLine={false} axisLine={false} />
+                <Tooltip contentStyle={{ backgroundColor: '#091527', borderColor: '#1e293b', borderRadius: '12px', fontSize: '11px', color: '#fff' }} />
+                {cfg.yKeys.map((yK, i) => (
+                  <Line key={yK} type="monotone" dataKey={yK} stroke={COLORS[i % COLORS.length]} strokeWidth={2.5} dot={false} />
+                ))}
+              </LineChart>
+            )}
           </ResponsiveContainer>
         </div>
       </div>
+    );
+  };
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+      {chartConfigs.chart1 && renderSingleChart(chartConfigs.chart1, 0)}
+      {chartConfigs.chart2 && renderSingleChart(chartConfigs.chart2, 1)}
     </div>
   );
 };
@@ -201,7 +306,7 @@ export const DatasetDetail: React.FC = () => {
       setDataset(dsResult);
 
       const [recsResult, simResult] = await Promise.allSettled([
-        datasetService.getDatasetRecords(rawId, { page: 1, limit: 50 }),
+        datasetService.getDatasetRecords(rawId, { page: 1, limit: 100 }),
         datasetService.getSimilarDatasets(rawId)
       ]);
 
@@ -229,7 +334,7 @@ export const DatasetDetail: React.FC = () => {
     if (dataset?.columns && dataset.columns.length > 0) return dataset.columns;
     if (dataset?.preview_rows && dataset.preview_rows.length > 0) return Object.keys(dataset.preview_rows[0]);
     if (recordsResponse?.rows && recordsResponse.rows.length > 0) return Object.keys(recordsResponse.rows[0]);
-    return ['date', 'buying_rate', 'selling_rate'];
+    return [];
   }, [dataset, recordsResponse]);
 
   const rows = useMemo(() => {
@@ -267,8 +372,8 @@ export const DatasetDetail: React.FC = () => {
   if (error || !dataset) return <DatasetNotFound datasetId={id || ''} message={error || undefined} />;
 
   const tableName = dataset.table_name || dataset.id.replace(/-/g, '_');
-  const fileSize = dataset.file_size || '12.4 MB';
-  const totalRecs = recordsResponse?.total_rows || dataset.total_records || 5600;
+  const fileSize = dataset.file_size || '0 KB';
+  const totalRecs = recordsResponse?.total_rows || dataset.total_records || rows.length;
 
   return (
     <div className="flex-1 bg-lanka-bg min-h-screen pb-16">
@@ -312,18 +417,18 @@ export const DatasetDetail: React.FC = () => {
           <div className="lg:col-span-2 space-y-6">
 
             {/* Automatically Generated Charts */}
-            <DynamicDatasetCharts rows={rows} columns={columns} />
+            <DynamicDatasetCharts rows={rows} columns={columns} primaryDateCol={dataset.primary_date_column} />
 
             {/* Views & Downloads Stats Bar */}
             <div className="flex items-center gap-4 bg-[#050d1a] border border-lanka-border/80 rounded-xl px-5 py-3 text-xs font-bold text-lanka-muted">
               <span className="flex items-center gap-2 text-white/90">
                 <Eye size={14} className="text-blue-400" />
-                <strong className="text-white">{(dataset.views || 5488).toLocaleString()}</strong> VIEWS
+                <strong className="text-white">{(dataset.views || 0).toLocaleString()}</strong> VIEWS
               </span>
               <span className="w-1 h-1 rounded-full bg-white/20" />
               <span className="flex items-center gap-2 text-white/90">
                 <Download size={14} className="text-teal-400" />
-                <strong className="text-white">{(dataset.downloads || 1240).toLocaleString()}</strong> DOWNLOADS
+                <strong className="text-white">{(dataset.downloads || 0).toLocaleString()}</strong> DOWNLOADS
               </span>
             </div>
 
@@ -411,7 +516,7 @@ export const DatasetDetail: React.FC = () => {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={columns.length} className="px-6 py-8 text-center text-lanka-darkText font-sans">
+                        <td colSpan={columns.length || 1} className="px-6 py-8 text-center text-lanka-darkText font-sans">
                           No matching records found in table "{tableName}".
                         </td>
                       </tr>
@@ -481,6 +586,92 @@ export const DatasetDetail: React.FC = () => {
               </div>
 
 
+              {/* Dataset Metadata Card */}
+              <div className="bg-[#050d1a] border border-lanka-border rounded-2xl p-5 space-y-4">
+                <h3 className="text-xs font-black text-white uppercase tracking-wider flex items-center gap-2">
+                  <Layers size={14} className="text-cyan-400" /> Dataset Metadata
+                </h3>
+
+                <div className="space-y-3 text-[11px]">
+                  <div>
+                    <span className="text-[9px] font-black text-lanka-darkText uppercase block mb-0.5">TITLE</span>
+                    <span className="text-white font-semibold">{dataset.title}</span>
+                  </div>
+
+                  <div>
+                    <span className="text-[9px] font-black text-lanka-darkText uppercase block mb-0.5">DESCRIPTION</span>
+                    <span className="text-lanka-muted leading-relaxed">{dataset.description}</span>
+                  </div>
+
+                  <div>
+                    <span className="text-[9px] font-black text-lanka-darkText uppercase block mb-0.5">MAINTAINER</span>
+                    <span className="text-white font-semibold">{dataset.maintainer || 'Central Bank of Sri Lanka'}</span>
+                  </div>
+
+                  <div>
+                    <span className="text-[9px] font-black text-lanka-darkText uppercase block mb-0.5">SOURCE</span>
+                    <span className="text-white font-semibold">{dataset.source || 'Official Publisher'}</span>
+                  </div>
+
+                  <div>
+                    <span className="text-[9px] font-black text-lanka-darkText uppercase block mb-0.5">FREQUENCY</span>
+                    <span className="text-white font-semibold">{dataset.frequency || 'Daily'}</span>
+                  </div>
+
+                  <div>
+                    <span className="text-[9px] font-black text-lanka-darkText uppercase block mb-0.5">COVERAGE</span>
+                    <span className="text-white font-semibold">{dataset.coverage || 'Historical'}</span>
+                  </div>
+
+                  <div>
+                    <span className="text-[9px] font-black text-lanka-darkText uppercase block mb-1">FORMATS</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {(dataset.formats || ['CSV', 'JSON', 'SQL', 'API']).map(fmt => (
+                        <span key={fmt} className="text-[9px] font-black text-cyan-300 bg-cyan-500/10 border border-cyan-500/30 px-2 py-0.5 rounded uppercase">
+                          {fmt}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-lanka-border/50">
+                    <div>
+                      <span className="text-[9px] font-black text-lanka-darkText uppercase block mb-0.5">TOTAL RECORDS</span>
+                      <span className="text-teal-400 font-mono font-bold">{totalRecs.toLocaleString()}</span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] font-black text-lanka-darkText uppercase block mb-0.5">FILE SIZE</span>
+                      <span className="text-teal-400 font-mono font-bold">{fileSize}</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-lanka-border/50">
+                    <div>
+                      <span className="text-[9px] font-black text-lanka-darkText uppercase block mb-0.5">VIEWS</span>
+                      <span className="text-blue-400 font-mono font-bold">{(dataset.views || 0).toLocaleString()}</span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] font-black text-lanka-darkText uppercase block mb-0.5">DOWNLOADS</span>
+                      <span className="text-blue-400 font-mono font-bold">{(dataset.downloads || 0).toLocaleString()}</span>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-lanka-border/50 text-[10px] text-lanka-darkText space-y-1 font-mono">
+                    {dataset.created_at && (
+                      <div className="flex items-center justify-between">
+                        <span>Created:</span>
+                        <span className="text-lanka-muted">{dataset.created_at}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between">
+                      <span>Updated:</span>
+                      <span className="text-lanka-muted">{dataset.updated_at || dataset.updatedAt || 'Recently'}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+
               {/* Similar Datasets Card */}
               <div className="bg-[#050d1a] border border-lanka-border rounded-2xl p-5 space-y-4">
                 <h3 className="text-xs font-black text-white uppercase tracking-wider flex items-center gap-2">
@@ -507,7 +698,7 @@ export const DatasetDetail: React.FC = () => {
                       </Link>
                     ))
                   ) : (
-                    <div className="text-[11px] text-lanka-darkText">No similar datasets found.</div>
+                    <div className="text-[11px] text-lanka-darkText">No similar datasets found in this category.</div>
                   )}
                 </div>
 
@@ -517,42 +708,6 @@ export const DatasetDetail: React.FC = () => {
                 >
                   View all related datasets →
                 </Link>
-              </div>
-
-
-              {/* Dataset Metadata Card */}
-              <div className="bg-[#050d1a] border border-lanka-border rounded-2xl p-5 space-y-4">
-                <h3 className="text-xs font-black text-white uppercase tracking-wider flex items-center gap-2">
-                  <Layers size={14} className="text-cyan-400" /> Dataset Metadata
-                </h3>
-
-                <div className="space-y-3 text-[11px]">
-                  <div>
-                    <span className="text-[9px] font-black text-lanka-darkText uppercase block mb-0.5">MAINTAINER</span>
-                    <span className="text-white font-semibold">{dataset.maintainer || 'Central Bank of Sri Lanka'}</span>
-                  </div>
-
-                  <div>
-                    <span className="text-[9px] font-black text-lanka-darkText uppercase block mb-0.5">FREQUENCY</span>
-                    <span className="text-white font-semibold">{dataset.frequency || 'Daily'}</span>
-                  </div>
-
-                  <div>
-                    <span className="text-[9px] font-black text-lanka-darkText uppercase block mb-0.5">COVERAGE</span>
-                    <span className="text-white font-semibold">{dataset.coverage || '2005 - Present'}</span>
-                  </div>
-
-                  <div>
-                    <span className="text-[9px] font-black text-lanka-darkText uppercase block mb-1">FORMAT</span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {(dataset.formats || ['CSV', 'JSON', 'SQL']).map(fmt => (
-                        <span key={fmt} className="text-[9px] font-black text-cyan-300 bg-cyan-500/10 border border-cyan-500/30 px-2 py-0.5 rounded uppercase">
-                          {fmt}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
               </div>
 
             </div>

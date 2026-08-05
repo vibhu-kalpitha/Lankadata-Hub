@@ -32,6 +32,7 @@ class DatasetBase(BaseModel):
     description: str
     category: str
     table_name: Optional[str] = None
+    primary_date_column: Optional[str] = None
     formats: List[str]
     maintainer: Optional[str] = None
     source: Optional[str] = None
@@ -43,6 +44,7 @@ class DatasetBase(BaseModel):
     downloads: int = 0
     total_records: int = 0
     file_size: Optional[str] = None
+    created_at: Optional[Union[str, date, datetime]] = None
     updated_at: Optional[Union[str, date, datetime]] = None
 
 

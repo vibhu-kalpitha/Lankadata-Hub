@@ -7,7 +7,9 @@ export interface Dataset {
   description: string;
   category: string;
   table_name?: string;
+  primary_date_column?: string;
   formats: string[];
+  created_at?: string;
   updatedAt?: string;
   updated_at?: string;
   views: number;

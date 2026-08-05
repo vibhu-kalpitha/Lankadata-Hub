@@ -23,7 +23,7 @@ export const DashboardDetail: React.FC = () => {
 
   const handleDownload = (filename: string) => {
     const element = document.createElement("a");
-    const file = new Blob(["MOCK REPORT DATA\nCompiled by LankaData Hub Analyst Team."], { type: 'text/plain' });
+    const file = new Blob(["LankaData Hub Analytics Report\nCompiled by LankaData Hub Analyst Team."], { type: 'text/plain' });
     element.href = URL.createObjectURL(file);
     element.download = filename;
     document.body.appendChild(element);

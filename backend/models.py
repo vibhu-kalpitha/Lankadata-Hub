@@ -35,6 +35,7 @@ class Dataset(Base):
     full_description = Column(Text, nullable=True)
     category_id = Column(String(50), ForeignKey("categories.id"), nullable=False)
     table_name = Column(String(100), nullable=True)   # Actual PostgreSQL data table name (e.g. "usd_exchange_rates")
+    primary_date_column = Column(String(100), nullable=True) # Column name for date/time indexing
     formats = Column(String(200), nullable=False, default="CSV,JSON,SQL,API")   # Stored as comma-separated: "CSV,JSON"
     maintainer = Column(String(200), nullable=True)
     frequency = Column(String(100), nullable=True)

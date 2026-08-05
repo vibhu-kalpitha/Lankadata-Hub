@@ -11,7 +11,7 @@ export interface SriLankaStat {
   iconName?: string;
 }
 
-export const MOCK_TODAYS_STATS = {
+export const TODAYS_STATS = {
   environment: { label: 'ENVIRONMENT', value: '10.60', unit: '°C', desc: 'Colombo • Partly Cloudy', updatedTime: 'Updated 5 mins ago' },
   fuelMarket: {
     label: 'FUEL MARKET',
@@ -30,7 +30,7 @@ export const MOCK_TODAYS_STATS = {
   tourism: { label: 'TOURISM', value: '4,820', desc: 'Daily Arrivals', updatedTime: 'Updated 17 hours ago' }
 };
 
-export const MOCK_DISCOVER_STATS = [
+export const DISCOVER_STATS = [
   { id: 'area', label: 'TOTAL AREA', value: '65,610', unit: 'km²', iconName: 'Maximize' },
   { id: 'population', label: 'TOTAL POPULATION', value: '23.2M', iconName: 'Users' },
   { id: 'forest', label: 'FOREST COVER', value: '29.9%', iconName: 'Trees' },
@@ -41,7 +41,7 @@ export const MOCK_DISCOVER_STATS = [
   { id: 'expressways', label: 'EXPRESSWAYS', value: '300+', unit: 'km', iconName: 'Navigation' }
 ];
 
-export const MOCK_FOOTER_METRICS = [
+export const FOOTER_METRICS = [
   { label: 'NATIONAL FLOWER', value: 'Blue Water Lily', icon: '🌸', desc: 'Nil Manel' },
   { label: 'NATIONAL TREE', value: 'Na Tree', icon: '🌳', desc: 'Ironwood' },
   { label: 'TIME ZONE', value: 'GMT +5:30', icon: '🕐', desc: 'SLST Standard' },
@@ -49,7 +49,7 @@ export const MOCK_FOOTER_METRICS = [
 ];
 
 export const srilankaService = {
-  getTodaysStats: () => MOCK_TODAYS_STATS,
-  getDiscoverStats: () => MOCK_DISCOVER_STATS,
-  getFooterMetrics: () => MOCK_FOOTER_METRICS,
+  getTodaysStats: () => TODAYS_STATS,
+  getDiscoverStats: () => DISCOVER_STATS,
+  getFooterMetrics: () => FOOTER_METRICS,
 };
