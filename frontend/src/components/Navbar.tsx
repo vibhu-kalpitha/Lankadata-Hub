@@ -207,18 +207,7 @@ export const Navbar: React.FC = () => {
             )}
           </div>
 
-          <Link
-            to="/login"
-            className="text-xs font-semibold text-slate-300 hover:text-white px-3.5 py-1.5 rounded-xl border border-lanka-border hover:border-lanka-border-hover transition-all"
-          >
-            Log In
-          </Link>
-          <Link
-            to="/signup"
-            className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white text-xs font-bold px-4 py-1.5 rounded-xl shadow-blue-glow transition-all active:scale-95"
-          >
-            Sign Up
-          </Link>
+          {/* Log In & Sign Up buttons hidden for now */}
         </div>
 
         {/* Mobile Menu Button */}
@@ -281,22 +270,6 @@ export const Navbar: React.FC = () => {
           <Link to="/categories" onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium text-lanka-muted hover:text-white py-1">Categories</Link>
           <Link to="/dashboards" onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium text-lanka-muted hover:text-white py-1">Dashboards</Link>
           <Link to="/about"      onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium text-lanka-muted hover:text-white py-1">About</Link>
-          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-lanka-border">
-            <Link
-              to="/login"
-              onClick={() => setMobileMenuOpen(false)}
-              className="w-full border border-lanka-border text-white text-center text-xs font-semibold py-2.5 rounded-lg"
-            >
-              Log In
-            </Link>
-            <Link
-              to="/signup"
-              onClick={() => setMobileMenuOpen(false)}
-              className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 text-white text-center text-xs font-bold py-2.5 rounded-lg"
-            >
-              Sign Up
-            </Link>
-          </div>
         </div>
       )}
     </nav>

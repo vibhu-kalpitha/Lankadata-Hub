@@ -7,100 +7,139 @@ services:
     image: postgres:16-alpine
     container_name: lankadata_postgres
     restart: unless-stopped
+
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: lankadata_hub
+
     ports:
       - "5432:5432"
+
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      # NEW LOCATION
+      - /mnt/data/lankadatahub/postgres:/var/lib/postgresql/data
+
     networks:
       - lankadata_net
+
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
 
+
   # ── Backend Service ────────────────────────────────
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
+
     container_name: lankadata_backend
     restart: unless-stopped
+
     ports:
       - "8000:8000"
+
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/lankadata_hub
       CORS_ORIGINS: "http://localhost,http://localhost:80,http://localhost:5173,http://localhost:3000"
+
     depends_on:
       postgres:
         condition: service_healthy
+
     networks:
       - lankadata_net
+
+
 
   # ── FastAPI Service ────────────────────────────────
   fastapi:
     build:
       context: ./fastapi
       dockerfile: Dockerfile
+
     container_name: lankadata_fastapi
     restart: unless-stopped
+
     ports:
       - "8001:8001"
+
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/lankadata_hub
       CORS_ORIGINS: "http://localhost,http://localhost:80,http://localhost:5173,http://localhost:3000"
+
     depends_on:
       postgres:
         condition: service_healthy
+
       backend:
         condition: service_started
+
     networks:
       - lankadata_net
 
-  # ── React Frontend (Nginx) ─────────────────────────
-  # Serves React SPA on port 80 and proxies /api -> backend, /fastapi-api -> fastapi
+
+
+  # ── React Frontend ─────────────────────────────────
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+
     container_name: lankadata_frontend
     restart: unless-stopped
+
     ports:
       - "8081:80"
+
     depends_on:
       - backend
       - fastapi
+
     networks:
       - lankadata_net
+
+
 
   # ── Mage AI ────────────────────────────────────────
   mage:
     image: mageai/mageai:latest
+
     container_name: lankadata_mage
     restart: unless-stopped
+
     ports:
       - "6789:6789"
+
     environment:
       MAGE_DATABASE_CONNECTION_URL: postgresql://postgres:postgres@postgres:5432/lankadata_hub
+
     volumes:
-      - mage_data:/home/src
+      # NEW LOCATION
+      - /mnt/data/lankadatahub/mage:/home/src
+
     depends_on:
       postgres:
         condition: service_healthy
+
     networks:
       - lankadata_net
+
+
 
   # ── Metabase ───────────────────────────────────────
   metabase:
     image: metabase/metabase:latest
+
     container_name: lankadata_metabase
     restart: unless-stopped
+
     ports:
       - "3000:3000"
+
     environment:
       MB_DB_TYPE: postgres
       MB_DB_DBNAME: metabase
@@ -108,22 +147,20 @@ services:
       MB_DB_USER: postgres
       MB_DB_PASS: postgres
       MB_DB_HOST: postgres
+
+    volumes:
+      # NEW LOCATION
+      - /mnt/data/lankadatahub/metabase:/metabase.db
+
     depends_on:
       postgres:
         condition: service_healthy
-    volumes:
-      - metabase_data:/metabase.db
+
     networks:
       - lankadata_net
+
+
 
 networks:
   lankadata_net:
     driver: bridge
-
-volumes:
-  postgres_data:
-    driver: local
-  mage_data:
-    driver: local
-  metabase_data:
-    driver: local
