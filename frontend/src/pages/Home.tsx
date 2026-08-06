@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   ChevronLeft, ChevronRight, Activity,
   Zap, Database, ArrowRight, TrendingUp, Globe,
-  BarChart2, CloudRain, Cpu, Terminal, Landmark, Percent, Coins, Clock
+  BarChart2, CloudRain, Terminal, Landmark, Percent, Coins, Clock
 } from 'lucide-react';
 import {
   PieChart, Pie, Cell, BarChart, Bar, XAxis,
@@ -19,25 +19,6 @@ import type { Dataset } from '../services/datasetService';
 import { dashboardService } from '../services/dashboardService';
 import type { DashboardDetail } from '../services/dashboardService';
 
-/* ─── Animated counter hook ─────────────────────────────────────────────── */
-function useCountUp(target: number, duration = 1800) {
-  const [count, setCount] = useState(0);
-  const ref = useRef(false);
-  useEffect(() => {
-    if (ref.current) return;
-    ref.current = true;
-    const start = performance.now();
-    const tick = (now: number) => {
-      const p = Math.min((now - start) / duration, 1);
-      const ease = 1 - Math.pow(1 - p, 3);
-      setCount(Math.floor(ease * target));
-      if (p < 1) requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
-  }, [target, duration]);
-  return count;
-}
-
 export const Home: React.FC = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
@@ -50,11 +31,6 @@ export const Home: React.FC = () => {
   const [selectedProvince, setSelectedProvince] = useState<Province | null>(null);
   const [provincesLoading, setProvincesLoading] = useState(true);
   const [provincesError, setProvincesError] = useState<string | null>(null);
-
-  const datasetsCount  = useCountUp(2480);
-  const dashboardCount = useCountUp(184);
-  const apiCount       = useCountUp(56);
-  const updateCount    = useCountUp(99);
 
   useEffect(() => {
     setTodaysStats(srilankaService.getTodaysStats());
@@ -117,20 +93,13 @@ export const Home: React.FC = () => {
 
   const activeDb = trendingDashboards[currentDashboardIdx];
 
-  const platformStats = [
-    { icon: Database,   label: 'Datasets',        value: datasetsCount,  suffix: '+', color: 'text-lanka-blue-light' },
-    { icon: BarChart2,  label: 'Dashboards',       value: dashboardCount, suffix: '+', color: 'text-lanka-cyan'       },
-    { icon: Cpu,        label: 'REST APIs',         value: apiCount,       suffix: '+', color: 'text-purple-400'       },
-    { icon: Activity,   label: '% Uptime',          value: updateCount,    suffix: '%', color: 'text-lanka-teal'       },
-  ];
-
   return (
     <div className="flex-1 bg-lanka-bg grid-bg overflow-x-hidden">
 
       {/* ══════════════════════════════════════════════════
           HERO HEADER SECTION (Clean Suitable Dark Design)
       ══════════════════════════════════════════════════ */}
-      <section className="relative min-h-[440px] md:min-h-[480px] flex flex-col items-center justify-center px-6 pt-10 pb-16 overflow-hidden">
+      <section className="relative flex flex-col items-center justify-center px-6 pt-8 pb-8 md:pt-12 md:pb-10 overflow-hidden">
         {/* Subtle, Clean Design Background */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden select-none">
           {/* Deep dark gradient backdrop */}
@@ -149,17 +118,11 @@ export const Home: React.FC = () => {
 
         {/* Content container */}
         <div className="relative z-20 max-w-7xl mx-auto w-full px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center mb-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             {/* LEFT SIDE: Left-aligned hero title & command search */}
             <div className="lg:col-span-6 text-left space-y-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-cyan-500/10 border border-cyan-500/30 rounded-full text-[11px] font-black text-cyan-400 tracking-[0.2em] uppercase select-none">
-                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-                NATIONAL INTELLIGENCE CORE
-              </div>
-
-              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-white tracking-tight leading-[1.05] drop-shadow-[0_0_35px_rgba(255,255,255,0.35)]">
-                LankaData<br />
-                <span className="bg-gradient-to-r from-white via-slate-100 to-cyan-300 bg-clip-text text-transparent">Hub</span>
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight drop-shadow-[0_0_35px_rgba(255,255,255,0.35)]">
+                LankaData <span className="bg-gradient-to-r from-white via-slate-100 to-cyan-300 bg-clip-text text-transparent">Hub</span>
               </h1>
 
               <p className="text-sm sm:text-base text-lanka-muted max-w-lg leading-relaxed">
@@ -199,32 +162,15 @@ export const Home: React.FC = () => {
 
             {/* RIGHT SIDE: Edge-to-Edge 3D Sri Lanka Hologram Map Card */}
             <div className="lg:col-span-6 relative">
-              <div className="relative rounded-3xl overflow-hidden border border-[#38bdf8]/35 shadow-[0_0_50px_rgba(56,189,248,0.25)] bg-[#040e1a] group w-full h-[320px] sm:h-[380px]">
+              <div className="relative rounded-3xl overflow-hidden border border-[#38bdf8]/35 shadow-[0_0_50px_rgba(56,189,248,0.25)] bg-[#040e1a] group w-full h-[260px] sm:h-[320px] lg:h-[340px]">
                 <img
                   src="/srilanka-subtle-cyan.png"
                   alt="Sri Lanka National Intelligence Hologram Core"
                   className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#040c18] via-transparent to-transparent opacity-70 pointer-events-none" />
-                <div className="absolute top-4 right-4 bg-[#07192e]/85 border border-[#38bdf8]/40 backdrop-blur-md px-3 py-1 rounded-full flex items-center gap-1.5 select-none z-10">
-                  <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-                  <span className="text-[10px] font-black text-cyan-300 tracking-wider uppercase">SRI LANKA CORE</span>
-                </div>
               </div>
             </div>
-          </div>
-
-          {/* Platform stats counter row (Centered across bottom) */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 w-full max-w-4xl mx-auto">
-            {platformStats.map((s, i) => (
-              <div key={i} className="text-center group bg-[#071a2e]/60 border border-lanka-border hover:border-[#38bdf8]/30 rounded-2xl p-3 backdrop-blur-sm transition-all">
-                <div className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-white/5 border border-lanka-border group-hover:border-[#38bdf8]/30 mb-1.5 transition-colors">
-                  <s.icon size={16} className={s.color} />
-                </div>
-                <div className={`text-xl sm:text-2xl font-black ${s.color}`}>{s.value.toLocaleString()}{s.suffix}</div>
-                <div className="text-[10px] text-lanka-darkText uppercase tracking-wider mt-0.5 font-semibold">{s.label}</div>
-              </div>
-            ))}
           </div>
         </div>
       </section>
