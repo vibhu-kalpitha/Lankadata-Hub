@@ -125,21 +125,21 @@ export const SriLankaMap: React.FC<SriLankaMapProps> = ({
   // ── Compact Mode ──────────────────────────────────────────────────────────
   if (compact) {
     return (
-      <div className="flex flex-col sm:flex-row items-center justify-between w-full h-full gap-3 p-3 select-none">
-        <div className="w-full sm:w-1/2 flex justify-center relative min-h-[220px]">
-          {renderSvgMap('w-full h-[220px]')}
+      <div className="flex flex-col sm:flex-row items-center justify-between w-full h-[260px] gap-3 p-3 select-none overflow-hidden">
+        <div className="w-full sm:w-1/2 flex justify-center relative h-full">
+          {renderSvgMap('w-full h-full')}
         </div>
 
-        <div className="w-full sm:w-1/2 bg-[#07172b]/80 border border-lanka-border rounded-xl p-3 flex flex-col justify-between space-y-2 text-xs">
+        <div className="w-full sm:w-1/2 bg-[#07172b]/80 border border-lanka-border rounded-xl p-3 flex flex-col justify-between h-full space-y-2 text-xs overflow-hidden">
           {activeProvince && (
             <>
               <div>
-                <span className="text-[9px] font-bold text-cyan-400 uppercase tracking-widest block">
+                <span className="text-[9px] font-bold text-cyan-400 uppercase tracking-widest block truncate">
                   {hoveredDistrict ? `${hoveredDistrict.district} District` : 'Province Profile'}
                 </span>
-                <h4 className="text-sm font-black text-white flex items-center gap-1.5 mt-0.5">
-                  <MapPin size={13} className="text-cyan-400 animate-pulse" />
-                  {activeProvince.province} Province
+                <h4 className="text-sm font-black text-white flex items-center gap-1.5 mt-0.5 truncate">
+                  <MapPin size={13} className="text-cyan-400 animate-pulse shrink-0" />
+                  {activeProvince.province}
                 </h4>
               </div>
 
@@ -156,15 +156,15 @@ export const SriLankaMap: React.FC<SriLankaMapProps> = ({
 
               <div className="bg-white/5 border border-lanka-border p-1.5 rounded-lg text-[10px]">
                 <span className="text-[8px] font-bold text-lanka-darkText block uppercase mb-0.5">Population</span>
-                <span className="font-bold text-teal-400 flex items-center gap-1">
-                  <Users size={11} /> {activeProvince.estimated_population}
+                <span className="font-bold text-teal-400 flex items-center gap-1 truncate">
+                  <Users size={11} className="shrink-0" /> {activeProvince.estimated_population}
                 </span>
               </div>
 
               <div className="text-[9px] text-lanka-muted pt-1 border-t border-lanka-border/50 flex justify-between items-center">
-                <span className="line-clamp-1">{activeProvince.districts_included.join(', ')}</span>
-                <span className="text-[8px] text-slate-400 font-mono shrink-0 ml-2">
-                  Src: {activeProvince.data_source || 'Census'} • {activeProvince.last_updated || '2023'}
+                <span className="truncate max-w-[60%]">{activeProvince.districts_included.join(', ')}</span>
+                <span className="text-[8px] text-slate-400 font-mono shrink-0">
+                  {activeProvince.data_source || 'Census'} • {activeProvince.last_updated || '2023'}
                 </span>
               </div>
             </>
@@ -179,84 +179,85 @@ export const SriLankaMap: React.FC<SriLankaMapProps> = ({
     return renderSvgMap('w-full max-w-[340px] sm:max-w-[380px] h-[360px] sm:h-[420px] hover:scale-[1.01]');
   }
 
-  // ── Full Panel Mode ───────────────────────────────────────────────────────
+  // ── Full Panel Mode (STABLE FIXED HEIGHT — NO RESIZING ON HOVER) ─────────
   return (
-    <div className="flex flex-col lg:flex-row items-center gap-8 w-full p-6 glass-panel rounded-2xl">
+    <div className="flex flex-col lg:flex-row items-stretch gap-6 w-full h-[450px] min-h-[450px] max-h-[450px] p-6 glass-panel rounded-2xl overflow-hidden">
       {/* Map Section */}
-      <div className="w-full lg:w-1/2 flex flex-col items-center justify-center relative min-h-[380px]">
-        {renderSvgMap('w-full max-w-[340px] h-[360px]')}
-        <div className="mt-3 flex items-center gap-1.5 px-3.5 py-1 bg-[#091122]/90 border border-lanka-border rounded-full text-[10px] text-cyan-300 font-bold tracking-wider uppercase shadow-glass">
+      <div className="w-full lg:w-1/2 flex flex-col items-center justify-between relative h-full">
+        {renderSvgMap('w-full max-w-[320px] h-[350px]')}
+        <div className="flex items-center gap-1.5 px-3.5 py-1 bg-[#091122]/90 border border-lanka-border rounded-full text-[10px] text-cyan-300 font-bold tracking-wider uppercase shadow-glass">
           <Layers size={11} className="text-cyan-400" />
           <span>Real GeoJSON Vector Map (25 Districts)</span>
         </div>
       </div>
 
-      {/* Stats Detail Section */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-between h-full space-y-4">
+      {/* Stats Detail Section — STABLE FIXED LAYOUT */}
+      <div className="w-full lg:w-1/2 flex flex-col justify-between h-full space-y-3 overflow-hidden">
         {activeProvince ? (
-          <div className="space-y-4 flex-1 flex flex-col justify-between">
-            <div>
-              <div className="border-b border-lanka-border pb-3">
-                <span className="text-[10px] font-bold text-lanka-cyan uppercase tracking-widest">
-                  {hoveredDistrict ? `Hover Focus: ${hoveredDistrict.district} District` : 'Province Profile'}
+          <div className="h-full flex flex-col justify-between space-y-3">
+            {/* Header */}
+            <div className="border-b border-lanka-border/60 pb-2.5 shrink-0">
+              <span className="text-[10px] font-bold text-lanka-cyan uppercase tracking-widest block truncate">
+                {hoveredDistrict ? `Hover Focus: ${hoveredDistrict.district} District` : 'Province Profile'}
+              </span>
+              <h3 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2 mt-0.5 truncate">
+                <MapPin size={18} className="text-lanka-cyan animate-pulse shrink-0" />
+                {activeProvince.province}
+              </h3>
+            </div>
+
+            {/* Metrics Grid */}
+            <div className="grid grid-cols-2 gap-2.5 shrink-0">
+              <div className="bg-lanka-bg-light/50 border border-lanka-border rounded-xl p-2.5">
+                <span className="text-[9px] font-semibold text-lanka-darkText uppercase block mb-0.5">CAPITAL</span>
+                <span className="text-sm font-bold text-white truncate block">{activeProvince.provincial_capital}</span>
+              </div>
+              <div className="bg-lanka-bg-light/50 border border-lanka-border rounded-xl p-2.5">
+                <span className="text-[9px] font-semibold text-lanka-darkText uppercase block mb-0.5">TOTAL AREA</span>
+                <span className="text-sm font-bold text-white flex items-center gap-1 truncate">
+                  <Maximize2 size={11} className="text-lanka-muted shrink-0" />
+                  {formatArea(activeProvince.total_area_km2)}
                 </span>
-                <h3 className="text-2xl font-black text-white flex items-center gap-2 mt-1">
-                  <MapPin size={20} className="text-lanka-cyan animate-pulse" />
-                  {activeProvince.province} Province
-                </h3>
               </div>
-
-              <div className="grid grid-cols-2 gap-3 mt-4">
-                <div className="bg-lanka-bg-light/50 border border-lanka-border rounded-xl p-3">
-                  <span className="text-[10px] font-semibold text-lanka-darkText uppercase block mb-1">PROVINCIAL CAPITAL</span>
-                  <span className="text-sm font-bold text-white">{activeProvince.provincial_capital}</span>
-                </div>
-                <div className="bg-lanka-bg-light/50 border border-lanka-border rounded-xl p-3">
-                  <span className="text-[10px] font-semibold text-lanka-darkText uppercase block mb-1">TOTAL AREA</span>
-                  <span className="text-sm font-bold text-white flex items-center gap-1">
-                    <Maximize2 size={12} className="text-lanka-muted" />
-                    {formatArea(activeProvince.total_area_km2)}
-                  </span>
-                </div>
-                <div className="bg-lanka-bg-light/50 border border-lanka-border rounded-xl p-3 col-span-2">
-                  <span className="text-[10px] font-semibold text-lanka-darkText uppercase block mb-1">ESTIMATED POPULATION</span>
-                  <span className="text-sm font-bold text-white flex items-center gap-1.5">
-                    <Users size={14} className="text-lanka-teal" />
-                    {activeProvince.estimated_population} Residents
-                  </span>
-                </div>
-              </div>
-
-              <div className="bg-lanka-bg-light/50 border border-lanka-border rounded-xl p-3 mt-3">
-                <span className="text-[10px] font-semibold text-lanka-darkText uppercase block mb-1.5">DISTRICTS INCLUDED</span>
-                <div className="flex flex-wrap gap-1.5">
-                  {activeProvince.districts_included.map((dist: string, idx: number) => {
-                    const isCurDistrict = hoveredDistrict?.district.toLowerCase() === dist.toLowerCase();
-                    return (
-                      <span
-                        key={idx}
-                        className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full transition-all ${
-                          isCurDistrict
-                            ? 'bg-cyan-500/30 border border-cyan-400 text-cyan-200 scale-105'
-                            : 'bg-[#1e293b]/55 border border-slate-700/50 text-slate-300'
-                        }`}
-                      >
-                        {dist}
-                      </span>
-                    );
-                  })}
-                </div>
+              <div className="bg-lanka-bg-light/50 border border-lanka-border rounded-xl p-2.5 col-span-2">
+                <span className="text-[9px] font-semibold text-lanka-darkText uppercase block mb-0.5">ESTIMATED POPULATION</span>
+                <span className="text-sm font-bold text-white flex items-center gap-1.5 truncate">
+                  <Users size={13} className="text-lanka-teal shrink-0" />
+                  {activeProvince.estimated_population} Residents
+                </span>
               </div>
             </div>
 
-            {/* Small Footer Metadata in Corner — No Standalone Boxes */}
-            <div className="pt-2 border-t border-lanka-border/40 flex items-center justify-between text-[10px] text-lanka-darkText">
-              <span className="flex items-center gap-1">
-                <Info size={10} />
-                Hover or click districts to update focus
+            {/* Districts List (Fixed height scrollable container) */}
+            <div className="bg-lanka-bg-light/50 border border-lanka-border rounded-xl p-2.5 flex-1 min-h-0 flex flex-col justify-center">
+              <span className="text-[9px] font-semibold text-lanka-darkText uppercase block mb-1">CONSTITUENT DISTRICTS</span>
+              <div className="flex flex-wrap gap-1.5 overflow-y-auto max-h-[70px] pr-1">
+                {activeProvince.districts_included.map((dist: string, idx: number) => {
+                  const isCurDistrict = hoveredDistrict?.district.toLowerCase() === dist.toLowerCase();
+                  return (
+                    <span
+                      key={idx}
+                      className={`text-[10px] font-semibold px-2 py-0.5 rounded-full transition-all ${
+                        isCurDistrict
+                          ? 'bg-cyan-500/30 border border-cyan-400 text-cyan-200 scale-105'
+                          : 'bg-[#1e293b]/55 border border-slate-700/50 text-slate-300'
+                      }`}
+                    >
+                      {dist}
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Footer Metadata Line in Corner (No Standalone Boxes) */}
+            <div className="pt-2 border-t border-lanka-border/40 flex items-center justify-between text-[10px] text-lanka-darkText shrink-0">
+              <span className="flex items-center gap-1 truncate max-w-[55%]">
+                <Info size={10} className="shrink-0" />
+                Hover districts to update
               </span>
-              <span className="text-[9px] text-slate-400 font-mono">
-                Src: {activeProvince.data_source || 'Census Dept'} • Updated: {activeProvince.last_updated || '2023'}
+              <span className="text-[9px] text-slate-400 font-mono shrink-0">
+                Src: {activeProvince.data_source || 'Census'} • {activeProvince.last_updated || '2023'}
               </span>
             </div>
           </div>

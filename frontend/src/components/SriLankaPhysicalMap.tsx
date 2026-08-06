@@ -24,22 +24,22 @@ export const SriLankaPhysicalMap: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row items-center gap-6 w-full p-6 glass-panel rounded-2xl">
+    <div className="flex flex-col lg:flex-row items-stretch gap-6 w-full h-[450px] min-h-[450px] max-h-[450px] p-6 glass-panel rounded-2xl overflow-hidden">
       {/* Map Section (Left of Physical Box) */}
-      <div className="w-full lg:w-1/2 flex flex-col items-center justify-center relative min-h-[380px]">
+      <div className="w-full lg:w-1/2 flex flex-col items-center justify-between relative h-full">
         {/* Layer Selector Pills */}
-        <div className="flex items-center gap-1.5 mb-2 bg-[#091526]/80 p-1 rounded-xl border border-lanka-border/60 z-10 text-[10px] uppercase font-bold tracking-wider">
+        <div className="flex items-center gap-1 mb-1 bg-[#091526]/80 p-1 rounded-xl border border-lanka-border/60 z-10 text-[10px] uppercase font-bold tracking-wider shrink-0">
           <button
             onClick={() => setActiveTab('all')}
-            className={`px-2.5 py-1 rounded-lg transition-all ${
+            className={`px-2.5 py-0.5 rounded-lg transition-all ${
               activeTab === 'all' ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-500/40' : 'text-slate-400 hover:text-white'
             }`}
           >
-            All Features
+            All
           </button>
           <button
             onClick={() => setActiveTab('rivers')}
-            className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 ${
+            className={`px-2.5 py-0.5 rounded-lg transition-all flex items-center gap-1 ${
               activeTab === 'rivers' ? 'bg-cyan-500/25 text-cyan-300 border border-cyan-500/40' : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -47,7 +47,7 @@ export const SriLankaPhysicalMap: React.FC = () => {
           </button>
           <button
             onClick={() => setActiveTab('forests')}
-            className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 ${
+            className={`px-2.5 py-0.5 rounded-lg transition-all flex items-center gap-1 ${
               activeTab === 'forests' ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-500/40' : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -55,7 +55,7 @@ export const SriLankaPhysicalMap: React.FC = () => {
           </button>
           <button
             onClick={() => setActiveTab('peaks')}
-            className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 ${
+            className={`px-2.5 py-0.5 rounded-lg transition-all flex items-center gap-1 ${
               activeTab === 'peaks' ? 'bg-amber-500/25 text-amber-300 border border-amber-500/40' : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -63,13 +63,13 @@ export const SriLankaPhysicalMap: React.FC = () => {
           </button>
         </div>
 
-        {/* Real GeoJSON Map Canvas */}
-        <div className="relative w-full flex justify-center items-center">
+        {/* Real GeoJSON Hydrographic Vector Canvas */}
+        <div className="relative w-full flex justify-center items-center flex-1">
           <div className="absolute inset-0 bg-radial-gradient from-emerald-500/10 via-teal-500/5 to-transparent filter blur-2xl pointer-events-none" />
 
           <svg
             viewBox="0 0 450 650"
-            className="w-full max-w-[340px] h-[360px] transition-transform duration-300 drop-shadow-[0_0_20px_rgba(16,185,129,0.25)]"
+            className="w-full max-w-[320px] h-[330px] transition-transform duration-300 drop-shadow-[0_0_20px_rgba(16,185,129,0.25)]"
             onMouseMove={handleMouseMove}
             onMouseLeave={() => {
               setHoveredFeature(null);
@@ -95,7 +95,7 @@ export const SriLankaPhysicalMap: React.FC = () => {
                       setHoveredFeature({
                         title: `${d.district} District`,
                         subtitle: `${d.province} Province`,
-                        desc: `District territory within ${d.province} Province of Sri Lanka.`,
+                        desc: `Administrative territory within ${d.province} Province of Sri Lanka.`,
                         type: 'district'
                       });
                     }}
@@ -122,7 +122,7 @@ export const SriLankaPhysicalMap: React.FC = () => {
                 />
               ))}
 
-            {/* River Flow Vector Lines Overlay */}
+            {/* Real River Flow Vector Lines Overlay */}
             {(activeTab === 'all' || activeTab === 'rivers') &&
               srilankaPhysicalData.rivers.map((r: RiverFeature) => (
                 <path
@@ -132,7 +132,7 @@ export const SriLankaPhysicalMap: React.FC = () => {
                   onMouseEnter={() =>
                     setHoveredFeature({
                       title: r.name,
-                      subtitle: `River Length: ${r.length}`,
+                      subtitle: `${r.basin} • ${r.length}`,
                       desc: r.desc,
                       type: 'river'
                     })
@@ -150,7 +150,7 @@ export const SriLankaPhysicalMap: React.FC = () => {
                     setHoveredFeature({
                       title: p.name,
                       subtitle: p.elevation,
-                      desc: 'Highest mountain summit in Central Highlands of Sri Lanka.',
+                      desc: p.desc,
                       type: 'peak'
                     })
                   }
@@ -189,83 +189,82 @@ export const SriLankaPhysicalMap: React.FC = () => {
           )}
         </div>
 
-        <div className="mt-3 flex items-center gap-1.5 px-3.5 py-1 bg-[#091122]/90 border border-lanka-border rounded-full text-[10px] text-emerald-300 font-bold tracking-wider uppercase shadow-glass">
-          <Compass size={11} className="text-emerald-400" />
-          <span>Real GeoJSON Vector Map (Physical Features)</span>
+        <div className="flex items-center gap-1.5 px-3.5 py-1 bg-[#091122]/90 border border-lanka-border rounded-full text-[10px] text-emerald-300 font-bold tracking-wider uppercase shadow-glass shrink-0">
+          <Compass size={11} className="text-emerald-400 shrink-0" />
+          <span>Hydrographic Rivers &amp; Forest Basins</span>
         </div>
       </div>
 
-      {/* Details & Environmental Profile (Right Side) */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-between h-full space-y-4">
-        <div>
-          <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest block">
-            Geography &amp; Ecosystems
+      {/* Details & Environmental Profile (Right Side — STABLE FIXED LAYOUT) */}
+      <div className="w-full lg:w-1/2 flex flex-col justify-between h-full space-y-3 overflow-hidden">
+        <div className="border-b border-lanka-border/60 pb-2 shrink-0">
+          <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest block truncate">
+            Hydrography &amp; Ecosystems
           </span>
-          <h3 className="text-2xl font-black text-white mt-1">Natural Geography</h3>
-          <p className="text-xs text-lanka-muted mt-0.5">
-            Key physical features, major river basins, forest reserves &amp; marine territory.
-          </p>
+          <h3 className="text-xl sm:text-2xl font-black text-white mt-0.5 truncate">Natural Geography</h3>
         </div>
 
         {/* Feature Focus Box or Overview Grid */}
-        {hoveredFeature ? (
-          <div className="bg-emerald-500/10 border border-emerald-500/40 rounded-xl p-4 space-y-1.5 transition-all">
-            <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest block">Feature Focus</span>
-            <h4 className="text-base font-black text-white">{hoveredFeature.title}</h4>
-            <span className="text-xs font-semibold text-emerald-300 block">{hoveredFeature.subtitle}</span>
-            <p className="text-xs text-slate-300 leading-relaxed pt-1">{hoveredFeature.desc}</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-white/[0.04] border border-lanka-border rounded-xl p-3.5">
-              <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest block mb-1">Total Land Area</span>
-              <span className="text-base font-bold text-white">65,610 <span className="text-xs text-lanka-muted font-normal">km²</span></span>
+        <div className="flex-1 min-h-0 flex flex-col justify-center">
+          {hoveredFeature ? (
+            <div className="bg-emerald-500/10 border border-emerald-500/40 rounded-xl p-3 space-y-1 transition-all h-full flex flex-col justify-center overflow-hidden">
+              <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest block shrink-0">Feature Focus</span>
+              <h4 className="text-sm font-black text-white truncate">{hoveredFeature.title}</h4>
+              <span className="text-[11px] font-semibold text-emerald-300 block truncate">{hoveredFeature.subtitle}</span>
+              <p className="text-[11px] text-slate-300 leading-relaxed line-clamp-3 pt-0.5">{hoveredFeature.desc}</p>
             </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-2.5">
+              <div className="bg-white/[0.04] border border-lanka-border rounded-xl p-2.5">
+                <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest block mb-0.5">Total Land Area</span>
+                <span className="text-sm font-bold text-white">65,610 <span className="text-xs text-lanka-muted font-normal">km²</span></span>
+              </div>
 
-            <div className="bg-white/[0.04] border border-lanka-border rounded-xl p-3.5">
-              <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest block mb-1">Marine Zone (EEZ)</span>
-              <span className="text-base font-bold text-white">517,000 <span className="text-xs text-lanka-muted font-normal">km²</span></span>
-            </div>
+              <div className="bg-white/[0.04] border border-lanka-border rounded-xl p-2.5">
+                <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest block mb-0.5">Marine Zone (EEZ)</span>
+                <span className="text-sm font-bold text-white">517,000 <span className="text-xs text-lanka-muted font-normal">km²</span></span>
+              </div>
 
-            <div className="bg-white/[0.04] border border-lanka-border rounded-xl p-3.5">
-              <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest block mb-1">Longest River</span>
-              <span className="text-sm font-bold text-white">Mahaweli <span className="text-xs text-lanka-muted font-normal">(335 km)</span></span>
-            </div>
+              <div className="bg-white/[0.04] border border-lanka-border rounded-xl p-2.5">
+                <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest block mb-0.5">Longest River</span>
+                <span className="text-xs font-bold text-white truncate block">Mahaweli <span className="text-[10px] text-lanka-muted font-normal">(335 km)</span></span>
+              </div>
 
-            <div className="bg-white/[0.04] border border-lanka-border rounded-xl p-3.5">
-              <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest block mb-1">Highest Peak</span>
-              <span className="text-sm font-bold text-white">Pidurutalagala <span className="text-xs text-lanka-muted font-normal">(2,524 m)</span></span>
+              <div className="bg-white/[0.04] border border-lanka-border rounded-xl p-2.5">
+                <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest block mb-0.5">Highest Peak</span>
+                <span className="text-xs font-bold text-white truncate block">Pidurutalagala <span className="text-[10px] text-lanka-muted font-normal">(2,524 m)</span></span>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Forest & Climate Badges */}
-        <div className="bg-white/[0.04] border border-lanka-border rounded-xl p-3.5 space-y-2">
+        <div className="bg-white/[0.04] border border-lanka-border rounded-xl p-2.5 space-y-1.5 shrink-0">
           <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest block">Forest &amp; Ecological Reserves</span>
-          <div className="flex flex-wrap gap-1.5">
-            <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300">
+          <div className="flex flex-wrap gap-1.5 overflow-hidden max-h-[50px]">
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300">
               Sinharaja Rainforest (UNESCO)
             </span>
-            <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#1e293b]/70 border border-slate-700/60 text-slate-200">
-              Yala National Park
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#1e293b]/70 border border-slate-700/60 text-slate-200">
+              Yala Park
             </span>
-            <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#1e293b]/70 border border-slate-700/60 text-slate-200">
-              Wilpattu National Park
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#1e293b]/70 border border-slate-700/60 text-slate-200">
+              Wilpattu Park
             </span>
-            <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#1e293b]/70 border border-slate-700/60 text-slate-200">
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#1e293b]/70 border border-slate-700/60 text-slate-200">
               Knuckles Range
             </span>
           </div>
         </div>
 
         {/* Small Footer Metadata in Corner */}
-        <div className="pt-2 border-t border-lanka-border/40 flex items-center justify-between text-[10px] text-lanka-darkText">
-          <span className="flex items-center gap-1">
-            <Info size={10} />
-            Hover GeoJSON map features to explore environmental data
+        <div className="pt-2 border-t border-lanka-border/40 flex items-center justify-between text-[10px] text-lanka-darkText shrink-0">
+          <span className="flex items-center gap-1 truncate max-w-[55%]">
+            <Info size={10} className="shrink-0" />
+            Hover map features to inspect
           </span>
-          <span className="text-[9px] text-slate-400 font-mono">
-            Coastline: 1,340 km • Forest Cover: ~29.2%
+          <span className="text-[9px] text-slate-400 font-mono shrink-0">
+            Coast: 1,340 km • Forest Cover: ~29.2%
           </span>
         </div>
       </div>
