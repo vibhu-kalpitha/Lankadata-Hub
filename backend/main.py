@@ -73,45 +73,37 @@ DEFAULT_CATEGORIES_SEED = [
 
 
 # ─── Categories Endpoints ─────────────────────────────────────────────────────
+@app.get("/categories", response_model=List[schemas.CategoryOut], tags=["Categories"])
 @app.get("/api/v1/categories", response_model=List[schemas.CategoryOut], tags=["Categories"])
 @app.get("/api/categories", response_model=List[schemas.CategoryOut], tags=["Categories"])
 def list_categories(db: Session = Depends(get_db)):
-    """Return all dataset categories with record counts."""
+    """Return all dataset categories with record counts safely."""
+    result = []
     try:
-        for cat_data in DEFAULT_CATEGORIES_SEED:
-            c = db.query(models.Category).filter(models.Category.id == cat_data["id"]).first()
-            if not c:
-                c = models.Category(**cat_data)
-                db.add(c)
-                db.commit()
+        if hasattr(models, 'Category'):
+            categories = db.query(models.Category).all()
+            for cat in categories:
+                count = db.query(models.Dataset).filter(
+                    (models.Dataset.category_id == cat.id) | (models.Dataset.category_id == cat.name.lower())
+                ).count()
+                result.append(schemas.CategoryOut(
+                    id=str(cat.id),
+                    name=str(cat.name),
+                    icon_name=getattr(cat, 'icon_name', 'Layers') or 'Layers',
+                    iconName=getattr(cat, 'icon_name', 'Layers') or 'Layers',
+                    description=getattr(cat, 'description', '') or f"{cat.name} datasets and metrics",
+                    count=count if count > 0 else 1
+                ))
     except Exception:
         db.rollback()
 
-    try:
-        categories = db.query(models.Category).all()
-        result = []
-        for cat in categories:
-            count = db.query(models.Dataset).filter(
-                (models.Dataset.category_id == cat.id) | (models.Dataset.category_id == cat.name.lower())
-            ).count()
-            result.append(schemas.CategoryOut(
-                id=cat.id,
-                name=cat.name,
-                icon_name=cat.icon_name,
-                iconName=cat.icon_name,
-                description=cat.description,
-                count=count if count > 0 else (2 if cat.id == "economy" else 1)
-            ))
-        if len(result) > 0:
-            return result
-    except Exception:
-        db.rollback()
+    if not result:
+        return [
+            schemas.CategoryOut(id=c["id"], name=c["name"], icon_name=c["icon_name"], iconName=c["icon_name"], description=c["description"], count=2 if c["id"] == "economy" else 1)
+            for c in DEFAULT_CATEGORIES_SEED
+        ]
 
-    return [
-        schemas.CategoryOut(id=c["id"], name=c["name"], icon_name=c["icon_name"], description=c["description"], count=2 if c["id"] == "economy" else 1)
-        for c in DEFAULT_CATEGORIES_SEED
-    ]
-
+    return result
 
 
 # ─── Dynamic Dataset Helpers ───────────────────────────────────────────────
@@ -161,12 +153,16 @@ def get_dataset_stats(table_name: Optional[str], db: Session) -> tuple:
 
 
 def dataset_model_to_out(ds: models.Dataset, db: Session) -> schemas.DatasetOut:
-    """Convert a Dataset ORM model to DatasetOut Pydantic schema using dynamic PostgreSQL stats."""
-    tbl_name = ds.table_name or (ds.id.replace("-", "_") if ds.id else None)
-    total_records, file_size = get_dataset_stats(tbl_name, db)
+    """Convert a Dataset ORM model to DatasetOut Pydantic schema using dynamic PostgreSQL stats safely."""
+    try:
+        tbl_name = getattr(ds, "table_name", None) or (getattr(ds, "id", "").replace("-", "_") if getattr(ds, "id", None) else None)
+        total_records, file_size = get_dataset_stats(tbl_name, db)
+    except Exception:
+        db.rollback()
+        total_records, file_size = 0, "0 KB"
 
     cat_name = "Economy"
-    if ds.category_id:
+    if getattr(ds, "category_id", None):
         cat_name = str(ds.category_id).capitalize()
     try:
         if hasattr(ds, 'category_rel') and ds.category_rel and ds.category_rel.name:
@@ -174,34 +170,36 @@ def dataset_model_to_out(ds: models.Dataset, db: Session) -> schemas.DatasetOut:
     except Exception:
         db.rollback()
 
-    if ds.formats:
-        if isinstance(ds.formats, list):
-            fmt_list = ds.formats
-        else:
-            fmt_list = [f.strip() for f in str(ds.formats).split(",") if f.strip()]
-    else:
-        fmt_list = ["CSV", "JSON", "SQL", "API"]
+    fmt_list = ["CSV", "JSON", "SQL", "API"]
+    if getattr(ds, "formats", None):
+        try:
+            if isinstance(ds.formats, list):
+                fmt_list = ds.formats
+            else:
+                fmt_list = [f.strip() for f in str(ds.formats).split(",") if f.strip()]
+        except Exception:
+            pass
 
     return schemas.DatasetOut(
-        id=str(ds.id),
-        title=str(ds.title or ds.id),
-        description=str(ds.description or ""),
+        id=str(getattr(ds, "id", "dataset")),
+        title=str(getattr(ds, "title", None) or getattr(ds, "id", "Dataset")),
+        description=str(getattr(ds, "description", None) or ""),
         category=cat_name,
-        table_name=ds.table_name,
-        primary_date_column=ds.primary_date_column,
+        table_name=getattr(ds, "table_name", None),
+        primary_date_column=getattr(ds, "primary_date_column", None),
         formats=fmt_list,
-        maintainer=str(ds.maintainer) if ds.maintainer else "LankaData Hub",
-        source=str(ds.source) if ds.source else "Official Publisher",
-        frequency=str(ds.frequency) if ds.frequency else "Daily",
-        coverage=str(ds.coverage) if ds.coverage else "Historical",
-        live=bool(ds.live) if ds.live is not None else True,
-        featured=bool(ds.featured) if ds.featured is not None else False,
-        views=int(ds.views) if ds.views is not None else 0,
-        downloads=int(ds.downloads) if ds.downloads is not None else 0,
+        maintainer=str(getattr(ds, "maintainer", None) or "LankaData Hub"),
+        source=str(getattr(ds, "source", None) or "Official Publisher"),
+        frequency=str(getattr(ds, "frequency", None) or "Daily"),
+        coverage=str(getattr(ds, "coverage", None) or "Historical"),
+        live=bool(getattr(ds, "live", True)),
+        featured=bool(getattr(ds, "featured", False)),
+        views=int(getattr(ds, "views", 0) or 0),
+        downloads=int(getattr(ds, "downloads", 0) or 0),
         total_records=total_records,
         file_size=file_size,
-        created_at=str(ds.created_at) if ds.created_at else None,
-        updated_at=str(ds.updated_at) if ds.updated_at else (str(ds.created_at) if ds.created_at else "Recently")
+        created_at=str(ds.created_at) if getattr(ds, "created_at", None) else None,
+        updated_at=str(ds.updated_at) if getattr(ds, "updated_at", None) else (str(ds.created_at) if getattr(ds, "created_at", None) else "Recently")
     )
 
 
