@@ -788,38 +788,44 @@ def get_todays_sri_lanka_stats(db: Session = Depends(get_db)):
     Fetch live benchmarks for Today's Sri Lanka card section:
     - district_weather (colombo)
     - cbsl_usd_exchange_rates (buying/selling, CBSL official rate, trend comparison)
-    - colombo_stock_market_live (ASPI index & market stats)
+    - colombo_stock_market_live (ASPI, turnover_lkr, volume_traded, trades_count)
+    - fuel_prices (petrol_95, petrol_92, auto_diesel)
     - Infrastructure mock benchmarks
     """
     import datetime
     today_str = datetime.date.today().isoformat()
 
     weather_data = {
-        "temp": "10.60",
+        "temp": "29.40",
         "unit": "°C",
         "location": "Colombo • Partly Cloudy",
-        "humidity": "78%",
-        "wind": "12 km/h",
-        "aqi": "42 Good"
+        "temp_max": "31.8",
+        "temp_min": "24.2",
+        "precipitation": "12.5",
+        "wind_max": "18.3"
     }
 
     economy_data = {
         "forex": {
-            "value": "310.50",
+            "value": "335.35",
             "source": "CBSL",
             "label": "CENTRAL BANK OFFICIAL RATE",
-            "change": "+0.32%",
+            "change": "+0.02%",
             "trend": "up"
         },
         "stock": {
-            "value": "12,450.2",
+            "value": "21,370.1",
             "label": "CSE: ASPI",
             "change": "+1.5%",
-            "trend": "up"
+            "trend": "up",
+            "turnover_lkr": "2.4B LKR",
+            "volume_traded": "45.2M",
+            "trades_count": "14,210"
         },
         "fuel": {
-            "octane92": "311.00",
-            "diesel": "283.00"
+            "petrol_95": "365.00",
+            "petrol_92": "311.00",
+            "auto_diesel": "283.00"
         },
         "tea": {
             "value": "1,180.00 LKR",
@@ -857,11 +863,12 @@ def get_todays_sri_lanka_stats(db: Session = Depends(get_db)):
             if inspector.has_table("district_weather", schema="public"):
                 cols = [c["name"].lower() for c in inspector.get_columns("district_weather", schema="public")]
                 dist_col = next((c for c in cols if "district" in c or "city" in c or "location" in c), None)
+                temp_max_col = next((c for c in cols if "temperature_2m_max" in c or "temp_max" in c or "max_temp" in c), None)
+                temp_min_col = next((c for c in cols if "temperature_2m_min" in c or "temp_min" in c or "min_temp" in c), None)
+                precip_col = next((c for c in cols if "precipitation_sum" in c or "precipitation" in c or "rain" in c), None)
+                wind_max_col = next((c for c in cols if "wind_speed_10m_max" in c or "wind_max" in c or "wind" in c), None)
                 temp_col = next((c for c in cols if "temp" in c or "temperature" in c), None)
                 cond_col = next((c for c in cols if "cond" in c or "weather" in c or "desc" in c or "sky" in c), None)
-                hum_col = next((c for c in cols if "humid" in c), None)
-                wind_col = next((c for c in cols if "wind" in c), None)
-                aqi_col = next((c for c in cols if "aqi" in c or "air" in c or "rain" in c), None)
 
                 if dist_col:
                     q = text(f'SELECT * FROM "district_weather" WHERE CAST("{dist_col}" AS TEXT) ILIKE :dname ORDER BY 1 DESC LIMIT 1')
@@ -871,12 +878,14 @@ def get_todays_sri_lanka_stats(db: Session = Depends(get_db)):
                             weather_data["temp"] = f"{float(row.get(temp_col)):.2f}"
                         if cond_col and row.get(cond_col):
                             weather_data["location"] = f"Colombo • {str(row.get(cond_col)).title()}"
-                        if hum_col and row.get(hum_col) is not None:
-                            weather_data["humidity"] = f"{row.get(hum_col)}%"
-                        if wind_col and row.get(wind_col) is not None:
-                            weather_data["wind"] = f"{row.get(wind_col)} km/h"
-                        if aqi_col and row.get(aqi_col) is not None:
-                            weather_data["aqi"] = f"{row.get(aqi_col)} Good"
+                        if temp_max_col and row.get(temp_max_col) is not None:
+                            weather_data["temp_max"] = f"{float(row.get(temp_max_col)):.1f}"
+                        if temp_min_col and row.get(temp_min_col) is not None:
+                            weather_data["temp_min"] = f"{float(row.get(temp_min_col)):.1f}"
+                        if precip_col and row.get(precip_col) is not None:
+                            weather_data["precipitation"] = f"{float(row.get(precip_col)):.1f}"
+                        if wind_max_col and row.get(wind_max_col) is not None:
+                            weather_data["wind_max"] = f"{float(row.get(wind_max_col)):.1f}"
         except Exception:
             db.rollback()
 
@@ -893,8 +902,8 @@ def get_todays_sri_lanka_stats(db: Session = Depends(get_db)):
                 q_forex = text(f'SELECT * FROM "cbsl_usd_exchange_rates"{order_by_sql} LIMIT 2')
                 rows = db.execute(q_forex).mappings().all()
                 if rows:
-                    curr_buy = float(rows[0].get(buy_col) or 310.50) if buy_col else 310.50
-                    curr_sell = float(rows[0].get(sell_col) or 315.50) if sell_col else 315.50
+                    curr_buy = float(rows[0].get(buy_col) or 335.35) if buy_col else 335.35
+                    curr_sell = float(rows[0].get(sell_col) or 340.50) if sell_col else 340.50
                     avg_rate = round((curr_buy + curr_sell) / 2.0, 2)
                     economy_data["forex"]["value"] = f"{avg_rate:.2f}"
 
@@ -916,6 +925,9 @@ def get_todays_sri_lanka_stats(db: Session = Depends(get_db)):
                 cols = [c["name"].lower() for c in inspector.get_columns("colombo_stock_market_live", schema="public")]
                 aspi_col = next((c for c in cols if "aspi" in c or "index" in c or "value" in c or "price" in c), None)
                 chg_col = next((c for c in cols if "change" in c or "pct" in c or "growth" in c), None)
+                turnover_col = next((c for c in cols if "turnover" in c), None)
+                volume_col = next((c for c in cols if "volume" in c), None)
+                trades_col = next((c for c in cols if "trades" in c or "trade_count" in c), None)
 
                 q_stock = text('SELECT * FROM "colombo_stock_market_live" ORDER BY 1 DESC LIMIT 1')
                 s_row = db.execute(q_stock).mappings().first()
@@ -927,6 +939,33 @@ def get_todays_sri_lanka_stats(db: Session = Depends(get_db)):
                         chg_val = float(s_row.get(chg_col))
                         economy_data["stock"]["change"] = f"{'+' if chg_val >= 0 else ''}{chg_val:.2f}%"
                         economy_data["stock"]["trend"] = "up" if chg_val >= 0 else "down"
+                    if turnover_col and s_row.get(turnover_col) is not None:
+                        economy_data["stock"]["turnover_lkr"] = str(s_row.get(turnover_col))
+                    if volume_col and s_row.get(volume_col) is not None:
+                        economy_data["stock"]["volume_traded"] = str(s_row.get(volume_col))
+                    if trades_col and s_row.get(trades_col) is not None:
+                        economy_data["stock"]["trades_count"] = str(s_row.get(trades_col))
+        except Exception:
+            db.rollback()
+
+    # 4. Inspect fuel_prices table
+    if inspector:
+        try:
+            if inspector.has_table("fuel_prices", schema="public"):
+                cols = [c["name"].lower() for c in inspector.get_columns("fuel_prices", schema="public")]
+                p95_col = next((c for c in cols if "95" in c or "petrol_95" in c), None)
+                p92_col = next((c for c in cols if "92" in c or "petrol_92" in c), None)
+                diesel_col = next((c for c in cols if "diesel" in c or "auto_diesel" in c), None)
+
+                q_fuel = text('SELECT * FROM "fuel_prices" ORDER BY 1 DESC LIMIT 1')
+                f_row = db.execute(q_fuel).mappings().first()
+                if f_row:
+                    if p95_col and f_row.get(p95_col) is not None:
+                        economy_data["fuel"]["petrol_95"] = f"{float(f_row.get(p95_col)):.2f}"
+                    if p92_col and f_row.get(p92_col) is not None:
+                        economy_data["fuel"]["petrol_92"] = f"{float(f_row.get(p92_col)):.2f}"
+                    if diesel_col and f_row.get(diesel_col) is not None:
+                        economy_data["fuel"]["auto_diesel"] = f"{float(f_row.get(diesel_col)):.2f}"
         except Exception:
             db.rollback()
 

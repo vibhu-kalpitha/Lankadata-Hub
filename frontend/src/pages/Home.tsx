@@ -169,10 +169,10 @@ export const Home: React.FC = () => {
           <div className="relative rounded-3xl overflow-hidden border border-sky-500/35 bg-[#040e1e]/90 p-6 flex flex-col justify-between shadow-[0_0_30px_rgba(56,189,248,0.15)] min-h-[460px] group transition-all duration-300 hover:border-sky-400/60">
             {/* Background Backdrop Image with Rich Visible Opacity */}
             <div 
-              className="absolute inset-0 bg-cover bg-center opacity-35 group-hover:opacity-45 transition-opacity duration-500 pointer-events-none"
-              style={{ backgroundImage: `url('/weather-bg-card.jpg')` }} 
+              className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-50 transition-opacity duration-500 pointer-events-none"
+              style={{ backgroundImage: `url('/weather-bg-card.png')` }} 
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-[#040e1e]/65 via-[#040e1e]/85 to-[#040e1e] pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-b from-[#040e1e]/60 via-[#040e1e]/80 to-[#040e1e] pointer-events-none" />
 
             <div className="relative z-10">
               {/* Header Tag */}
@@ -185,7 +185,7 @@ export const Home: React.FC = () => {
               <div className="space-y-1 mb-6">
                 <span className="text-[9px] font-mono font-bold text-sky-300/70 tracking-widest uppercase block">CURRENT ENVIRONMENT</span>
                 <div className="flex items-baseline">
-                  <span className="text-5xl font-black text-white tracking-tight">{todaysLiveData?.weather?.temp || '10.60'}</span>
+                  <span className="text-5xl font-black text-white tracking-tight">{todaysLiveData?.weather?.temp || '29.40'}</span>
                   <span className="text-2xl font-bold text-sky-400 ml-1.5">{todaysLiveData?.weather?.unit || '°C'}</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-xs text-slate-200 pt-1.5 font-medium">
@@ -195,19 +195,36 @@ export const Home: React.FC = () => {
               </div>
             </div>
 
-            {/* Inner Glass Card for Weather Details */}
-            <div className="relative z-10 bg-[#07162c]/85 backdrop-blur-md border border-sky-500/25 rounded-2xl p-4.5 space-y-3 shadow-inner">
-              <div>
-                <span className="text-[9px] font-mono font-bold text-slate-400 tracking-widest uppercase block mb-0.5">HUMIDITY</span>
-                <span className="text-lg font-black text-white">{todaysLiveData?.weather?.humidity || '78%'}</span>
-              </div>
-              <div className="pt-2.5 border-t border-sky-500/15">
-                <span className="text-[9px] font-mono font-bold text-slate-400 tracking-widest uppercase block mb-0.5">WIND</span>
-                <span className="text-lg font-black text-white">{todaysLiveData?.weather?.wind || '12 km/h'}</span>
-              </div>
-              <div className="pt-2.5 border-t border-sky-500/15">
-                <span className="text-[9px] font-mono font-bold text-slate-400 tracking-widest uppercase block mb-0.5">AQI</span>
-                <span className="text-lg font-black text-emerald-400">{todaysLiveData?.weather?.aqi || '42 Good'}</span>
+            {/* Inner Glass Card for Climate Indicators (Colombo) */}
+            <div className="relative z-10 bg-[#07162c]/85 backdrop-blur-md border border-sky-500/25 rounded-2xl p-4 space-y-2.5 shadow-inner">
+              <span className="text-[9px] font-mono font-bold text-sky-400/90 tracking-widest uppercase block mb-1">
+                CLIMATE INDICATORS (COLOMBO)
+              </span>
+
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                {/* Max Temp */}
+                <div className="bg-[#040e1a]/80 border border-sky-500/15 rounded-xl p-2">
+                  <span className="text-[8px] font-mono text-slate-400 uppercase tracking-wider block mb-0.5">MAX TEMP</span>
+                  <span className="text-sm font-black text-white">{todaysLiveData?.weather?.temp_max || '31.8'} °C</span>
+                </div>
+
+                {/* Min Temp */}
+                <div className="bg-[#040e1a]/80 border border-sky-500/15 rounded-xl p-2">
+                  <span className="text-[8px] font-mono text-slate-400 uppercase tracking-wider block mb-0.5">MIN TEMP</span>
+                  <span className="text-sm font-black text-white">{todaysLiveData?.weather?.temp_min || '24.2'} °C</span>
+                </div>
+
+                {/* Precipitation */}
+                <div className="bg-[#040e1a]/80 border border-sky-500/15 rounded-xl p-2">
+                  <span className="text-[8px] font-mono text-slate-400 uppercase tracking-wider block mb-0.5">PRECIPITATION</span>
+                  <span className="text-sm font-black text-cyan-300">{todaysLiveData?.weather?.precipitation || '12.5'} mm</span>
+                </div>
+
+                {/* Max Wind Speed */}
+                <div className="bg-[#040e1a]/80 border border-sky-500/15 rounded-xl p-2">
+                  <span className="text-[8px] font-mono text-slate-400 uppercase tracking-wider block mb-0.5">MAX WIND SPEED</span>
+                  <span className="text-sm font-black text-white">{todaysLiveData?.weather?.wind_max || '18.3'} km/h</span>
+                </div>
               </div>
             </div>
           </div>
@@ -217,10 +234,10 @@ export const Home: React.FC = () => {
           <div className="relative rounded-3xl overflow-hidden border border-emerald-500/35 bg-[#040e1e]/90 p-6 flex flex-col justify-between shadow-[0_0_30px_rgba(74,222,128,0.15)] min-h-[460px] group transition-all duration-300 hover:border-emerald-400/60">
             {/* Background Backdrop Image with Rich Visible Opacity */}
             <div 
-              className="absolute inset-0 bg-cover bg-center opacity-35 group-hover:opacity-45 transition-opacity duration-500 pointer-events-none"
-              style={{ backgroundImage: `url('/colombo-skyline-bg.jpg')` }} 
+              className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-50 transition-opacity duration-500 pointer-events-none"
+              style={{ backgroundImage: `url('/colombo-skyline-bg.png')` }} 
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-[#040e1e]/65 via-[#040e1e]/85 to-[#040e1e] pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-b from-[#040e1e]/60 via-[#040e1e]/80 to-[#040e1e] pointer-events-none" />
 
             <div className="relative z-10 space-y-4">
               {/* Header Tag */}
@@ -236,10 +253,10 @@ export const Home: React.FC = () => {
               <div>
                 <span className="text-[9px] font-mono font-bold text-emerald-300/70 tracking-widest uppercase block mb-1">FOREX (USD/LKR)</span>
                 <div className="flex items-center gap-2.5">
-                  <span className="text-3xl font-black text-white">{todaysLiveData?.economy?.forex?.value || '310.50'}</span>
+                  <span className="text-3xl font-black text-white">{todaysLiveData?.economy?.forex?.value || '335.35'}</span>
                   <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-md">
                     {todaysLiveData?.economy?.forex?.trend === 'down' ? <TrendingDown size={10} /> : <TrendingUp size={10} />}
-                    {todaysLiveData?.economy?.forex?.change || '+0.32%'}
+                    {todaysLiveData?.economy?.forex?.change || '+0.02%'}
                   </span>
                 </div>
                 <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest block mt-1">
@@ -251,28 +268,48 @@ export const Home: React.FC = () => {
               <div className="pt-3 border-t border-emerald-500/15">
                 <span className="text-[9px] font-mono font-bold text-emerald-300/70 tracking-widest uppercase block mb-1">STOCK MARKET</span>
                 <div className="flex items-center gap-2.5">
-                  <span className="text-2xl font-black text-white">{todaysLiveData?.economy?.stock?.value || '12,450.2'}</span>
+                  <span className="text-2xl font-black text-white">{todaysLiveData?.economy?.stock?.value || '21,370.1'}</span>
                   <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-md">
                     {todaysLiveData?.economy?.stock?.trend === 'down' ? <TrendingDown size={10} /> : <TrendingUp size={10} />}
                     {todaysLiveData?.economy?.stock?.change || '+1.5%'}
                   </span>
                 </div>
-                <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest block mt-0.5">
+                <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest block mt-0.5 mb-2">
                   {todaysLiveData?.economy?.stock?.label || 'CSE: ASPI'}
                 </span>
+                
+                {/* Micro Telemetry Stats for Stock Market */}
+                <div className="grid grid-cols-3 gap-1 bg-[#051424]/80 border border-emerald-500/20 rounded-xl p-2 text-[9px] font-mono">
+                  <div>
+                    <span className="text-slate-400 block text-[8px] uppercase">TURNOVER</span>
+                    <span className="text-white font-bold">{todaysLiveData?.economy?.stock?.turnover_lkr || '2.4B LKR'}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[8px] uppercase">VOLUME</span>
+                    <span className="text-white font-bold">{todaysLiveData?.economy?.stock?.volume_traded || '45.2M'}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[8px] uppercase">TRADES</span>
+                    <span className="text-white font-bold">{todaysLiveData?.economy?.stock?.trades_count || '14,210'}</span>
+                  </div>
+                </div>
               </div>
 
-              {/* Fuel Section */}
+              {/* Fuel Section (fuel_prices table) */}
               <div className="pt-3 border-t border-emerald-500/15">
                 <span className="text-[9px] font-mono font-bold text-emerald-300/70 tracking-widest uppercase block mb-1.5">FUEL (LKR/L)</span>
                 <div className="space-y-1 text-xs">
                   <div className="flex justify-between items-center text-slate-300">
+                    <span>95 Octane</span>
+                    <span className="font-bold text-white">{todaysLiveData?.economy?.fuel?.petrol_95 || '365.00'}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-slate-300">
                     <span>92 Octane</span>
-                    <span className="font-bold text-white">{todaysLiveData?.economy?.fuel?.octane92 || '311.00'}</span>
+                    <span className="font-bold text-white">{todaysLiveData?.economy?.fuel?.petrol_92 || todaysLiveData?.economy?.fuel?.octane92 || '311.00'}</span>
                   </div>
                   <div className="flex justify-between items-center text-slate-300">
                     <span>Auto Diesel</span>
-                    <span className="font-bold text-white">{todaysLiveData?.economy?.fuel?.diesel || '283.00'}</span>
+                    <span className="font-bold text-white">{todaysLiveData?.economy?.fuel?.auto_diesel || todaysLiveData?.economy?.fuel?.diesel || '283.00'}</span>
                   </div>
                 </div>
               </div>
@@ -293,10 +330,10 @@ export const Home: React.FC = () => {
           <div className="relative rounded-3xl overflow-hidden border border-rose-500/35 bg-[#040e1e]/90 p-6 flex flex-col justify-between shadow-[0_0_30px_rgba(244,63,94,0.15)] min-h-[460px] group transition-all duration-300 hover:border-rose-400/60">
             {/* Background Backdrop Image with Rich Visible Opacity */}
             <div 
-              className="absolute inset-0 bg-cover bg-center opacity-35 group-hover:opacity-45 transition-opacity duration-500 pointer-events-none"
-              style={{ backgroundImage: `url('/infrastructure-bg.jpg')` }} 
+              className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-50 transition-opacity duration-500 pointer-events-none"
+              style={{ backgroundImage: `url('/infrastructure-bg.png')` }} 
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-[#040e1e]/65 via-[#040e1e]/85 to-[#040e1e] pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-b from-[#040e1e]/60 via-[#040e1e]/80 to-[#040e1e] pointer-events-none" />
 
             <div className="relative z-10 space-y-5">
               {/* Header Tag */}
