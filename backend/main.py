@@ -204,7 +204,7 @@ def dataset_model_to_out(ds: models.Dataset, db: Session) -> schemas.DatasetOut:
 
 
 def resolve_dataset_from_db(dataset_id: str, db: Session) -> models.Dataset:
-    """Look up a dataset in the datasets master registry table safely."""
+    """Look up a dataset in the datasets master registry table or inspect PostgreSQL schema dynamically."""
     clean_id = (dataset_id or "").strip().lower()
     
     try:
@@ -214,17 +214,162 @@ def resolve_dataset_from_db(dataset_id: str, db: Session) -> models.Dataset:
             (models.Dataset.table_name == clean_id.replace("-", "_")) |
             (models.Dataset.id == clean_id.replace("_", "-"))
         ).first()
+        if ds:
+            return ds
     except Exception:
         db.rollback()
-        ds = None
 
-    if not ds:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Dataset '{dataset_id}' not found in master registry."
-        )
+    # Dynamic fallback: check if PostgreSQL schema public has this table directly
+    tbl_name = clean_id.replace("-", "_")
+    try:
+        bind = db.get_bind()
+        inspector = inspect(bind)
+        if inspector.has_table(tbl_name, schema="public"):
+            nice_title = tbl_name.replace("_", " ").title()
+            if "Usd" in nice_title:
+                nice_title = nice_title.replace("Usd", "USD")
+            return models.Dataset(
+                id=clean_id,
+                title=nice_title,
+                description=f"Live PostgreSQL dataset table '{tbl_name}'.",
+                category_id="economy",
+                table_name=tbl_name,
+                formats="CSV,JSON,SQL,API",
+                maintainer="LankaData Scraper Pipeline",
+                live=True,
+                featured=False
+            )
+    except Exception:
+        db.rollback()
 
-    return ds
+    raise HTTPException(
+        status_code=404,
+        detail=f"Dataset '{dataset_id}' not found in master registry."
+    )
+
+
+def get_all_dynamic_datasets_from_postgres(db: Session) -> List[schemas.DatasetOut]:
+    """
+    Inspect PostgreSQL database schema 'public' directly and convert ALL user data tables
+    into dataset objects so the user's actual database tables are 100% visible on /datasets.
+    """
+    result = []
+    EXCLUDED_TABLES = {"alembic_version", "spatial_ref_sys", "datasets", "categories", "dashboards", "api_specs", "users"}
+
+    try:
+        bind = db.get_bind()
+        inspector = inspect(bind)
+        tables = inspector.get_table_names(schema="public")
+
+        for tbl in sorted(tables):
+            if tbl in EXCLUDED_TABLES or tbl.startswith("mage_") or tbl.startswith("metabase_"):
+                continue
+
+            tbl_clean = tbl.strip()
+            total_records, file_size = get_dataset_stats(tbl_clean, db)
+
+            cat_name = "General Datasets"
+            tbl_lower = tbl_clean.lower()
+            if any(k in tbl_lower for k in ["usd", "bank", "rate", "exchange", "cbsl", "hnb", "seylan", "sampath", "peoples", "ntb", "combank", "gdp", "economic"]):
+                cat_name = "Economy & Finance"
+            elif any(k in tbl_lower for k in ["health", "dengue", "hospital", "patient"]):
+                cat_name = "Health & Surveillance"
+            elif any(k in tbl_lower for k in ["weather", "rain", "climate", "temp"]):
+                cat_name = "Weather & Climate"
+            elif any(k in tbl_lower for k in ["province", "district", "demographic", "census"]):
+                cat_name = "Demographics & Regions"
+
+            nice_title = tbl_clean.replace("_", " ").title()
+            if "Usd" in nice_title:
+                nice_title = nice_title.replace("Usd", "USD")
+
+            result.append(schemas.DatasetOut(
+                id=tbl_clean.replace("_", "-"),
+                title=nice_title,
+                description=f"Live PostgreSQL dataset table '{tbl_clean}' updated automatically.",
+                category=cat_name,
+                table_name=tbl_clean,
+                primary_date_column=None,
+                formats=["CSV", "JSON", "SQL", "API"],
+                maintainer="LankaData Scraper Pipeline",
+                source="PostgreSQL Database",
+                frequency="Daily / Dynamic",
+                coverage="Live PostgreSQL",
+                live=True,
+                featured=True,
+                views=150,
+                downloads=45,
+                total_records=total_records,
+                file_size=file_size,
+                created_at="Recently",
+                updated_at="Live Stream"
+            ))
+    except Exception:
+        db.rollback()
+
+    return result
+
+
+# ─── Dataset Endpoints ────────────────────────────────────────────────────────
+
+@app.get("/datasets", response_model=schemas.DatasetListResponse, tags=["Datasets"])
+@app.get("/api/v1/datasets", response_model=schemas.DatasetListResponse, tags=["Datasets"])
+@app.get("/api/datasets", response_model=schemas.DatasetListResponse, tags=["Datasets"])
+def list_datasets(
+    search: Optional[str] = Query(None, description="Full-text search query"),
+    category: Optional[str] = Query(None, description="Filter by category"),
+    format: Optional[str] = Query(None, description="Filter by format"),
+    sort_by: Optional[str] = Query("Latest", alias="sortBy"),
+    page: Optional[int] = Query(None),
+    limit: Optional[int] = Query(None),
+    db: Session = Depends(get_db)
+):
+    """Return all datasets directly from PostgreSQL schema inspection and ORM master registry."""
+    try:
+        datasets_out = []
+        
+        # 1. Fetch ORM datasets if table populated
+        try:
+            items = db.query(models.Dataset).all()
+            for ds in items:
+                datasets_out.append(dataset_model_to_out(ds, db))
+        except Exception:
+            db.rollback()
+
+        # 2. Inspect ALL PostgreSQL schema public data tables live
+        db_tables = get_all_dynamic_datasets_from_postgres(db)
+        
+        existing_keys = {d.id for d in datasets_out} | {d.table_name for d in datasets_out if d.table_name}
+        for dt in db_tables:
+            if dt.table_name not in existing_keys and dt.id not in existing_keys:
+                datasets_out.append(dt)
+
+        # Apply filtering
+        if search and search.strip():
+            s_term = search.strip().lower()
+            datasets_out = [d for d in datasets_out if s_term in d.title.lower() or s_term in d.description.lower()]
+
+        if category and category.strip():
+            c_term = category.strip().lower()
+            datasets_out = [d for d in datasets_out if c_term in d.category.lower()]
+
+        if format and format.strip():
+            f_term = format.strip().lower()
+            datasets_out = [d for d in datasets_out if any(f_term in fmt.lower() for fmt in d.formats)]
+
+        total = len(datasets_out)
+        
+        if page is not None and limit is not None:
+            total_pages = max(1, (total + limit - 1) // limit)
+            start_idx = (page - 1) * limit
+            datasets_out = datasets_out[start_idx : start_idx + limit]
+        else:
+            total_pages = 1
+
+        return schemas.DatasetListResponse(datasets=datasets_out, total=total, pages=total_pages)
+    except Exception as e:
+        db.rollback()
+        return schemas.DatasetListResponse(datasets=[], total=0, pages=1)
 
 
 def query_dynamic_table(
@@ -305,37 +450,6 @@ def query_dynamic_table(
 
 
 # ─── Dataset Endpoints ────────────────────────────────────────────────────────
-
-@app.get("/api/datasets", response_model=schemas.DatasetListResponse, tags=["Datasets"])
-def list_datasets(
-    search: Optional[str] = Query(None, description="Full-text search query"),
-    category: Optional[str] = Query(None, description="Filter by category"),
-    format: Optional[str] = Query(None, description="Filter by format"),
-    sort_by: Optional[str] = Query("Latest", alias="sortBy"),
-    page: Optional[int] = Query(None),
-    limit: Optional[int] = Query(None),
-    db: Session = Depends(get_db)
-):
-    """Return all datasets directly from datasets master registry in PostgreSQL."""
-    try:
-        query = db.query(models.Dataset)
-
-        if search and search.strip():
-            s_term = f"%{search.strip()}%"
-            query = query.filter(
-                (models.Dataset.title.ilike(s_term)) |
-                (models.Dataset.description.ilike(s_term))
-            )
-
-        if category and category.strip():
-            query = query.filter(models.Dataset.category_id.ilike(f"%{category.strip()}%"))
-
-        if format and format.strip():
-            query = query.filter(models.Dataset.formats.ilike(f"%{format.strip()}%"))
-
-        query = query.order_by(models.Dataset.id.asc())
-
-        total = query.count()
 
         if page is not None and limit is not None:
             items = query.offset((page - 1) * limit).limit(limit).all()
