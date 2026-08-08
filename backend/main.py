@@ -139,12 +139,13 @@ def get_dataset_stats(table_name: Optional[str], db: Session) -> tuple:
     file_size = "0 KB"
     
     try:
-        # Total records count
         count_res = db.execute(text(f'SELECT COUNT(*) FROM "{clean_tbl}"')).scalar()
         total_records = count_res if count_res is not None else 0
+    except Exception:
+        db.rollback()
 
-        # Relation size from PostgreSQL engine
-        size_bytes = db.execute(text(f"SELECT pg_total_relation_size('{clean_tbl}')")).scalar() or 0
+    try:
+        size_bytes = db.execute(text(f'SELECT pg_total_relation_size(quote_ident(:tbl))'), {"tbl": clean_tbl}).scalar() or 0
         if size_bytes < 1024:
             file_size = f"{size_bytes} B"
         elif size_bytes < 1024 * 1024:
