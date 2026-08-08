@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
-  Activity, Zap, ArrowRight, TrendingUp, Globe,
-  BarChart2, CloudRain, Terminal
+  Zap, ArrowRight, TrendingUp, TrendingDown, Globe,
+  CloudRain, Terminal, MapPin, Building2, RefreshCw
 } from 'lucide-react';
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, Tooltip
@@ -11,16 +11,16 @@ import {
 import { SriLankaMap } from '../components/SriLankaMap';
 import { SriLankaPhysicalMap } from '../components/SriLankaPhysicalMap';
 import { USDExchangeRateComparison } from '../components/USDExchangeRateComparison';
-import { srilankaService } from '../services/srilankaService';
 import { fetchProvinces } from '../services/provinceService';
 import type { Province } from '../services/provinceService';
 import { datasetService } from '../services/datasetService';
 import type { Dataset } from '../services/datasetService';
+import { apiService } from '../services/apiService';
 
 export const Home: React.FC = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
-  const [todaysStats, setTodaysStats] = useState<any>(null);
+  const [todaysLiveData, setTodaysLiveData] = useState<any>(null);
   const [latestDatasets, setLatestDatasets] = useState<Dataset[]>([]);
   const [provinces, setProvinces] = useState<Province[]>([]);
   const [selectedProvince, setSelectedProvince] = useState<Province | null>(null);
@@ -28,8 +28,11 @@ export const Home: React.FC = () => {
   const [provincesError, setProvincesError] = useState<string | null>(null);
 
   useEffect(() => {
-    setTodaysStats(srilankaService.getTodaysStats());
     datasetService.getLatestDatasets(3).then(d => setLatestDatasets(d));
+
+    apiService.getTodaysSriLankaStats().then(data => {
+      if (data) setTodaysLiveData(data);
+    });
 
     // Fetch provinces from FastAPI → PostgreSQL
     fetchProvinces()
@@ -144,131 +147,212 @@ export const Home: React.FC = () => {
       <USDExchangeRateComparison />
 
       {/* ══════════════════════════════════════════════════
-          TODAY'S SRI LANKA STATS
+          TODAY'S SRI LANKA - MISSION CONTROL 3-DEV-BOX CARD SECTION
       ══════════════════════════════════════════════════ */}
       <section className="max-w-7xl mx-auto px-6 py-10">
         <div className="flex justify-between items-end mb-8">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="w-1 h-5 bg-gradient-to-b from-cyan-400 to-teal-500 rounded-full" />
-              <h2 className="text-2xl font-black text-white">Today's Sri Lanka</h2>
+              <span className="w-1.5 h-5 bg-gradient-to-b from-cyan-400 to-teal-500 rounded-full" />
+              <h2 className="text-2xl font-black text-white tracking-tight">Today's Sri Lanka</h2>
             </div>
-            <p className="text-[12px] text-lanka-muted ml-3">Mission control — live national benchmarks updated continuously.</p>
+            <p className="text-[12px] text-lanka-muted ml-3 font-medium">Mission control — live national benchmarks updated continuously.</p>
           </div>
-          <span className="text-[10px] bg-teal-500/10 text-teal-400 border border-teal-500/25 px-3 py-1 rounded-full font-bold uppercase tracking-wider">
-            ✦ Grand Stable
+          <span className="text-[10px] bg-teal-500/10 text-teal-400 border border-teal-500/25 px-3 py-1 rounded-full font-bold uppercase tracking-wider hidden sm:inline-block">
+            ✦ LIVE DATA FEED
           </span>
         </div>
 
-        {todaysStats ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {/* Temp */}
-            <div className="group relative bg-gradient-to-br from-sky-900/30 to-[#050f20] border border-sky-700/30 rounded-2xl p-5 flex flex-col justify-between h-40 hover:border-sky-500/50 hover:scale-[1.02] transition-all overflow-hidden">
-              <div className="absolute top-3 right-3 text-sky-500/30 group-hover:text-sky-500/60 transition-colors"><CloudRain size={28} /></div>
-              <div>
-                <span className="text-[9px] font-bold text-sky-400/80 uppercase tracking-widest">{todaysStats.environment.label}</span>
-                <div className="mt-3">
-                  <span className="text-4xl font-black text-white">{todaysStats.environment.value}</span>
-                  <span className="text-xl font-bold text-sky-400 ml-1">{todaysStats.environment.unit}</span>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+          {/* ── DEV BOX 1: ENVIRONMENT & WEATHER ── */}
+          <div className="relative rounded-3xl overflow-hidden border border-sky-500/35 bg-[#040e1e]/90 p-6 flex flex-col justify-between shadow-[0_0_30px_rgba(56,189,248,0.15)] min-h-[460px] group transition-all duration-300 hover:border-sky-400/60">
+            {/* Background Backdrop Image with Rich Visible Opacity */}
+            <div 
+              className="absolute inset-0 bg-cover bg-center opacity-35 group-hover:opacity-45 transition-opacity duration-500 pointer-events-none"
+              style={{ backgroundImage: `url('/weather-bg-card.jpg')` }} 
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-[#040e1e]/65 via-[#040e1e]/85 to-[#040e1e] pointer-events-none" />
+
+            <div className="relative z-10">
+              {/* Header Tag */}
+              <div className="flex items-center gap-2 text-sky-400 font-extrabold text-xs uppercase tracking-widest mb-6">
+                <CloudRain size={16} className="text-sky-400" />
+                <span>ENVIRONMENT & WEATHER</span>
+              </div>
+
+              {/* Current Environment Display */}
+              <div className="space-y-1 mb-6">
+                <span className="text-[9px] font-mono font-bold text-sky-300/70 tracking-widest uppercase block">CURRENT ENVIRONMENT</span>
+                <div className="flex items-baseline">
+                  <span className="text-5xl font-black text-white tracking-tight">{todaysLiveData?.weather?.temp || '10.60'}</span>
+                  <span className="text-2xl font-bold text-sky-400 ml-1.5">{todaysLiveData?.weather?.unit || '°C'}</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs text-slate-200 pt-1.5 font-medium">
+                  <MapPin size={12} className="text-sky-400" />
+                  <span>{todaysLiveData?.weather?.location || 'Colombo • Partly Cloudy'}</span>
                 </div>
               </div>
-              <span className="text-[10px] text-lanka-muted">{todaysStats.environment.desc}</span>
             </div>
 
-            {/* Fuel */}
-            <div className="group relative bg-gradient-to-br from-amber-900/25 to-[#050f20] border border-amber-700/30 rounded-2xl p-5 flex flex-col justify-between h-40 hover:border-amber-500/50 hover:scale-[1.02] transition-all overflow-hidden">
-              <div className="absolute top-3 right-3 text-amber-500/30 group-hover:text-amber-500/60 transition-colors"><Zap size={28} /></div>
+            {/* Inner Glass Card for Weather Details */}
+            <div className="relative z-10 bg-[#07162c]/85 backdrop-blur-md border border-sky-500/25 rounded-2xl p-4.5 space-y-3 shadow-inner">
               <div>
-                <span className="text-[9px] font-bold text-amber-400/80 uppercase tracking-widest">{todaysStats.fuelMarket.label}</span>
-                <div className="mt-2 space-y-1">
-                  {todaysStats.fuelMarket.prices.map((p: any, i: number) => (
-                    <div key={i} className="flex justify-between text-[11px]">
-                      <span className="text-lanka-muted">{p.name}</span>
-                      <span className="text-white font-bold">{p.price} LKR</span>
-                    </div>
-                  ))}
-                </div>
+                <span className="text-[9px] font-mono font-bold text-slate-400 tracking-widest uppercase block mb-0.5">HUMIDITY</span>
+                <span className="text-lg font-black text-white">{todaysLiveData?.weather?.humidity || '78%'}</span>
               </div>
-              <span className="text-[9px] text-lanka-darkText">{todaysStats.fuelMarket.source}</span>
-            </div>
-
-            {/* Forex */}
-            <div className="group relative bg-gradient-to-br from-green-900/25 to-[#050f20] border border-green-700/30 rounded-2xl p-5 flex flex-col justify-between h-40 hover:border-green-500/50 hover:scale-[1.02] transition-all overflow-hidden">
-              <div className="absolute top-3 right-3 text-green-500/30 group-hover:text-green-500/60 transition-colors"><TrendingUp size={28} /></div>
-              <div>
-                <span className="text-[9px] font-bold text-green-400/80 uppercase tracking-widest">{todaysStats.forexRate.label}</span>
-                <div className="mt-3">
-                  <span className="text-3xl font-black text-white">{todaysStats.forexRate.value}</span>
-                  <span className="text-xs text-green-400 ml-2 font-bold">{todaysStats.forexRate.change}</span>
-                </div>
+              <div className="pt-2.5 border-t border-sky-500/15">
+                <span className="text-[9px] font-mono font-bold text-slate-400 tracking-widest uppercase block mb-0.5">WIND</span>
+                <span className="text-lg font-black text-white">{todaysLiveData?.weather?.wind || '12 km/h'}</span>
               </div>
-              <span className="text-[9px] text-lanka-darkText uppercase">{todaysStats.forexRate.desc}</span>
-            </div>
-
-            {/* Health */}
-            <div className="group relative bg-gradient-to-br from-red-900/25 to-[#050f20] border border-red-700/30 rounded-2xl p-5 flex flex-col justify-between h-40 hover:border-red-500/50 hover:scale-[1.02] transition-all overflow-hidden">
-              <div className="absolute top-3 right-3 text-red-500/30 group-hover:text-red-500/60 transition-colors"><Activity size={28} /></div>
-              <div>
-                <span className="text-[9px] font-bold text-red-400/80 uppercase tracking-widest">{todaysStats.publicHealth.label}</span>
-                <div className="mt-3">
-                  <span className="text-4xl font-black text-red-400">{todaysStats.publicHealth.value}</span>
-                </div>
+              <div className="pt-2.5 border-t border-sky-500/15">
+                <span className="text-[9px] font-mono font-bold text-slate-400 tracking-widest uppercase block mb-0.5">AQI</span>
+                <span className="text-lg font-black text-emerald-400">{todaysLiveData?.weather?.aqi || '42 Good'}</span>
               </div>
-              <span className="text-[10px] text-lanka-muted">{todaysStats.publicHealth.desc}</span>
-            </div>
-
-            {/* Stock */}
-            <div className="group relative bg-gradient-to-br from-violet-900/25 to-[#050f20] border border-violet-700/30 rounded-2xl p-5 flex flex-col justify-between h-40 hover:border-violet-500/50 hover:scale-[1.02] transition-all overflow-hidden">
-              <div className="absolute top-3 right-3 text-violet-500/30 group-hover:text-violet-500/60 transition-colors"><BarChart2 size={28} /></div>
-              <div>
-                <span className="text-[9px] font-bold text-violet-400/80 uppercase tracking-widest">{todaysStats.stockMarket.label}</span>
-                <div className="mt-3">
-                  <span className="text-2xl font-black text-white">{todaysStats.stockMarket.value}</span>
-                  <span className="text-xs text-green-400 ml-2 font-bold">{todaysStats.stockMarket.change}</span>
-                </div>
-              </div>
-              <span className="text-[10px] text-lanka-muted">{todaysStats.stockMarket.desc}</span>
-            </div>
-
-            {/* Power */}
-            <div className="group relative bg-gradient-to-br from-cyan-900/25 to-[#050f20] border border-cyan-700/30 rounded-2xl p-5 flex flex-col justify-between h-40 hover:border-cyan-500/50 hover:scale-[1.02] transition-all overflow-hidden">
-              <div className="absolute top-3 right-3 text-cyan-500/30 group-hover:text-cyan-500/60 transition-colors"><Zap size={28} /></div>
-              <div>
-                <span className="text-[9px] font-bold text-cyan-400/80 uppercase tracking-widest">{todaysStats.powerStatus.label}</span>
-                <div className="mt-3 flex items-center gap-2">
-                  <Zap size={16} className="text-cyan-400 animate-pulse" />
-                  <span className="text-3xl font-black text-white">{todaysStats.powerStatus.value}</span>
-                </div>
-              </div>
-              <span className="text-[10px] text-lanka-muted">{todaysStats.powerStatus.desc}</span>
-            </div>
-
-            {/* Tea */}
-            <div className="group relative bg-gradient-to-br from-emerald-900/25 to-[#050f20] border border-emerald-700/30 rounded-2xl p-5 flex flex-col justify-between h-40 hover:border-emerald-500/50 hover:scale-[1.02] transition-all overflow-hidden">
-              <div>
-                <span className="text-[9px] font-bold text-emerald-400/80 uppercase tracking-widest">{todaysStats.teaAuction.label}</span>
-                <div className="mt-3">
-                  <span className="text-xl font-black text-white">{todaysStats.teaAuction.value} LKR</span>
-                </div>
-              </div>
-              <span className="text-[9px] text-lanka-darkText uppercase">{todaysStats.teaAuction.source}</span>
-            </div>
-
-            {/* Tourism */}
-            <div className="group relative bg-gradient-to-br from-pink-900/25 to-[#050f20] border border-pink-700/30 rounded-2xl p-5 flex flex-col justify-between h-40 hover:border-pink-500/50 hover:scale-[1.02] transition-all overflow-hidden">
-              <div className="absolute top-3 right-3 text-pink-500/30 group-hover:text-pink-500/60 transition-colors"><Globe size={28} /></div>
-              <div>
-                <span className="text-[9px] font-bold text-pink-400/80 uppercase tracking-widest">{todaysStats.tourism.label}</span>
-                <div className="mt-3">
-                  <span className="text-4xl font-black text-white">{todaysStats.tourism.value}</span>
-                </div>
-              </div>
-              <span className="text-[10px] text-lanka-muted">{todaysStats.tourism.desc}</span>
             </div>
           </div>
-        ) : (
-          <div className="text-center py-12 text-lanka-muted">Loading live stats…</div>
-        )}
+
+
+          {/* ── DEV BOX 2: ECONOMY & MARKETS ── */}
+          <div className="relative rounded-3xl overflow-hidden border border-emerald-500/35 bg-[#040e1e]/90 p-6 flex flex-col justify-between shadow-[0_0_30px_rgba(74,222,128,0.15)] min-h-[460px] group transition-all duration-300 hover:border-emerald-400/60">
+            {/* Background Backdrop Image with Rich Visible Opacity */}
+            <div 
+              className="absolute inset-0 bg-cover bg-center opacity-35 group-hover:opacity-45 transition-opacity duration-500 pointer-events-none"
+              style={{ backgroundImage: `url('/colombo-skyline-bg.jpg')` }} 
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-[#040e1e]/65 via-[#040e1e]/85 to-[#040e1e] pointer-events-none" />
+
+            <div className="relative z-10 space-y-4">
+              {/* Header Tag */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-emerald-400 font-extrabold text-xs uppercase tracking-widest">
+                  <Building2 size={16} className="text-emerald-400" />
+                  <span>ECONOMY & MARKETS</span>
+                </div>
+                <RefreshCw size={12} className="text-emerald-400/60 animate-spin" />
+              </div>
+
+              {/* Forex Section */}
+              <div>
+                <span className="text-[9px] font-mono font-bold text-emerald-300/70 tracking-widest uppercase block mb-1">FOREX (USD/LKR)</span>
+                <div className="flex items-center gap-2.5">
+                  <span className="text-3xl font-black text-white">{todaysLiveData?.economy?.forex?.value || '310.50'}</span>
+                  <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-md">
+                    {todaysLiveData?.economy?.forex?.trend === 'down' ? <TrendingDown size={10} /> : <TrendingUp size={10} />}
+                    {todaysLiveData?.economy?.forex?.change || '+0.32%'}
+                  </span>
+                </div>
+                <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest block mt-1">
+                  CBSL • {todaysLiveData?.economy?.forex?.label || 'CENTRAL BANK OFFICIAL RATE'}
+                </span>
+              </div>
+
+              {/* Stock Market Section (colombo_stock_market_live) */}
+              <div className="pt-3 border-t border-emerald-500/15">
+                <span className="text-[9px] font-mono font-bold text-emerald-300/70 tracking-widest uppercase block mb-1">STOCK MARKET</span>
+                <div className="flex items-center gap-2.5">
+                  <span className="text-2xl font-black text-white">{todaysLiveData?.economy?.stock?.value || '12,450.2'}</span>
+                  <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-md">
+                    {todaysLiveData?.economy?.stock?.trend === 'down' ? <TrendingDown size={10} /> : <TrendingUp size={10} />}
+                    {todaysLiveData?.economy?.stock?.change || '+1.5%'}
+                  </span>
+                </div>
+                <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest block mt-0.5">
+                  {todaysLiveData?.economy?.stock?.label || 'CSE: ASPI'}
+                </span>
+              </div>
+
+              {/* Fuel Section */}
+              <div className="pt-3 border-t border-emerald-500/15">
+                <span className="text-[9px] font-mono font-bold text-emerald-300/70 tracking-widest uppercase block mb-1.5">FUEL (LKR/L)</span>
+                <div className="space-y-1 text-xs">
+                  <div className="flex justify-between items-center text-slate-300">
+                    <span>92 Octane</span>
+                    <span className="font-bold text-white">{todaysLiveData?.economy?.fuel?.octane92 || '311.00'}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-slate-300">
+                    <span>Auto Diesel</span>
+                    <span className="font-bold text-white">{todaysLiveData?.economy?.fuel?.diesel || '283.00'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Tea Auction Section */}
+              <div className="pt-3 border-t border-emerald-500/15">
+                <span className="text-[9px] font-mono font-bold text-emerald-300/70 tracking-widest uppercase block mb-1">TEA AUCTION</span>
+                <div className="text-xl font-black text-white">{todaysLiveData?.economy?.tea?.value || '1,180.00 LKR'}</div>
+                <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest block mt-0.5">
+                  {todaysLiveData?.economy?.tea?.label || 'COLOMBO TEA AUCTION'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+
+          {/* ── DEV BOX 3: INFRASTRUCTURE ── */}
+          <div className="relative rounded-3xl overflow-hidden border border-rose-500/35 bg-[#040e1e]/90 p-6 flex flex-col justify-between shadow-[0_0_30px_rgba(244,63,94,0.15)] min-h-[460px] group transition-all duration-300 hover:border-rose-400/60">
+            {/* Background Backdrop Image with Rich Visible Opacity */}
+            <div 
+              className="absolute inset-0 bg-cover bg-center opacity-35 group-hover:opacity-45 transition-opacity duration-500 pointer-events-none"
+              style={{ backgroundImage: `url('/infrastructure-bg.jpg')` }} 
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-[#040e1e]/65 via-[#040e1e]/85 to-[#040e1e] pointer-events-none" />
+
+            <div className="relative z-10 space-y-5">
+              {/* Header Tag */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-rose-400 font-extrabold text-xs uppercase tracking-widest">
+                  <Globe size={16} className="text-rose-400" />
+                  <span>INFRASTRUCTURE</span>
+                </div>
+                <Zap size={14} className="text-rose-400 animate-pulse" />
+              </div>
+
+              {/* Power Status */}
+              <div>
+                <span className="text-[9px] font-mono font-bold text-rose-300/70 tracking-widest uppercase block mb-1">POWER STATUS</span>
+                <div className="text-4xl font-black text-white mb-2">{todaysLiveData?.infrastructure?.power?.value || '100%'}</div>
+                <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden mb-1.5">
+                  <div className="h-full bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full w-full" />
+                </div>
+                <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest block">
+                  {todaysLiveData?.infrastructure?.power?.status || 'Grid stability: High'}
+                </span>
+              </div>
+
+              {/* Public Health */}
+              <div className="pt-4 border-t border-rose-500/15">
+                <span className="text-[9px] font-mono font-bold text-rose-300/70 tracking-widest uppercase block mb-1">PUBLIC HEALTH</span>
+                <div className="flex items-center gap-2.5">
+                  <span className="text-3xl font-black text-white">{todaysLiveData?.infrastructure?.health?.value || '1,245'}</span>
+                  <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-rose-400 bg-rose-500/15 border border-rose-500/30 px-2 py-0.5 rounded-md">
+                    <TrendingDown size={10} />
+                    {todaysLiveData?.infrastructure?.health?.change || '-0.2%'}
+                  </span>
+                </div>
+                <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest block mt-0.5">
+                  {todaysLiveData?.infrastructure?.health?.label || 'Weekly Hospitalizations'}
+                </span>
+              </div>
+
+              {/* Tourism */}
+              <div className="pt-4 border-t border-rose-500/15">
+                <span className="text-[9px] font-mono font-bold text-rose-300/70 tracking-widest uppercase block mb-1">TOURISM</span>
+                <div className="flex items-center gap-2.5">
+                  <span className="text-3xl font-black text-white">{todaysLiveData?.infrastructure?.tourism?.value || '4,820'}</span>
+                  <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-md">
+                    <TrendingUp size={10} />
+                    {todaysLiveData?.infrastructure?.tourism?.change || '+2.4%'}
+                  </span>
+                </div>
+                <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest block mt-0.5">
+                  {todaysLiveData?.infrastructure?.tourism?.label || 'Daily Arrivals'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+        </div>
       </section>
 
       {/* ══════════════════════════════════════════════════
