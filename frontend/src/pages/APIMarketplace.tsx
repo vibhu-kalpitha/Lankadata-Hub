@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Cpu, ShieldCheck, Zap, Database, ArrowRight, Layers } from 'lucide-react';
 import { apiService } from '../services/apiService';
-import type { ApiEndpoint } from '../services/apiService';
+import type { ApiEndpoint, PricingPlan } from '../services/apiService';
 
 export const APIMarketplace: React.FC = () => {
   const [apis, setApis] = useState<ApiEndpoint[]>([]);
@@ -56,7 +56,7 @@ export const APIMarketplace: React.FC = () => {
       <section className="space-y-6">
         <h2 className="text-xl font-bold text-white text-center">API Pricing Tiers</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          {pricing.map((tier, idx) => {
+          {pricing.map((tier: PricingPlan, idx: number) => {
             const isDev = tier.name === 'Developer';
             return (
               <div 
@@ -77,11 +77,11 @@ export const APIMarketplace: React.FC = () => {
                     {tier.period !== 'forever' && <span className="text-xs text-lanka-muted font-normal"> / {tier.period}</span>}
                   </div>
                   <p className="text-[11px] text-lanka-muted leading-relaxed pb-4 border-b border-lanka-border">
-                    {tier.desc}
+                    {tier.rateLimit}
                   </p>
                   
                   <ul className="space-y-3.5 my-6 text-[11px] text-slate-300">
-                    {tier.features.map((feat, fidx) => (
+                    {tier.features.map((feat: string, fidx: number) => (
                       <li key={fidx} className="flex items-center gap-2">
                         <span className="w-1.5 h-1.5 rounded-full bg-lanka-cyan" />
                         <span>{feat}</span>

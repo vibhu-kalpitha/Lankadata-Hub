@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <rect width="120" height="120" rx="20" fill="#002D62"/>
+  <circle cx="60" cy="52" r="32" stroke="#E11D48" stroke-width="8" fill="none"/>
+  <path d="M45 52C45 43.7157 51.7157 37 60 37C68.2843 37 75 43.7157 75 52" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+  <text x="60" y="106" font-family="Arial, sans-serif" font-size="12" font-weight="900" fill="#FFFFFF" text-anchor="middle">COMBANK</text>
+</svg>

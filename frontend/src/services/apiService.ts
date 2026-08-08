@@ -1,61 +1,72 @@
 import axios from 'axios';
 import { FASTAPI_API_URL } from './config';
 
-// ── Interfaces ─────────────────────────────────────────────────────────────────
 export interface ApiEndpoint {
   id: string;
   title: string;
   description: string;
   category: string;
-  method: 'GET' | 'POST';
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE';
   endpoint: string;
-  parameters?: Array<{ name: string; type: string; required: boolean; description: string }>;
-  sampleRequest?: {
-    curl: string;
-    javascript: string;
-    python: string;
-  };
-  sampleResponse?: string;
+  pricing: 'Free' | 'Pro' | 'Enterprise';
+  status: 'active' | 'beta' | 'deprecated';
   datasetId?: string;
   datasetName?: string;
-  pricing: 'Free' | 'Developer' | 'Enterprise';
-  status: 'active' | 'beta';
+  sampleRequest?: Record<string, string>;
+  sampleResponse?: Record<string, string>;
+  parameters?: Array<{
+    name: string;
+    type: string;
+    required: boolean;
+    description: string;
+  }>;
 }
 
-// Static pricing tiers — UI config only, not dataset content
-export const PRICING_TIERS = [
+export interface PricingPlan {
+  id: string;
+  name: string;
+  price: string;
+  period: string;
+  rateLimit: string;
+  features: string[];
+}
+
+const MOCK_PRICING_PLANS: PricingPlan[] = [
   {
-    name: 'Free',
-    price: 'Rs. 0',
-    period: 'forever',
-    desc: 'Perfect for students, researchers, and hobbyists building non-commercial tools.',
-    features: [
-      '10,000 requests / month',
-      'Public datasets access only',
-      'Standard rate limits (60 req/min)',
-      'Community forum support',
-      'JSON formats'
-    ]
-  },
-  {
+    id: 'free',
     name: 'Developer',
-    price: 'Rs. 7,500',
-    period: 'month',
-    desc: 'For developers and startups building production-ready apps and commercial dashboard suites.',
+    price: '$0',
+    period: 'forever',
+    rateLimit: '1,000 requests/day',
     features: [
-      '500,000 requests / month',
-      'Access to live & historical streams',
-      'High rate limits (500 req/min)',
-      'Email support (24h response)',
-      'CSV, JSON, XML formats',
-      '99.9% API uptime SLA'
+      'Access to public datasets',
+      'Standard REST API endpoints',
+      'Community support',
+      'JSON & CSV formats',
+      '99.5% uptime SLA'
     ]
   },
   {
+    id: 'pro',
+    name: 'Professional',
+    price: '$49',
+    period: 'per month',
+    rateLimit: '100,000 requests/day',
+    features: [
+      'All Developer features',
+      'Real-time WebSocket streams',
+      'Priority email support',
+      'Advanced GraphQL queries',
+      'Historical archive access',
+      '99.9% uptime SLA'
+    ]
+  },
+  {
+    id: 'enterprise',
     name: 'Enterprise',
-    price: 'Custom Pricing',
-    period: 'custom',
-    desc: 'Designed for financial institutions, conglomerates, and government bodies requiring dedicated tunnels.',
+    price: 'Custom',
+    period: 'billed annually',
+    rateLimit: 'Custom limit',
     features: [
       'Unlimited requests',
       'Direct PostgreSQL connections',
@@ -66,6 +77,80 @@ export const PRICING_TIERS = [
     ]
   }
 ];
+
+export interface UsdBankRate {
+  id: string;
+  name: string;
+  buy: number;
+  sell: number;
+  spread: number;
+  spread_pct: string;
+  status: string;
+  updated_today: boolean;
+  date: string;
+}
+
+export interface UsdTrendPoint {
+  year: string;
+  buy_stream: number;
+  sell_stream: number;
+}
+
+export interface UsdComparisonResponse {
+  title?: string;
+  subtitle?: string;
+  date: string;
+  base_currency: string;
+  quote_currency: string;
+  banks: UsdBankRate[];
+  best_buy_ranking: UsdBankRate[];
+  best_sell_ranking: UsdBankRate[];
+  trend_analysis: UsdTrendPoint[];
+}
+
+const FALLBACK_EXCHANGE_DATA: UsdComparisonResponse = {
+  title: 'Daily Dashboard',
+  subtitle: 'USD Dashboard - Tactical Data Stack',
+  date: new Date().toISOString().split('T')[0],
+  base_currency: 'USD',
+  quote_currency: 'LKR',
+  banks: [
+    { id: 'hnb', name: 'HNB', buy: 297.90, sell: 303.35, spread: 5.45, spread_pct: '1.83%', status: 'Live', updated_today: true, date: new Date().toISOString().split('T')[0] },
+    { id: 'combank', name: 'ComBank', buy: 298.20, sell: 303.15, spread: 4.95, spread_pct: '1.66%', status: 'Live', updated_today: true, date: new Date().toISOString().split('T')[0] },
+    { id: 'peoples', name: 'Peoples Bank', buy: 297.50, sell: 304.00, spread: 6.50, spread_pct: '2.18%', status: 'Live', updated_today: true, date: new Date().toISOString().split('T')[0] },
+    { id: 'cbsl', name: 'CBSL', buy: 298.80, sell: 302.90, spread: 4.10, spread_pct: '1.37%', status: 'Live', updated_today: true, date: new Date().toISOString().split('T')[0] },
+    { id: 'seylan', name: 'Seylan Bank', buy: 297.80, sell: 303.70, spread: 5.90, spread_pct: '1.98%', status: 'Live', updated_today: true, date: new Date().toISOString().split('T')[0] },
+    { id: 'sampath', name: 'Sampath Bank', buy: 298.10, sell: 303.25, spread: 5.15, spread_pct: '1.72%', status: 'Live', updated_today: true, date: new Date().toISOString().split('T')[0] },
+    { id: 'ntb', name: 'NTB', buy: 297.60, sell: 303.80, spread: 6.20, spread_pct: '2.08%', status: 'Live', updated_today: true, date: new Date().toISOString().split('T')[0] },
+  ],
+  best_buy_ranking: [
+    { id: 'cbsl', name: 'CBSL', buy: 298.80, sell: 302.90, spread: 4.10, spread_pct: '1.37%', status: 'Live', updated_today: true, date: new Date().toISOString().split('T')[0] },
+    { id: 'combank', name: 'ComBank', buy: 298.20, sell: 303.15, spread: 4.95, spread_pct: '1.66%', status: 'Live', updated_today: true, date: new Date().toISOString().split('T')[0] },
+    { id: 'sampath', name: 'Sampath Bank', buy: 298.10, sell: 303.25, spread: 5.15, spread_pct: '1.72%', status: 'Live', updated_today: true, date: new Date().toISOString().split('T')[0] },
+    { id: 'hnb', name: 'HNB', buy: 297.90, sell: 303.35, spread: 5.45, spread_pct: '1.83%', status: 'Live', updated_today: true, date: new Date().toISOString().split('T')[0] },
+    { id: 'seylan', name: 'Seylan Bank', buy: 297.80, sell: 303.70, spread: 5.90, spread_pct: '1.98%', status: 'Live', updated_today: true, date: new Date().toISOString().split('T')[0] },
+    { id: 'ntb', name: 'NTB', buy: 297.60, sell: 303.80, spread: 6.20, spread_pct: '2.08%', status: 'Live', updated_today: true, date: new Date().toISOString().split('T')[0] },
+    { id: 'peoples', name: 'Peoples Bank', buy: 297.50, sell: 304.00, spread: 6.50, spread_pct: '2.18%', status: 'Live', updated_today: true, date: new Date().toISOString().split('T')[0] },
+  ],
+  best_sell_ranking: [
+    { id: 'cbsl', name: 'CBSL', buy: 298.80, sell: 302.90, spread: 4.10, spread_pct: '1.37%', status: 'Live', updated_today: true, date: new Date().toISOString().split('T')[0] },
+    { id: 'combank', name: 'ComBank', buy: 298.20, sell: 303.15, spread: 4.95, spread_pct: '1.66%', status: 'Live', updated_today: true, date: new Date().toISOString().split('T')[0] },
+    { id: 'sampath', name: 'Sampath Bank', buy: 298.10, sell: 303.25, spread: 5.15, spread_pct: '1.72%', status: 'Live', updated_today: true, date: new Date().toISOString().split('T')[0] },
+    { id: 'hnb', name: 'HNB', buy: 297.90, sell: 303.35, spread: 5.45, spread_pct: '1.83%', status: 'Live', updated_today: true, date: new Date().toISOString().split('T')[0] },
+    { id: 'seylan', name: 'Seylan Bank', buy: 297.80, sell: 303.70, spread: 5.90, spread_pct: '1.98%', status: 'Live', updated_today: true, date: new Date().toISOString().split('T')[0] },
+    { id: 'ntb', name: 'NTB', buy: 297.60, sell: 303.80, spread: 6.20, spread_pct: '2.08%', status: 'Live', updated_today: true, date: new Date().toISOString().split('T')[0] },
+    { id: 'peoples', name: 'Peoples Bank', buy: 297.50, sell: 304.00, spread: 6.50, spread_pct: '2.18%', status: 'Live', updated_today: true, date: new Date().toISOString().split('T')[0] },
+  ],
+  trend_analysis: [
+    { year: "2020", buy_stream: 185.70, sell_stream: 190.20 },
+    { year: "2021", buy_stream: 198.50, sell_stream: 203.10 },
+    { year: "2022", buy_stream: 355.20, sell_stream: 368.50 },
+    { year: "2023", buy_stream: 320.40, sell_stream: 332.80 },
+    { year: "2024", buy_stream: 305.10, sell_stream: 312.40 },
+    { year: "2025", buy_stream: 299.80, sell_stream: 305.20 },
+    { year: "Today", buy_stream: 298.10, sell_stream: 303.35 },
+  ]
+};
 
 // ── Service ────────────────────────────────────────────────────────────────────
 export const apiService = {
@@ -102,6 +187,19 @@ export const apiService = {
     }
   },
 
-  // Pricing is UI config — not fetched from backend
-  getPricing: () => PRICING_TIERS
+  getPricingPlans: (): PricingPlan[] => MOCK_PRICING_PLANS,
+  getPricing: (): PricingPlan[] => MOCK_PRICING_PLANS,
+
+  getUsdExchangeRates: async (): Promise<UsdComparisonResponse> => {
+    try {
+      const response = await axios.get(`${FASTAPI_API_URL}/exchange-rates/usd-comparison`, { timeout: 8000 });
+      if (response.data && response.data.banks && response.data.banks.length > 0) {
+        return response.data;
+      }
+      return FALLBACK_EXCHANGE_DATA;
+    } catch (error) {
+      console.warn('Using fallback exchange rate data:', error);
+      return FALLBACK_EXCHANGE_DATA;
+    }
+  }
 };

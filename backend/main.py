@@ -593,31 +593,22 @@ def list_apis(
 
 
 @app.get("/api/apis/{api_id}", response_model=schemas.APISpecOut, tags=["APIs"])
-def get_api(api_id: str, db: Session = Depends(get_db)):
-    """Return full details of a single API specification."""
-    api = db.query(models.APISpec).filter(models.APISpec.id == api_id).first()
-    if not api:
-        raise HTTPException(status_code=404, detail=f"API spec '{api_id}' not found.")
-    return api
+        {"date": "16 Dec", "avg_rate": 299.10, "volatility": 1.80},
+        {"date": "20 Dec", "avg_rate": 298.70, "volatility": 1.10},
+        {"date": "24 Dec", "avg_rate": 300.20, "volatility": 2.10},
+        {"date": "Today",  "avg_rate": 300.55, "volatility": 1.65},
+    ]
 
+    spread_analysis = [
+        {"bank": b["name"], "spread": b["spread"], "buy": b["buy"], "sell": b["sell"]}
+        for b in banks_result
+    ]
 
-# ─── Province Endpoints ───────────────────────────────────────────────────────
-@app.get("/api/provinces", response_model=List[schemas.ProvinceOut], tags=["Provinces"])
-def list_provinces(db: Session = Depends(get_db)):
-    """Return all Sri Lanka provinces ordered alphabetically."""
-    rows = db.query(models.Province).order_by(models.Province.province.asc()).all()
-    result = []
-    for row in rows:
-        districts = [d.strip() for d in row.districts_included.split(",")] if row.districts_included else []
-        result.append(schemas.ProvinceOut(
-            id=row.id,
-            province=row.province,
-            provincial_capital=row.provincial_capital,
-            total_area_km2=row.total_area_km2,
-            estimated_population=row.estimated_population,
-            districts_included=districts,
-            data_source=row.data_source,
-            last_updated=row.last_updated,
-        ))
-    return result
-
+    return {
+        "date": today_str,
+        "base_currency": "USD",
+        "quote_currency": "LKR",
+        "banks": banks_result,
+        "volatility_trend": volatility_trend,
+        "spread_analysis": spread_analysis
+    }

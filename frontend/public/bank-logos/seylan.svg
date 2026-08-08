@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <rect width="120" height="120" rx="20" fill="#DC2626"/>
+  <path d="M30 35C30 35 50 28 60 40C70 52 90 45 90 45V85H30V35Z" fill="#FBBF24"/>
+  <text x="60" y="108" font-family="Arial, sans-serif" font-size="13" font-weight="900" fill="#FFFFFF" text-anchor="middle">SEYLAN</text>
+</svg>
