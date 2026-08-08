@@ -303,60 +303,6 @@ def query_dynamic_table(
         return all_cols, [], 0
 
 
-def seed_core_datasets(db: Session):
-    """Seed initial master dataset metadata if PostgreSQL datasets table is empty."""
-    core_items = [
-        {
-            "id": "cbsl-usd-exchange-rates",
-            "title": "USD Exchange Rates (CBSL & Commercial Banks)",
-            "description": "Daily buying and selling exchange rates for USD across CBSL, HNB, Commercial Bank, Peoples Bank, Seylan, Sampath, and NTB.",
-            "category_id": "economy",
-            "table_name": "cbsl_usd_exchange_rates",
-            "formats": "CSV,JSON,SQL,API",
-            "maintainer": "Central Bank & Scraper Pipeline",
-            "frequency": "Daily",
-            "coverage": "2020 - Present",
-            "live": True,
-            "featured": True
-        },
-        {
-            "id": "sri-lanka-provinces",
-            "title": "Sri Lanka Provincial Profiles & Demographics",
-            "description": "Comprehensive regional profiles including population, land area, provincial capitals, and district breakdowns across all 9 provinces.",
-            "category_id": "economy",
-            "table_name": "provinces",
-            "formats": "CSV,JSON,API",
-            "maintainer": "Survey Department of Sri Lanka",
-            "frequency": "Annual",
-            "coverage": "All 9 Provinces",
-            "live": True,
-            "featured": True
-        },
-        {
-            "id": "national-dengue-surveillance",
-            "title": "National Dengue Surveillance & District Cases",
-            "description": "Epidemiological Dengue case counts, high-risk zones, and monthly trends tracked by the National Dengue Eradication Unit.",
-            "category_id": "health",
-            "table_name": "dengue_cases",
-            "formats": "CSV,JSON,API",
-            "maintainer": "Ministry of Health Sri Lanka",
-            "frequency": "Weekly",
-            "coverage": "25 Districts",
-            "live": True,
-            "featured": False
-        }
-    ]
-    try:
-        for item in core_items:
-            existing = db.query(models.Dataset).filter(models.Dataset.id == item["id"]).first()
-            if not existing:
-                ds_obj = models.Dataset(**item)
-                db.add(ds_obj)
-        db.commit()
-    except Exception:
-        db.rollback()
-
-
 # ─── Dataset Endpoints ────────────────────────────────────────────────────────
 
 @app.get("/api/v1/datasets", response_model=schemas.DatasetListResponse, tags=["Datasets"])
@@ -372,10 +318,6 @@ def list_datasets(
 ):
     """Return all datasets directly from datasets master registry in PostgreSQL."""
     try:
-        # Auto-seed core datasets if master table is empty
-        if db.query(models.Dataset).count() == 0:
-            seed_core_datasets(db)
-
         query = db.query(models.Dataset)
 
         if search and search.strip():
