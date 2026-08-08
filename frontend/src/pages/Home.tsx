@@ -1,32 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
-  ChevronLeft, ChevronRight, Activity,
-  Zap, ArrowRight, TrendingUp, Globe,
+  Activity, Zap, ArrowRight, TrendingUp, Globe,
   BarChart2, CloudRain, Terminal
 } from 'lucide-react';
 import {
-  PieChart, Pie, Cell, BarChart, Bar, XAxis,
-  ResponsiveContainer, AreaChart, Area, Tooltip
+  ResponsiveContainer, AreaChart, Area, XAxis, Tooltip
 } from 'recharts';
 
 import { SriLankaMap } from '../components/SriLankaMap';
 import { SriLankaPhysicalMap } from '../components/SriLankaPhysicalMap';
+import { USDExchangeRateComparison } from '../components/USDExchangeRateComparison';
 import { srilankaService } from '../services/srilankaService';
 import { fetchProvinces } from '../services/provinceService';
 import type { Province } from '../services/provinceService';
 import { datasetService } from '../services/datasetService';
 import type { Dataset } from '../services/datasetService';
-import { dashboardService } from '../services/dashboardService';
-import type { DashboardDetail } from '../services/dashboardService';
 
 export const Home: React.FC = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [todaysStats, setTodaysStats] = useState<any>(null);
   const [latestDatasets, setLatestDatasets] = useState<Dataset[]>([]);
-  const [trendingDashboards, setTrendingDashboards] = useState<DashboardDetail[]>([]);
-  const [currentDashboardIdx, setCurrentDashboardIdx] = useState(0);
   const [provinces, setProvinces] = useState<Province[]>([]);
   const [selectedProvince, setSelectedProvince] = useState<Province | null>(null);
   const [provincesLoading, setProvincesLoading] = useState(true);
@@ -35,7 +30,6 @@ export const Home: React.FC = () => {
   useEffect(() => {
     setTodaysStats(srilankaService.getTodaysStats());
     datasetService.getLatestDatasets(3).then(d => setLatestDatasets(d));
-    dashboardService.getDashboards().then(d => setTrendingDashboards(d));
 
     // Fetch provinces from FastAPI → PostgreSQL
     fetchProvinces()
@@ -52,45 +46,15 @@ export const Home: React.FC = () => {
       });
   }, []);
 
-  /* auto-rotate dashboard carousel */
-  useEffect(() => {
-    if (!trendingDashboards.length) return;
-    const t = setInterval(() => {
-      setCurrentDashboardIdx(p => (p + 1) % trendingDashboards.length);
-    }, 7000);
-    return () => clearInterval(t);
-  }, [trendingDashboards]);
-
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) navigate(`/datasets?search=${encodeURIComponent(searchQuery.trim())}`);
   };
 
-  const prev = () =>
-    setCurrentDashboardIdx(p => (p === 0 ? trendingDashboards.length - 1 : p - 1));
-  const next = () =>
-    setCurrentDashboardIdx(p => (p === trendingDashboards.length - 1 ? 0 : p + 1));
-
-  /* Chart data */
-  const denguePieData = [
-    { name: 'Western',  value: 55, color: '#2563eb' },
-    { name: 'Central',  value: 25, color: '#38bdf8' },
-    { name: 'Southern', value: 20, color: '#f43f5e' },
-  ];
-  const dengueBarData = [
-    { month: 'SEP', cases: 12000 },
-    { month: 'OCT', cases: 19000 },
-    { month: 'NOV', cases: 24000 },
-    { month: 'DEC', cases: 32000 },
-    { month: 'JAN', cases: 40000 },
-    { month: 'FEB', cases: 42891 },
-  ];
   const gdpAreaData = [
     { y: '2019', v: 2.3 }, { y: '2020', v: -3.6 }, { y: '2021', v: 3.5 },
     { y: '2022', v: -7.8 }, { y: '2023', v: 2.9 }, { y: '2024', v: 4.2 },
   ];
-
-  const activeDb = trendingDashboards[currentDashboardIdx];
 
   return (
     <div className="flex-1 bg-lanka-bg grid-bg overflow-x-hidden">
@@ -175,155 +139,9 @@ export const Home: React.FC = () => {
       </section>
 
       {/* ══════════════════════════════════════════════════
-          TRENDING DASHBOARDS  (Compacted & Streamlined)
+          USD EXCHANGE RATE COMPARISON DASHBOARD STREAM
       ══════════════════════════════════════════════════ */}
-      <section className="max-w-7xl mx-auto px-6 py-6 md:py-8">
-        {/* Section header */}
-        <div className="flex justify-between items-end mb-6">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="w-1 h-5 bg-gradient-to-b from-lanka-blue to-cyan-400 rounded-full" />
-              <h2 className="text-xl sm:text-2xl font-black text-white">Trending Dashboards</h2>
-            </div>
-            <p className="text-[11px] text-lanka-muted ml-3">
-              Featured intelligence panels — updated every minute from verified national sources.
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <button onClick={prev} className="p-1.5 rounded-xl border border-lanka-border bg-white/5 hover:bg-white/10 text-white transition-colors">
-              <ChevronLeft size={15} />
-            </button>
-            <button onClick={next} className="p-1.5 rounded-xl border border-lanka-border bg-white/5 hover:bg-white/10 text-white transition-colors">
-              <ChevronRight size={15} />
-            </button>
-          </div>
-        </div>
-
-        {activeDb ? (
-          <div className="relative rounded-3xl overflow-hidden border border-lanka-border">
-            {/* Gradient background */}
-            <div className="absolute inset-0 bg-gradient-to-br from-[#050f20] via-[#071428] to-[#050e1c]" />
-            <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-blue-600/10 rounded-full blur-[100px] pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-[250px] h-[250px] bg-cyan-500/8 rounded-full blur-[80px] pointer-events-none" />
-
-            <div className="relative p-5 md:p-6 grid grid-cols-1 xl:grid-cols-12 gap-6 items-stretch">
-
-              {/* ── LEFT: Info panel ──────────────────────────────── */}
-              <div className="xl:col-span-3 flex flex-col justify-between space-y-4">
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-                    <span className="text-[9px] font-black text-red-400 tracking-widest uppercase">Live Data Stream</span>
-                  </div>
-
-                  {/* Dashboard pagination dots */}
-                  <div className="flex gap-1.5 mb-3">
-                    {trendingDashboards.map((_, i) => (
-                      <button
-                        key={i}
-                        onClick={() => setCurrentDashboardIdx(i)}
-                        className={`rounded-full transition-all ${i === currentDashboardIdx ? 'w-5 h-1.5 bg-lanka-cyan' : 'w-1.5 h-1.5 bg-white/20'}`}
-                      />
-                    ))}
-                  </div>
-
-                  <h3 className="text-lg font-black text-white leading-tight mb-1">{activeDb.title}</h3>
-                  <p className="text-[11px] text-lanka-muted leading-relaxed line-clamp-2">{activeDb.description}</p>
-                </div>
-
-                {/* Metrics mini grid */}
-                <div className="grid grid-cols-1 gap-2">
-                  {activeDb.metrics?.slice(0, 3).map((m: any, idx: number) => (
-                    <div key={idx} className="bg-white/5 border border-lanka-border rounded-xl p-2.5 flex items-center justify-between hover:bg-white/8 transition-colors">
-                      <span className="text-[10px] font-semibold text-lanka-muted">{m.title}</span>
-                      <span className={`text-xs font-black ${
-                        m.type === 'CASES' || m.type === 'ZONES' ? 'text-red-400' : 'text-lanka-teal'
-                      }`}>{m.value}</span>
-                    </div>
-                  ))}
-                </div>
-
-                <Link
-                  to={`/dashboards/${activeDb.id}`}
-                  className="flex items-center justify-center gap-2 bg-gradient-to-r from-lanka-blue to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white text-[11px] font-bold px-5 py-2.5 rounded-xl shadow-blue-glow transition-all active:scale-95"
-                >
-                  View Full Dashboard <ArrowRight size={12} />
-                </Link>
-              </div>
-
-              {/* ── CENTRE: Sri Lanka Map ─────────────────────────── */}
-              <div className="xl:col-span-4 flex flex-col justify-between">
-                <div className="flex items-center gap-2 mb-2">
-                  <Globe size={12} className="text-lanka-cyan" />
-                  <span className="text-[10px] font-bold text-lanka-darkText uppercase tracking-wider">Province Heatmap</span>
-                </div>
-                <div className="flex-1 bg-white/[0.03] border border-lanka-border rounded-2xl overflow-hidden min-h-[220px]">
-                  <SriLankaMap compact />
-                </div>
-              </div>
-
-              {/* ── RIGHT: Charts ─────────────────────────────────── */}
-              <div className="xl:col-span-5 grid grid-rows-2 gap-3">
-
-                {/* Pie chart card */}
-                <div className="bg-white/[0.03] border border-lanka-border rounded-2xl p-3 flex gap-3 items-center">
-                  <div className="w-28 h-28 relative flex-shrink-0">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie data={denguePieData} cx="50%" cy="50%" innerRadius={34} outerRadius={48} paddingAngle={3} dataKey="value">
-                          {denguePieData.map((e, i) => <Cell key={i} fill={e.color} />)}
-                        </Pie>
-                      </PieChart>
-                    </ResponsiveContainer>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-xs font-black text-white">55%</span>
-                      <span className="text-[8px] text-lanka-muted">West</span>
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-[9px] font-bold text-lanka-darkText uppercase tracking-wider mb-2">Case Distribution</p>
-                    {denguePieData.map((d, i) => (
-                      <div key={i} className="flex items-center justify-between mb-1.5">
-                        <div className="flex items-center gap-1.5">
-                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: d.color }} />
-                          <span className="text-[10px] text-lanka-muted">{d.name}</span>
-                        </div>
-                        <span className="text-[10px] font-bold text-white">{d.value}%</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Bar chart card */}
-                <div className="bg-white/[0.03] border border-lanka-border rounded-2xl p-3 flex flex-col">
-                  <p className="text-[9px] font-bold text-lanka-darkText uppercase tracking-wider mb-2">Weekly Case Trends</p>
-                  <div className="flex-1 min-h-[100px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={dengueBarData} barSize={14}>
-                        <XAxis dataKey="month" stroke="#475569" fontSize={8} tickLine={false} axisLine={false} />
-                        <Tooltip
-                          contentStyle={{ background: '#071428', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 10 }}
-                          labelStyle={{ color: '#94a3b8' }}
-                          itemStyle={{ color: '#fff' }}
-                        />
-                        <Bar dataKey="cases" radius={[3, 3, 0, 0]}>
-                          {dengueBarData.map((_e, i) => (
-                            <Cell key={i} fill={i === dengueBarData.length - 1 ? '#f43f5e' : '#2563eb'} />
-                          ))}
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="text-center py-12 text-lanka-muted text-xs glass-panel rounded-3xl">
-            Loading trending dashboards...
-          </div>
-        )}
-      </section>
+      <USDExchangeRateComparison />
 
       {/* ══════════════════════════════════════════════════
           TODAY'S SRI LANKA STATS

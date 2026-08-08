@@ -207,7 +207,7 @@ export const APIDetail: React.FC = () => {
               Response Payload Example (200 OK)
             </div>
             <div className="flex-1 p-4 bg-[#03060c] overflow-auto font-mono text-[10px] text-lanka-cyan leading-relaxed whitespace-pre select-text">
-              {api.sampleResponse}
+              {typeof api.sampleResponse === 'string' ? api.sampleResponse : JSON.stringify(api.sampleResponse ?? {}, null, 2)}
             </div>
           </div>
         </div>

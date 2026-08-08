@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <rect width="120" height="120" rx="20" fill="#EA580C"/>
+  <path d="M60 22C60 22 82 42 82 60C82 72.1503 72.1503 82 60 82C47.8497 82 38 72.1503 38 60C38 42 60 22 60 22Z" fill="#FFFFFF"/>
+  <path d="M60 44C60 44 72 56 72 65C72 71.6274 66.6274 77 60 77C53.3726 77 48 71.6274 48 65C48 56 60 44 60 44Z" fill="#EA580C"/>
+  <text x="60" y="108" font-family="Arial, sans-serif" font-size="12" font-weight="900" fill="#FFFFFF" text-anchor="middle">SAMPATH</text>
+</svg>
