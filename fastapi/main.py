@@ -73,6 +73,7 @@ DEFAULT_CATEGORIES_SEED = [
 
 
 # ─── Categories Endpoints ─────────────────────────────────────────────────────
+@app.get("/api/v1/categories", response_model=List[schemas.CategoryOut], tags=["Categories"])
 @app.get("/api/categories", response_model=List[schemas.CategoryOut], tags=["Categories"])
 def list_categories(db: Session = Depends(get_db)):
     """Return all dataset categories with record counts."""
@@ -97,6 +98,7 @@ def list_categories(db: Session = Depends(get_db)):
                 id=cat.id,
                 name=cat.name,
                 icon_name=cat.icon_name,
+                iconName=cat.icon_name,
                 description=cat.description,
                 count=count if count > 0 else (2 if cat.id == "economy" else 1)
             ))
@@ -106,7 +108,7 @@ def list_categories(db: Session = Depends(get_db)):
         db.rollback()
 
     return [
-        schemas.CategoryOut(id=c["id"], name=c["name"], icon_name=c["icon_name"], description=c["description"], count=2 if c["id"] == "economy" else 1)
+        schemas.CategoryOut(id=c["id"], name=c["name"], icon_name=c["icon_name"], iconName=c["icon_name"], description=c["description"], count=2 if c["id"] == "economy" else 1)
         for c in DEFAULT_CATEGORIES_SEED
     ]
 
@@ -548,7 +550,6 @@ def get_similar_datasets(dataset_id: str, db: Session = Depends(get_db)):
             updated_at=str(s.updated_at) if s.updated_at else (str(s.created_at) if s.created_at else "Recently")
         ))
     return out
-
 
 
 # ─── Dashboard Endpoints ──────────────────────────────────────────────────────

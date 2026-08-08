@@ -13,7 +13,8 @@ from datetime import date, datetime
 class CategoryBase(BaseModel):
     id: str
     name: str
-    icon_name: str
+    icon_name: Optional[str] = None
+    iconName: Optional[str] = None
     description: Optional[str] = None
 
 

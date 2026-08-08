@@ -73,6 +73,7 @@ DEFAULT_CATEGORIES_SEED = [
 
 
 # ─── Categories Endpoints ─────────────────────────────────────────────────────
+@app.get("/api/v1/categories", response_model=List[schemas.CategoryOut], tags=["Categories"])
 @app.get("/api/categories", response_model=List[schemas.CategoryOut], tags=["Categories"])
 def list_categories(db: Session = Depends(get_db)):
     """Return all dataset categories with record counts."""
@@ -97,6 +98,7 @@ def list_categories(db: Session = Depends(get_db)):
                 id=cat.id,
                 name=cat.name,
                 icon_name=cat.icon_name,
+                iconName=cat.icon_name,
                 description=cat.description,
                 count=count if count > 0 else (2 if cat.id == "economy" else 1)
             ))
@@ -529,41 +531,6 @@ def get_similar_datasets(dataset_id: str, db: Session = Depends(get_db)):
     for s in similar:
         cat_name = s.category_id.capitalize() if s.category_id else "Economy"
         try:
-            if hasattr(s, 'category_rel') and s.category_rel and s.category_rel.name:
-                cat_name = s.category_rel.name
-        except Exception:
-            db.rollback()
-
-        out.append(schemas.SimilarDatasetOut(
-            id=str(s.id),
-            title=str(s.title),
-            description=str(s.description),
-            category=cat_name,
-            updated_at=str(s.updated_at) if s.updated_at else (str(s.created_at) if s.created_at else "Recently")
-        ))
-    return out
-
-
-
-
-# ─── Dashboard Endpoints ──────────────────────────────────────────────────────
-@app.get("/api/dashboards", response_model=List[schemas.DashboardOut], tags=["Dashboards"])
-def list_dashboards(
-    category: Optional[str] = Query(None),
-    featured: Optional[bool] = Query(None),
-    db: Session = Depends(get_db)
-):
-    """Return all dashboards, optionally filtered by category or featured status."""
-    query = db.query(models.Dashboard)
-    if category:
-        query = query.filter(models.Dashboard.category.ilike(f"%{category}%"))
-    if featured is not None:
-        query = query.filter(models.Dashboard.featured == featured)
-    return query.order_by(models.Dashboard.views.desc()).all()
-
-
-@app.get("/api/dashboards/popular", response_model=List[schemas.DashboardOut], tags=["Dashboards"])
-def popular_dashboards(db: Session = Depends(get_db)):
     """Return popular dashboards ordered by views."""
     return db.query(models.Dashboard).order_by(models.Dashboard.views.desc()).limit(4).all()
 
