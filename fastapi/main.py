@@ -778,3 +778,160 @@ def get_usd_exchange_rate_comparison(db: Session = Depends(get_db)):
         "best_sell_ranking": best_sell_ranking,
         "trend_analysis": trend_analysis
     }
+
+
+# ─── Today's Sri Lanka Live Stats Endpoint ────────────────────────────────────
+@app.get("/api/v1/todays-sri-lanka-stats", tags=["Telemetry"])
+@app.get("/api/todays-sri-lanka-stats", tags=["Telemetry"])
+def get_todays_sri_lanka_stats(db: Session = Depends(get_db)):
+    """
+    Fetch live benchmarks for Today's Sri Lanka card section:
+    - district_weather (colombo)
+    - cbsl_usd_exchange_rates (buying/selling, CBSL official rate, trend comparison)
+    - colombo_stock_market_live (ASPI index & market stats)
+    - Infrastructure mock benchmarks
+    """
+    import datetime
+    today_str = datetime.date.today().isoformat()
+
+    weather_data = {
+        "temp": "10.60",
+        "unit": "°C",
+        "location": "Colombo • Partly Cloudy",
+        "humidity": "78%",
+        "wind": "12 km/h",
+        "aqi": "42 Good"
+    }
+
+    economy_data = {
+        "forex": {
+            "value": "310.50",
+            "source": "CBSL",
+            "label": "CENTRAL BANK OFFICIAL RATE",
+            "change": "+0.32%",
+            "trend": "up"
+        },
+        "stock": {
+            "value": "12,450.2",
+            "label": "CSE: ASPI",
+            "change": "+1.5%",
+            "trend": "up"
+        },
+        "fuel": {
+            "octane92": "311.00",
+            "diesel": "283.00"
+        },
+        "tea": {
+            "value": "1,180.00 LKR",
+            "label": "COLOMBO TEA AUCTION"
+        }
+    }
+
+    infrastructure_data = {
+        "power": {
+            "value": "100%",
+            "status": "Grid stability: High"
+        },
+        "health": {
+            "value": "1,245",
+            "change": "-0.2%",
+            "label": "Weekly Hospitalizations"
+        },
+        "tourism": {
+            "value": "4,820",
+            "change": "+2.4%",
+            "label": "Daily Arrivals"
+        }
+    }
+
+    try:
+        bind = db.get_bind()
+        inspector = inspect(bind)
+    except Exception:
+        db.rollback()
+        inspector = None
+
+    # 1. Inspect district_weather table for Colombo details
+    if inspector:
+        try:
+            if inspector.has_table("district_weather", schema="public"):
+                cols = [c["name"].lower() for c in inspector.get_columns("district_weather", schema="public")]
+                dist_col = next((c for c in cols if "district" in c or "city" in c or "location" in c), None)
+                temp_col = next((c for c in cols if "temp" in c or "temperature" in c), None)
+                cond_col = next((c for c in cols if "cond" in c or "weather" in c or "desc" in c or "sky" in c), None)
+                hum_col = next((c for c in cols if "humid" in c), None)
+                wind_col = next((c for c in cols if "wind" in c), None)
+                aqi_col = next((c for c in cols if "aqi" in c or "air" in c or "rain" in c), None)
+
+                if dist_col:
+                    q = text(f'SELECT * FROM "district_weather" WHERE CAST("{dist_col}" AS TEXT) ILIKE :dname ORDER BY 1 DESC LIMIT 1')
+                    row = db.execute(q, {"dname": "%colombo%"}).mappings().first()
+                    if row:
+                        if temp_col and row.get(temp_col) is not None:
+                            weather_data["temp"] = f"{float(row.get(temp_col)):.2f}"
+                        if cond_col and row.get(cond_col):
+                            weather_data["location"] = f"Colombo • {str(row.get(cond_col)).title()}"
+                        if hum_col and row.get(hum_col) is not None:
+                            weather_data["humidity"] = f"{row.get(hum_col)}%"
+                        if wind_col and row.get(wind_col) is not None:
+                            weather_data["wind"] = f"{row.get(wind_col)} km/h"
+                        if aqi_col and row.get(aqi_col) is not None:
+                            weather_data["aqi"] = f"{row.get(aqi_col)} Good"
+        except Exception:
+            db.rollback()
+
+    # 2. Inspect cbsl_usd_exchange_rates table
+    if inspector:
+        try:
+            if inspector.has_table("cbsl_usd_exchange_rates", schema="public"):
+                cols = [c["name"].lower() for c in inspector.get_columns("cbsl_usd_exchange_rates", schema="public")]
+                buy_col = next((c for c in cols if "buy" in c or "tt_buy" in c), None)
+                sell_col = next((c for c in cols if "sell" in c or "tt_sell" in c), None)
+                date_col = next((c for c in cols if "date" in c or "time" in c or "created" in c), None)
+
+                order_by_sql = f' ORDER BY "{date_col}" DESC' if date_col else ''
+                q_forex = text(f'SELECT * FROM "cbsl_usd_exchange_rates"{order_by_sql} LIMIT 2')
+                rows = db.execute(q_forex).mappings().all()
+                if rows:
+                    curr_buy = float(rows[0].get(buy_col) or 310.50) if buy_col else 310.50
+                    curr_sell = float(rows[0].get(sell_col) or 315.50) if sell_col else 315.50
+                    avg_rate = round((curr_buy + curr_sell) / 2.0, 2)
+                    economy_data["forex"]["value"] = f"{avg_rate:.2f}"
+
+                    if len(rows) > 1 and buy_col:
+                        prev_buy = float(rows[1].get(buy_col) or curr_buy)
+                        prev_sell = float(rows[1].get(sell_col) or curr_sell) if sell_col else curr_sell
+                        prev_avg = (prev_buy + prev_sell) / 2.0
+                        if prev_avg > 0:
+                            diff_pct = round(((avg_rate - prev_avg) / prev_avg) * 100, 2)
+                            economy_data["forex"]["change"] = f"{'+' if diff_pct >= 0 else ''}{diff_pct}%"
+                            economy_data["forex"]["trend"] = "up" if diff_pct >= 0 else "down"
+        except Exception:
+            db.rollback()
+
+    # 3. Inspect colombo_stock_market_live table
+    if inspector:
+        try:
+            if inspector.has_table("colombo_stock_market_live", schema="public"):
+                cols = [c["name"].lower() for c in inspector.get_columns("colombo_stock_market_live", schema="public")]
+                aspi_col = next((c for c in cols if "aspi" in c or "index" in c or "value" in c or "price" in c), None)
+                chg_col = next((c for c in cols if "change" in c or "pct" in c or "growth" in c), None)
+
+                q_stock = text('SELECT * FROM "colombo_stock_market_live" ORDER BY 1 DESC LIMIT 1')
+                s_row = db.execute(q_stock).mappings().first()
+                if s_row:
+                    if aspi_col and s_row.get(aspi_col) is not None:
+                        val_num = float(s_row.get(aspi_col))
+                        economy_data["stock"]["value"] = f"{val_num:,.1f}"
+                    if chg_col and s_row.get(chg_col) is not None:
+                        chg_val = float(s_row.get(chg_col))
+                        economy_data["stock"]["change"] = f"{'+' if chg_val >= 0 else ''}{chg_val:.2f}%"
+                        economy_data["stock"]["trend"] = "up" if chg_val >= 0 else "down"
+        except Exception:
+            db.rollback()
+
+    return {
+        "weather": weather_data,
+        "economy": economy_data,
+        "infrastructure": infrastructure_data
+    }

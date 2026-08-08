@@ -201,5 +201,15 @@ export const apiService = {
       console.warn('Using fallback exchange rate data:', error);
       return FALLBACK_EXCHANGE_DATA;
     }
+  },
+
+  getTodaysSriLankaStats: async (): Promise<any> => {
+    try {
+      const response = await axios.get(`${FASTAPI_API_URL}/todays-sri-lanka-stats`, { timeout: 8000 });
+      return response.data;
+    } catch (error) {
+      console.warn('Using fallback todays stats data:', error);
+      return null;
+    }
   }
 };
