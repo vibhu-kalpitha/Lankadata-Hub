@@ -50,13 +50,6 @@ export const Home: React.FC = () => {
     if (searchQuery.trim()) navigate(`/datasets?search=${encodeURIComponent(searchQuery.trim())}`);
   };
 
-  const getValidFuelPrice = (val: any, fallbackPrice: string): string => {
-    if (!val) return fallbackPrice;
-    const num = parseFloat(String(val).replace(/,/g, ''));
-    if (isNaN(num) || num < 50) return fallbackPrice;
-    return num.toFixed(2);
-  };
-
   return (
     <div className="flex-1 bg-lanka-bg grid-bg overflow-x-hidden">
 
@@ -322,15 +315,15 @@ export const Home: React.FC = () => {
                 <div className="space-y-1 text-xs">
                   <div className="flex justify-between items-center text-slate-300">
                     <span>95 Octane</span>
-                    <span className="font-bold text-white">{getValidFuelPrice(todaysLiveData?.economy?.fuel?.petrol_95, '365.00')}</span>
+                    <span className="font-bold text-white">{todaysLiveData?.economy?.fuel?.petrol_95 ? `${todaysLiveData.economy.fuel.petrol_95}` : '—'}</span>
                   </div>
                   <div className="flex justify-between items-center text-slate-300">
                     <span>92 Octane</span>
-                    <span className="font-bold text-white">{getValidFuelPrice(todaysLiveData?.economy?.fuel?.petrol_92, '311.00')}</span>
+                    <span className="font-bold text-white">{todaysLiveData?.economy?.fuel?.petrol_92 ? `${todaysLiveData.economy.fuel.petrol_92}` : '—'}</span>
                   </div>
                   <div className="flex justify-between items-center text-slate-300">
                     <span>Auto Diesel</span>
-                    <span className="font-bold text-white">{getValidFuelPrice(todaysLiveData?.economy?.fuel?.auto_diesel, '283.00')}</span>
+                    <span className="font-bold text-white">{todaysLiveData?.economy?.fuel?.auto_diesel ? `${todaysLiveData.economy.fuel.auto_diesel}` : '—'}</span>
                   </div>
                 </div>
               </div>
