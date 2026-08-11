@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { 
-  Calendar, Share2, FileText, ArrowRight, Award, User, 
-  ExternalLink, Eye, Copy, Check, X, Database, Layers, 
+import {
+  Calendar, Share2, FileText, ArrowRight, Award, User,
+  ExternalLink, Eye, Copy, Check, X, Database, Layers,
   Building2, Globe, RefreshCw, ShieldCheck
 } from 'lucide-react';
 import { dashboardService } from '../services/dashboardService';
@@ -16,12 +16,37 @@ export const DashboardDetail: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [copiedApi, setCopiedApi] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [useIframeFallback, setUseIframeFallback] = useState(false);
+
+  const defaultMetabaseToken = "eyJhbGciOiJIUzI1NiJ9.eyJyZXNvdXJjZSI6eyJkYXNoYm9hcmQiOjJ9LCJwYXJhbXMiOnt9LCJpYXQiOjE3ODY0MzA0MDYsImV4cCI6MTc4NjQzMTAwNiwiX2VtYmVkZGluZ19wYXJhbXMiOnsiYmFua19uYW1lIjoiZW5hYmxlZCIsImJhbmsiOiJlbmFibGVkIiwic2VsZWN0X2JhbmsiOiJlbmFibGVkIn19.UbiEl_E4J6cOXhBve9GWWazMq3BBTlMReq2yX2BLZhY";
+
+  useEffect(() => {
+    // 1. Initialize Metabase Web Component Configuration
+    (window as any).metabaseConfig = {
+      theme: {
+        preset: "dark"
+      },
+      isGuest: true,
+      instanceUrl: "https://dashboard.lankadatahub.com"
+    };
+
+    // 2. Dynamically inject Metabase SDK Script
+    const scriptId = 'metabase-embed-sdk';
+    if (!document.getElementById(scriptId)) {
+      const script = document.createElement('script');
+      script.id = scriptId;
+      script.src = 'https://dashboard.lankadatahub.com/app/embed.js';
+      script.defer = true;
+      script.onerror = () => setUseIframeFallback(true);
+      document.body.appendChild(script);
+    }
+  }, []);
 
   useEffect(() => {
     setLoading(true);
     const targetId = id || 'usd-exchange-rates';
 
-    dashboardService.getDashboardById(targetId).then((res) => {
+    dashboardService.getDashboardById(targetId).then((res: DashboardDetailType | null) => {
       if (res) {
         setDashboard(res);
       } else {
@@ -36,23 +61,15 @@ export const DashboardDetail: React.FC = () => {
           featured: true,
           views: 14250,
           updatedAt: '2026-08-10',
-          apiEndpoint: '/api/v1/todays-sri-lanka-stats',
-          embed_url: 'https://dashboard.lankadatahub.com/dashboard/2-sri-lanka-usd-exchange-rates'
+          apiEndpoint: '/api/v1/todays-sri-lanka-stats'
         });
       }
       setLoading(false);
     });
   }, [id]);
 
-  // Determine iframe embed URL
+  // Determine fallback iframe embed URL
   const getEmbedUrl = (): string => {
-    if (dashboard?.embed_url) return dashboard.embed_url;
-    if (dashboard?.embedUrl) return dashboard.embedUrl;
-    
-    // Default mapping for USD exchange rates
-    if (!id || id.includes('usd') || id.includes('exchange')) {
-      return 'https://dashboard.lankadatahub.com/dashboard/2-sri-lanka-usd-exchange-rates';
-    }
     return 'https://dashboard.lankadatahub.com/dashboard/2-sri-lanka-usd-exchange-rates';
   };
 
@@ -84,12 +101,12 @@ export const DashboardDetail: React.FC = () => {
 
   return (
     <div className="flex-1 bg-lanka-bg py-8 px-4 sm:px-6 max-w-7xl mx-auto w-full min-h-screen">
-      
+
       {/* ── Top Navigation & Meta Header ── */}
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-800/80">
         <div className="flex items-center gap-3">
-          <Link 
-            to="/dashboards" 
+          <Link
+            to="/dashboards"
             className="text-xs text-sky-400 hover:text-sky-300 font-bold uppercase tracking-wider flex items-center gap-1.5 bg-sky-500/10 border border-sky-500/20 px-3 py-1 rounded-lg transition-colors"
           >
             ← Back to Dashboards
@@ -148,17 +165,17 @@ export const DashboardDetail: React.FC = () => {
 
       {/* ── FULL PAGE EMBEDDED DASHBOARD CONTAINER ── */}
       <div className="w-full bg-[#030914] border border-sky-500/30 rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(14,165,233,0.12)] mb-10 relative group">
-        
+
         {/* Top Control Bar for Embed */}
         <div className="bg-[#071325] border-b border-sky-500/20 px-4 py-2.5 flex items-center justify-between text-xs text-slate-300">
           <div className="flex items-center gap-2 font-mono text-[11px]">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-            <span className="text-white font-bold truncate">Live Stream: dashboard.lankadatahub.com</span>
+            <span className="text-white font-bold truncate">Metabase Embed Engine: dashboard.lankadatahub.com</span>
           </div>
 
-          <a 
-            href={embedUrl} 
-            target="_blank" 
+          <a
+            href={embedUrl}
+            target="_blank"
             rel="noopener noreferrer"
             className="text-[10px] text-sky-400 hover:text-sky-300 font-bold uppercase tracking-wider flex items-center gap-1 hover:underline"
           >
@@ -167,21 +184,30 @@ export const DashboardDetail: React.FC = () => {
           </a>
         </div>
 
-        {/* Interactive Embed Iframe taking FULL PAGE WIDTH */}
-        <div className="w-full h-[650px] sm:h-[750px] md:h-[850px] bg-[#030914] relative">
-          <iframe
-            src={embedUrl}
-            title={dashboard?.title || 'USD Exchange Rates Dashboard'}
-            className="w-full h-full border-0"
-            allowFullScreen
-            loading="lazy"
-          />
+        {/* Metabase Web Component Embed Container taking FULL PAGE WIDTH */}
+        <div className="w-full min-h-[650px] sm:min-h-[750px] md:min-h-[850px] bg-[#030914] relative">
+          {!useIframeFallback ? (
+            React.createElement('metabase-dashboard', {
+              token: defaultMetabaseToken,
+              'with-title': 'true',
+              'with-downloads': 'true',
+              style: { width: '100%', height: '850px', display: 'block', border: 'none' }
+            })
+          ) : (
+            <iframe
+              src={embedUrl}
+              title={dashboard?.title || 'USD Exchange Rates Dashboard'}
+              className="w-full h-[850px] border-0"
+              allowFullScreen
+              loading="lazy"
+            />
+          )}
         </div>
       </div>
 
       {/* ── METADATA OF DASHBOARD (SHOW UNDER DASHBOARD) ── */}
       <div className="space-y-8 bg-[#040e1d] border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl">
-        
+
         <div className="flex items-center gap-3 border-b border-slate-800 pb-4">
           <div className="w-10 h-10 rounded-2xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400">
             <Database size={20} />
@@ -205,7 +231,7 @@ export const DashboardDetail: React.FC = () => {
 
         {/* Technical Metadata Attributes Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          
+
           <div className="bg-[#07162a]/90 border border-slate-800 rounded-2xl p-4 space-y-1">
             <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-wider block">DATA SOURCE</span>
             <div className="flex items-center gap-2 text-sm font-bold text-white">
@@ -282,9 +308,9 @@ export const DashboardDetail: React.FC = () => {
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            
-            <Link 
-              to="/datasets/cbsl_usd_exchange_rates" 
+
+            <Link
+              to="/datasets/cbsl_usd_exchange_rates"
               className="bg-[#07162a]/70 hover:bg-[#091c36] border border-slate-800 hover:border-sky-500/40 p-4 rounded-2xl transition-all group"
             >
               <div className="flex items-center justify-between mb-2">
@@ -295,8 +321,8 @@ export const DashboardDetail: React.FC = () => {
               <p className="text-[11px] text-slate-400 mt-1">Daily buying & selling rates from Central Bank of Sri Lanka.</p>
             </Link>
 
-            <Link 
-              to="/datasets/colombo_stock_market_live" 
+            <Link
+              to="/datasets/colombo_stock_market_live"
               className="bg-[#07162a]/70 hover:bg-[#091c36] border border-slate-800 hover:border-sky-500/40 p-4 rounded-2xl transition-all group"
             >
               <div className="flex items-center justify-between mb-2">
@@ -307,8 +333,8 @@ export const DashboardDetail: React.FC = () => {
               <p className="text-[11px] text-slate-400 mt-1">CSE ASPI index, turnover LKR, volume traded, and trades count.</p>
             </Link>
 
-            <Link 
-              to="/datasets/fuel_prices" 
+            <Link
+              to="/datasets/fuel_prices"
               className="bg-[#07162a]/70 hover:bg-[#091c36] border border-slate-800 hover:border-sky-500/40 p-4 rounded-2xl transition-all group"
             >
               <div className="flex items-center justify-between mb-2">
@@ -328,13 +354,13 @@ export const DashboardDetail: React.FC = () => {
       {showShareModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-[#07172c] border border-sky-500/30 rounded-3xl p-6 max-w-md w-full space-y-5 shadow-2xl relative">
-            
+
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <h3 className="text-lg font-bold text-white flex items-center gap-2">
                 <Share2 size={18} className="text-sky-400" />
                 Share Intelligence Dashboard
               </h3>
-              <button 
+              <button
                 onClick={() => setShowShareModal(false)}
                 className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
               >
@@ -343,16 +369,16 @@ export const DashboardDetail: React.FC = () => {
             </div>
 
             <p className="text-xs text-slate-300 leading-relaxed">
-              Share standard open data dashboard link or copy iframe embed code for research and analytical reporting.
+              Share standard open data dashboard link or copy embed token for research and analytical reporting.
             </p>
 
             {/* Direct URL Box */}
             <div className="space-y-1.5">
               <label className="text-[10px] font-mono text-slate-400 uppercase">DIRECT LINK</label>
               <div className="flex items-center gap-2 bg-[#030914] border border-slate-800 p-2.5 rounded-xl">
-                <input 
-                  type="text" 
-                  readOnly 
+                <input
+                  type="text"
+                  readOnly
                   value={window.location.href}
                   className="bg-transparent text-xs text-slate-200 flex-1 outline-none font-mono"
                 />
