@@ -16,9 +16,6 @@ export const DashboardDetail: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [copiedApi, setCopiedApi] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
-  const [useIframeFallback, setUseIframeFallback] = useState(false);
-
-  const defaultMetabaseToken = "eyJhbGciOiJIUzI1NiJ9.eyJyZXNvdXJjZSI6eyJkYXNoYm9hcmQiOjJ9LCJwYXJhbXMiOnt9LCJpYXQiOjE3ODY0MzA0MDYsImV4cCI6MTc4NjQzMTAwNiwiX2VtYmVkZGluZ19wYXJhbXMiOnsiYmFua19uYW1lIjoiZW5hYmxlZCIsImJhbmsiOiJlbmFibGVkIiwic2VsZWN0X2JhbmsiOiJlbmFibGVkIn19.UbiEl_E4J6cOXhBve9GWWazMq3BBTlMReq2yX2BLZhY";
 
   useEffect(() => {
     // 1. Initialize Metabase Web Component Configuration
@@ -37,7 +34,6 @@ export const DashboardDetail: React.FC = () => {
       script.id = scriptId;
       script.src = 'https://dashboard.lankadatahub.com/app/embed.js';
       script.defer = true;
-      script.onerror = () => setUseIframeFallback(true);
       document.body.appendChild(script);
     }
   }, []);
@@ -68,9 +64,11 @@ export const DashboardDetail: React.FC = () => {
     });
   }, [id]);
 
-  // Determine fallback iframe embed URL
+  // Determine iframe embed URL
   const getEmbedUrl = (): string => {
-    return 'https://dashboard.lankadatahub.com/dashboard/2-sri-lanka-usd-exchange-rates';
+    if (dashboard?.embed_url) return dashboard.embed_url;
+    if (dashboard?.embedUrl) return dashboard.embedUrl;
+    return 'https://dashboard.lankadatahub.com/public/dashboard/344702c1-4246-4e01-a9b5-b870adbbe5bc';
   };
 
   const handleExportPDF = () => {
@@ -184,24 +182,15 @@ export const DashboardDetail: React.FC = () => {
           </a>
         </div>
 
-        {/* Metabase Web Component Embed Container taking FULL PAGE WIDTH */}
-        <div className="w-full min-h-[650px] sm:min-h-[750px] md:min-h-[850px] bg-[#030914] relative">
-          {!useIframeFallback ? (
-            React.createElement('metabase-dashboard', {
-              token: defaultMetabaseToken,
-              'with-title': 'true',
-              'with-downloads': 'true',
-              style: { width: '100%', height: '850px', display: 'block', border: 'none' }
-            })
-          ) : (
-            <iframe
-              src={embedUrl}
-              title={dashboard?.title || 'USD Exchange Rates Dashboard'}
-              className="w-full h-[850px] border-0"
-              allowFullScreen
-              loading="lazy"
-            />
-          )}
+        {/* Public Metabase Dashboard Embed Container taking FULL PAGE WIDTH */}
+        <div className="w-full h-[650px] sm:h-[750px] md:h-[850px] bg-[#030914] relative">
+          <iframe
+            src={embedUrl}
+            title={dashboard?.title || 'Sri Lanka USD Exchange Rates Intelligence Dashboard'}
+            className="w-full h-full border-0"
+            allowFullScreen
+            loading="lazy"
+          />
         </div>
       </div>
 
