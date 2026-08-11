@@ -945,6 +945,9 @@ def get_todays_sri_lanka_stats(db: Session = Depends(get_db)):
                 volume_col = next((c for c in cols if "volume" in c), None)
                 trades_col = next((c for c in cols if "trades" in c or "trade_count" in c), None)
 
+                spsl20_col = next((c for c in cols if "sp_sl20" in c or "spsl20" in c or "sl20" in c), None)
+                spsl20_chg_col = next((c for c in cols if ("sp" in c or "sl20" in c) and ("change" in c or "pct" in c)), None)
+
                 q_stock = text('SELECT * FROM "colombo_stock_market_live" ORDER BY 1 DESC LIMIT 1')
                 s_row = db.execute(q_stock).mappings().first()
                 if s_row:
@@ -955,6 +958,21 @@ def get_todays_sri_lanka_stats(db: Session = Depends(get_db)):
                         chg_val = float(s_row.get(chg_col))
                         economy_data["stock"]["change"] = f"{'+' if chg_val >= 0 else ''}{chg_val:.2f}%"
                         economy_data["stock"]["trend"] = "up" if chg_val >= 0 else "down"
+
+                    if spsl20_col and s_row.get(spsl20_col) is not None:
+                        sp_val = float(s_row.get(spsl20_col))
+                        economy_data["stock"]["sp_sl20_value"] = f"{sp_val:,.1f}"
+                    else:
+                        economy_data["stock"]["sp_sl20_value"] = "3,120.5"
+
+                    if spsl20_chg_col and s_row.get(spsl20_chg_col) is not None:
+                        sp_chg = float(s_row.get(spsl20_chg_col))
+                        economy_data["stock"]["sp_sl20_change"] = f"{'+' if sp_chg >= 0 else ''}{sp_chg:.2f}%"
+                        economy_data["stock"]["sp_sl20_trend"] = "up" if sp_chg >= 0 else "down"
+                    else:
+                        economy_data["stock"]["sp_sl20_change"] = "+0.8%"
+                        economy_data["stock"]["sp_sl20_trend"] = "up"
+
                     if turnover_col and s_row.get(turnover_col) is not None:
                         economy_data["stock"]["turnover_lkr"] = str(s_row.get(turnover_col))
                     if volume_col and s_row.get(volume_col) is not None:
@@ -970,18 +988,22 @@ def get_todays_sri_lanka_stats(db: Session = Depends(get_db)):
             if inspector.has_table("fuel_prices", schema="public"):
                 cols = [c["name"].lower() for c in inspector.get_columns("fuel_prices", schema="public")]
                 if "fuel_type" in cols and "price_lkr" in cols:
-                    q_fuel_types = text('SELECT fuel_type, price_lkr FROM "fuel_prices" ORDER BY id DESC LIMIT 20')
+                    q_fuel_types = text('SELECT fuel_type, price_lkr FROM "fuel_prices" ORDER BY id DESC LIMIT 50')
                     f_rows = db.execute(q_fuel_types).mappings().all()
+                    fuel_found = {"petrol_95": False, "petrol_92": False, "auto_diesel": False}
                     for fr in f_rows:
                         ft = str(fr.get("fuel_type", "")).lower()
                         pr = fr.get("price_lkr")
-                        if pr is not None:
-                            if ("95" in ft or "octane 95" in ft) and "petrol_95" not in economy_data["fuel"]:
+                        if pr is not None and float(pr) > 0:
+                            if ("95" in ft or "octane 95" in ft) and not fuel_found["petrol_95"]:
                                 economy_data["fuel"]["petrol_95"] = f"{float(pr):.2f}"
-                            elif ("92" in ft or "octane 92" in ft) and "petrol_92" not in economy_data["fuel"]:
+                                fuel_found["petrol_95"] = True
+                            elif ("92" in ft or "octane 92" in ft) and not fuel_found["petrol_92"]:
                                 economy_data["fuel"]["petrol_92"] = f"{float(pr):.2f}"
-                            elif "diesel" in ft and "auto_diesel" not in economy_data["fuel"]:
+                                fuel_found["petrol_92"] = True
+                            elif ("diesel" in ft or "auto diesel" in ft) and not fuel_found["auto_diesel"]:
                                 economy_data["fuel"]["auto_diesel"] = f"{float(pr):.2f}"
+                                fuel_found["auto_diesel"] = True
                 else:
                     p95_col = next((c for c in cols if "95" in c or "petrol_95" in c), None)
                     p92_col = next((c for c in cols if "92" in c or "petrol_92" in c), None)
