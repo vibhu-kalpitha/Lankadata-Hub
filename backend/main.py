@@ -988,13 +988,13 @@ def get_todays_sri_lanka_stats(db: Session = Depends(get_db)):
             if inspector.has_table("fuel_prices", schema="public"):
                 cols = [c["name"].lower() for c in inspector.get_columns("fuel_prices", schema="public")]
                 if "fuel_type" in cols and "price_lkr" in cols:
-                    q_fuel_types = text('SELECT fuel_type, price_lkr FROM "fuel_prices" ORDER BY id DESC LIMIT 50')
+                    q_fuel_types = text('SELECT fuel_type, price_lkr FROM "fuel_prices" WHERE price_lkr > 50 ORDER BY 1 DESC LIMIT 50')
                     f_rows = db.execute(q_fuel_types).mappings().all()
                     fuel_found = {"petrol_95": False, "petrol_92": False, "auto_diesel": False}
                     for fr in f_rows:
                         ft = str(fr.get("fuel_type", "")).lower()
                         pr = fr.get("price_lkr")
-                        if pr is not None and float(pr) > 0:
+                        if pr is not None and float(pr) > 50:
                             if ("95" in ft or "octane 95" in ft) and not fuel_found["petrol_95"]:
                                 economy_data["fuel"]["petrol_95"] = f"{float(pr):.2f}"
                                 fuel_found["petrol_95"] = True
@@ -1012,11 +1012,11 @@ def get_todays_sri_lanka_stats(db: Session = Depends(get_db)):
                     q_fuel = text('SELECT * FROM "fuel_prices" ORDER BY 1 DESC LIMIT 1')
                     f_row = db.execute(q_fuel).mappings().first()
                     if f_row:
-                        if p95_col and f_row.get(p95_col) is not None:
+                        if p95_col and f_row.get(p95_col) is not None and float(f_row.get(p95_col)) > 50:
                             economy_data["fuel"]["petrol_95"] = f"{float(f_row.get(p95_col)):.2f}"
-                        if p92_col and f_row.get(p92_col) is not None:
+                        if p92_col and f_row.get(p92_col) is not None and float(f_row.get(p92_col)) > 50:
                             economy_data["fuel"]["petrol_92"] = f"{float(f_row.get(p92_col)):.2f}"
-                        if diesel_col and f_row.get(diesel_col) is not None:
+                        if diesel_col and f_row.get(diesel_col) is not None and float(f_row.get(diesel_col)) > 50:
                             economy_data["fuel"]["auto_diesel"] = f"{float(f_row.get(diesel_col)):.2f}"
         except Exception:
             db.rollback()
