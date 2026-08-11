@@ -101,6 +101,7 @@ class DashboardOut(BaseModel):
     featured: bool = False
     views: int = 0
     api_endpoint: Optional[str] = None
+    embed_url: Optional[str] = None
     updated_at: Optional[Union[str, date, datetime]] = None
 
     class Config:
