@@ -292,24 +292,32 @@ const ExchangeRateFinanceChart: React.FC<{ rows: Array<Record<string, any>>; col
 
     if (!buyKey && !sellKey) return null;
 
-    // Process rows chronologically (oldest to newest)
-    const formattedRows = [...rows].reverse().map(r => {
-      const dVal = String(r[dateKey] || '');
+    // 1. Map all rows into clean telemetry objects
+    const rawRows = rows.map(r => {
+      const dVal = String(r[dateKey] || '').trim();
       const bVal = parseFloat(String(r[buyKey || ''] || '0').replace(/,/g, '')) || 0;
       const sVal = parseFloat(String(r[sellKey || ''] || '0').replace(/,/g, '')) || 0;
+      const timeNum = Date.parse(dVal) || 0;
       return {
         date: dVal,
+        timeNum,
         buying: bVal,
         selling: sVal,
         spread: sVal > 0 && bVal > 0 ? (sVal - bVal).toFixed(2) : '0.00'
       };
-    }).filter(r => r.buying > 0 || r.selling > 0);
+    }).filter(r => (r.buying > 0 || r.selling > 0) && r.date !== '');
 
-    if (formattedRows.length === 0) return null;
+    if (rawRows.length === 0) return null;
 
-    // Latest (today) vs Previous (yesterday)
-    const latest = formattedRows[formattedRows.length - 1];
-    const prev = formattedRows.length >= 2 ? formattedRows[formattedRows.length - 2] : latest;
+    // 2. Explicitly sort chronologically (oldest to newest by date)
+    rawRows.sort((a, b) => {
+      if (a.timeNum && b.timeNum) return a.timeNum - b.timeNum;
+      return a.date.localeCompare(b.date);
+    });
+
+    // 3. Guaranteed latest date record
+    const latest = rawRows[rawRows.length - 1];
+    const prev = rawRows.length >= 2 ? rawRows[rawRows.length - 2] : latest;
 
     const buyDiff = latest.buying - prev.buying;
     const buyPct = prev.buying > 0 ? ((buyDiff / prev.buying) * 100).toFixed(2) : '0.00';
@@ -317,17 +325,23 @@ const ExchangeRateFinanceChart: React.FC<{ rows: Array<Record<string, any>>; col
     const sellDiff = latest.selling - prev.selling;
     const sellPct = prev.selling > 0 ? ((sellDiff / prev.selling) * 100).toFixed(2) : '0.00';
 
+    const latestSpreadNum = latest.selling > 0 && latest.buying > 0 ? (latest.selling - latest.buying) : 0;
+    const prevSpreadNum = prev.selling > 0 && prev.buying > 0 ? (prev.selling - prev.buying) : 0;
+    const spreadDiff = latestSpreadNum - prevSpreadNum;
+    const spreadPct = prevSpreadNum > 0 ? ((spreadDiff / prevSpreadNum) * 100).toFixed(2) : '0.00';
+
     return {
-      chartData: formattedRows,
+      chartData: rawRows,
       latest,
       buyTrend: { diff: buyDiff, pct: buyPct, isUp: buyDiff >= 0 },
-      sellTrend: { diff: sellDiff, pct: sellPct, isUp: sellDiff >= 0 }
+      sellTrend: { diff: sellDiff, pct: sellPct, isUp: sellDiff >= 0 },
+      spreadTrend: { diff: spreadDiff, pct: spreadPct, isUp: spreadDiff >= 0 }
     };
   }, [rows, columns]);
 
   if (!parsedData) return null;
 
-  const { chartData, latest, buyTrend, sellTrend } = parsedData;
+  const { chartData, latest, buyTrend, sellTrend, spreadTrend } = parsedData;
 
   return (
     <div className="space-y-6 mb-6">
@@ -375,13 +389,23 @@ const ExchangeRateFinanceChart: React.FC<{ rows: Array<Record<string, any>>; col
 
         {/* Market Spread / Mid-Rate */}
         <div className="bg-[#051428] border border-slate-800 rounded-2xl p-5 shadow-xl relative overflow-hidden">
-          <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest block mb-1">BANK SPREAD</span>
+          <div className="flex justify-between items-start mb-1">
+            <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest block">BANK SPREAD</span>
+            <span className="text-[9px] font-mono text-slate-500">{latest.date}</span>
+          </div>
           <div className="flex items-baseline gap-2">
             <span className="text-3xl font-black text-white">{latest.spread}</span>
             <span className="text-xs font-mono font-bold text-slate-400">LKR</span>
           </div>
-          <div className="mt-3 text-[10px] font-mono text-slate-400">
-            Latest Record Date: <span className="text-white font-bold">{latest.date}</span>
+          <div className="mt-3 flex items-center gap-1.5">
+            <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-lg border ${
+              spreadTrend.isUp
+                ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                : 'bg-rose-500/15 text-rose-400 border-rose-500/30'
+            }`}>
+              {spreadTrend.isUp ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+              {spreadTrend.isUp ? '+' : ''}{spreadTrend.diff.toFixed(2)} LKR ({spreadTrend.pct}%)
+            </span>
           </div>
         </div>
 
@@ -506,26 +530,38 @@ export const DatasetDetail: React.FC = () => {
     const rawRows = recordsResponse?.rows || dataset?.preview_rows || [];
     let filtered = [...rawRows];
 
+    // Determine sorting column & order (defaults to Date column in DESCENDING order)
+    const effectiveSortCol = sortColumn || columns.find(c => /date|time|effective|period|record_date/i.test(c)) || columns[0];
+    const effectiveSortOrder = sortColumn ? sortOrder : 'desc';
+
     if (searchTerm.trim()) {
       const s = searchTerm.trim().toLowerCase();
       filtered = filtered.filter(r => Object.values(r).some(v => String(v).toLowerCase().includes(s)));
     }
 
-    if (sortColumn) {
+    if (effectiveSortCol) {
       filtered.sort((a, b) => {
-        const valA = a[sortColumn];
-        const valB = b[sortColumn];
-        if (typeof valA === 'number' && typeof valB === 'number') {
-          return sortOrder === 'asc' ? valA - valB : valB - valA;
+        const valA = a[effectiveSortCol];
+        const valB = b[effectiveSortCol];
+
+        const timeA = Date.parse(String(valA || '')) || 0;
+        const timeB = Date.parse(String(valB || '')) || 0;
+
+        if (timeA && timeB) {
+          return effectiveSortOrder === 'asc' ? timeA - timeB : timeB - timeA;
         }
-        return sortOrder === 'asc'
+
+        if (typeof valA === 'number' && typeof valB === 'number') {
+          return effectiveSortOrder === 'asc' ? valA - valB : valB - valA;
+        }
+        return effectiveSortOrder === 'asc'
           ? String(valA || '').localeCompare(String(valB || ''))
           : String(valB || '').localeCompare(String(valA || ''));
       });
     }
 
     return filtered;
-  }, [recordsResponse, dataset, searchTerm, sortColumn, sortOrder]);
+  }, [recordsResponse, dataset, columns, searchTerm, sortColumn, sortOrder]);
 
   const handleDownload = (format: string) => {
     if (!id) return;
