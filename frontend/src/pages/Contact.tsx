@@ -1,227 +1,70 @@
-import React, { useState } from 'react';
-import { Mail, Phone, MapPin, Send, CheckCircle, AlertCircle } from 'lucide-react';
+import React from 'react';
+import { Mail, MapPin, Building2, Globe, Clock } from 'lucide-react';
 
 export const Contact: React.FC = () => {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    org: '',
-    type: 'Inquiry',
-    message: ''
-  });
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [error, setError] = useState('');
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim()) {
-      setError('Please fill in all required fields.');
-      return;
-    }
-    
-    setError('');
-    setLoading(true);
-
-    // Simulate API request
-    setTimeout(() => {
-      setLoading(false);
-      setSuccess(true);
-      setFormData({
-        name: '',
-        email: '',
-        org: '',
-        type: 'Inquiry',
-        message: ''
-      });
-    }, 1500);
-  };
-
   return (
-    <div className="flex-1 bg-lanka-bg py-10 px-6 max-w-7xl mx-auto w-full grid-bg">
-      <div className="flex flex-col lg:flex-row gap-8">
+    <div className="flex-1 bg-lanka-bg py-12 px-6 max-w-4xl mx-auto w-full grid-bg min-h-screen">
+      <div className="glass-panel p-8 sm:p-10 space-y-8 shadow-2xl border border-slate-800 rounded-3xl bg-[#040e1e]/90">
         
-        {/* Contact Info Sidebar */}
-        <aside className="w-full lg:w-96 space-y-6">
-          <div className="glass-panel p-6 space-y-6">
-            <div>
-              <h2 className="text-xl font-bold text-white">Contact Us</h2>
-              <p className="text-xs text-lanka-muted mt-2 leading-relaxed">
-                Have questions about dataset licensing, custom REST API integration, or spotted a data discrepancy? Reach out to our operational team.
-              </p>
+        {/* Header Section */}
+        <div className="border-b border-slate-800 pb-6 space-y-2">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400">
+              <Building2 size={20} />
             </div>
-
-            <div className="space-y-4 text-xs">
-              <div className="flex items-start gap-3">
-                <MapPin size={16} className="text-lanka-cyan mt-0.5" />
-                <div>
-                  <span className="font-bold text-white block">Headquarters Office</span>
-                  <span className="text-lanka-muted block mt-1 leading-relaxed">
-                    National Data Operations Unit,<br />
-                    Colombo 03, Sri Lanka.
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <Mail size={16} className="text-lanka-cyan mt-0.5" />
-                <div>
-                  <span className="font-bold text-white block">API Support Desk</span>
-                  <span className="text-lanka-cyan block mt-1 hover:underline select-all">
-                    developer@lankadatahub.lk
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <Phone size={16} className="text-lanka-cyan mt-0.5" />
-                <div>
-                  <span className="font-bold text-white block">Operational Phone</span>
-                  <span className="text-lanka-muted block mt-1 select-all">
-                    +94 11 234 5678
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-4 border-t border-lanka-border text-[10px] text-lanka-darkText leading-relaxed">
-              Office Hours: Monday - Friday, 9:00 AM - 4:00 PM (IST)
-            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Contact Us</h1>
           </div>
-        </aside>
+          <p className="text-xs sm:text-sm text-slate-400 leading-relaxed pt-1">
+            Official operational inquiry gateway for LankaData Hub dataset access, open telemetry feeds, and administrative correspondence.
+          </p>
+        </div>
 
-        {/* Feedback / Inquiry Form */}
-        <section className="flex-1 glass-panel p-6 md:p-8 space-y-6">
-          <h2 className="text-lg font-bold text-white border-b border-lanka-border pb-3 m-0">
-            Submit Inquiry or Request API Credentials
-          </h2>
-
-          {success ? (
-            <div className="bg-lanka-teal-glow border border-lanka-teal/30 p-6 rounded-xl text-center space-y-3">
-              <CheckCircle size={36} className="text-lanka-teal mx-auto animate-bounce" />
-              <h3 className="text-base font-bold text-white">Message Transmitted Successfully!</h3>
-              <p className="text-xs text-lanka-muted max-w-md mx-auto leading-relaxed">
-                Thank you for contacting LankaData Hub. Our developer operations desk will review your credentials request or feedback and get back to you within 24 business hours.
-              </p>
-              <button 
-                onClick={() => setSuccess(false)}
-                className="mt-4 text-xs font-bold text-lanka-cyan hover:underline uppercase"
-              >
-                Send Another Message
-              </button>
+        {/* Info Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          {/* Headquarters Address */}
+          <div className="bg-[#07162a]/90 border border-slate-800 rounded-2xl p-6 space-y-3">
+            <div className="flex items-center gap-2 text-sky-400 font-bold text-sm">
+              <MapPin size={18} />
+              <span className="text-white font-extrabold">Headquarters Office</span>
             </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              
-              {error && (
-                <div className="bg-lanka-rose-glow border border-lanka-rose/30 p-3 rounded-lg text-xs text-white flex items-center gap-2">
-                  <AlertCircle size={14} className="text-lanka-rose" />
-                  <span>{error}</span>
-                </div>
-              )}
+            <p className="text-xs text-slate-300 leading-relaxed font-mono">
+              236/C/1/1 YOGASHRAMAYA ROAD,<br />
+              Robert Gunawardena Mawatha,<br />
+              Battaramulla 10120
+            </p>
+          </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Full Name */}
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-lanka-darkText uppercase block">
-                    Full Name <span className="text-lanka-rose">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                    placeholder="Enter your name"
-                    className="w-full bg-[#0a1122]/50 border border-lanka-border hover:border-lanka-border-hover focus:border-lanka-blue rounded-lg py-2 px-3.5 text-xs text-white placeholder-lanka-darkText focus:outline-none focus:ring-1 focus:ring-lanka-blue"
-                  />
-                </div>
+          {/* Official Email */}
+          <div className="bg-[#07162a]/90 border border-slate-800 rounded-2xl p-6 space-y-3">
+            <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
+              <Mail size={18} />
+              <span className="text-white font-extrabold">Official Email Desk</span>
+            </div>
+            <a
+              href="mailto:info@lankadatahub.com"
+              className="text-sm font-mono font-bold text-sky-400 hover:text-sky-300 transition-colors block underline decoration-sky-500/40 underline-offset-4"
+            >
+              info@lankadatahub.com
+            </a>
+            <p className="text-[11px] text-slate-400 pt-1">
+              General inquiries, dataset submissions, and technical support.
+            </p>
+          </div>
 
-                {/* Email Address */}
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-lanka-darkText uppercase block">
-                    Email Address <span className="text-lanka-rose">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    placeholder="e.g. name@domain.com"
-                    className="w-full bg-[#0a1122]/50 border border-lanka-border hover:border-lanka-border-hover focus:border-lanka-blue rounded-lg py-2 px-3.5 text-xs text-white placeholder-lanka-darkText focus:outline-none focus:ring-1 focus:ring-lanka-blue"
-                  />
-                </div>
-              </div>
+        </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Organization */}
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-lanka-darkText uppercase block">
-                    Organization / Project (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    name="org"
-                    value={formData.org}
-                    onChange={handleChange}
-                    placeholder="e.g. University of Colombo"
-                    className="w-full bg-[#0a1122]/50 border border-lanka-border hover:border-lanka-border-hover focus:border-lanka-blue rounded-lg py-2 px-3.5 text-xs text-white placeholder-lanka-darkText focus:outline-none focus:ring-1 focus:ring-lanka-blue"
-                  />
-                </div>
-
-                {/* Inquiry Type */}
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-lanka-darkText uppercase block">
-                    Message Category
-                  </label>
-                  <select
-                    name="type"
-                    value={formData.type}
-                    onChange={handleChange}
-                    className="w-full bg-[#0b1424] border border-lanka-border hover:border-lanka-border-hover focus:border-lanka-blue text-xs text-white rounded-lg py-2 px-3 focus:outline-none focus:ring-1 focus:ring-lanka-blue"
-                  >
-                    <option value="Inquiry">General Inquiry</option>
-                    <option value="Credentials">Request API Client Key</option>
-                    <option value="Discrepancy">Report Data Discrepancy</option>
-                    <option value="Request">Feature / Dataset Suggestion</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Message */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-lanka-darkText uppercase block">
-                  Message Details <span className="text-lanka-rose">*</span>
-                </label>
-                <textarea
-                  name="message"
-                  value={formData.message}
-                  onChange={handleChange}
-                  required
-                  rows={5}
-                  placeholder="Explain your request or inquiry in detail..."
-                  className="w-full bg-[#0a1122]/50 border border-lanka-border hover:border-lanka-border-hover focus:border-lanka-blue rounded-lg py-2 px-3.5 text-xs text-white placeholder-lanka-darkText focus:outline-none focus:ring-1 focus:ring-lanka-blue resize-y"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="inline-flex items-center justify-center gap-2 bg-lanka-blue hover:bg-lanka-blue-hover text-white text-xs font-semibold px-6 py-3 rounded-lg shadow-blue-glow disabled:opacity-50 transition-all active:scale-95"
-              >
-                <span>{loading ? 'Transmitting...' : 'Send Inquiry'}</span>
-                <Send size={12} className={loading ? 'animate-pulse' : ''} />
-              </button>
-
-            </form>
-          )}
-        </section>
+        {/* Operating Hours & Portal Info */}
+        <div className="bg-[#030914] border border-slate-800 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+          <div className="flex items-center gap-2">
+            <Clock size={16} className="text-sky-400" />
+            <span>Office Hours: Monday - Friday, 9:00 AM - 4:00 PM (IST)</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Globe size={16} className="text-emerald-400" />
+            <span className="font-mono text-[11px] text-slate-300">lankadatahub.com</span>
+          </div>
+        </div>
 
       </div>
     </div>
