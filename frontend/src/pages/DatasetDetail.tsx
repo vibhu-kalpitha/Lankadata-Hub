@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import {
   FileText, Eye, Download, Database, ChevronRight,
   Search, ArrowUpDown, Sparkles, AlertTriangle, Maximize2, Minimize2,
-  Activity, Code, Layers
+  Activity, Code, Layers, TrendingUp, TrendingDown
 } from 'lucide-react';
 import {
   LineChart, Line, BarChart, Bar, AreaChart, Area, PieChart, Pie, Cell,
@@ -271,6 +271,171 @@ const DynamicDatasetCharts: React.FC<{ rows: Array<Record<string, any>>; columns
   );
 };
 
+// ── Check if dataset is one of the 7 exchange rate tables ─────────────────────
+const isExchangeRateDataset = (datasetId?: string, tableName?: string): boolean => {
+  const normId = (datasetId || '').toLowerCase().replace(/-/g, '_');
+  const normTable = (tableName || '').toLowerCase().replace(/-/g, '_');
+  return normId.includes('usd_exchange_rates') || normTable.includes('usd_exchange_rates');
+};
+
+// ── Dedicated Google Finance Style Exchange Rate Component ────────────────────
+const ExchangeRateFinanceChart: React.FC<{ rows: Array<Record<string, any>>; columns: string[] }> = ({ rows, columns }) => {
+  const parsedData = useMemo(() => {
+    if (!rows || rows.length === 0) return null;
+
+    const sample = rows[0];
+    const keys = columns.length > 0 ? columns : Object.keys(sample);
+
+    const dateKey = keys.find(k => /date|effective|record_date|time/i.test(k)) || keys[0];
+    const buyKey = keys.find(k => /buy|buying/i.test(k));
+    const sellKey = keys.find(k => /sell|selling/i.test(k));
+
+    if (!buyKey && !sellKey) return null;
+
+    // Process rows chronologically (oldest to newest)
+    const formattedRows = [...rows].reverse().map(r => {
+      const dVal = String(r[dateKey] || '');
+      const bVal = parseFloat(String(r[buyKey || ''] || '0').replace(/,/g, '')) || 0;
+      const sVal = parseFloat(String(r[sellKey || ''] || '0').replace(/,/g, '')) || 0;
+      return {
+        date: dVal,
+        buying: bVal,
+        selling: sVal,
+        spread: sVal > 0 && bVal > 0 ? (sVal - bVal).toFixed(2) : '0.00'
+      };
+    }).filter(r => r.buying > 0 || r.selling > 0);
+
+    if (formattedRows.length === 0) return null;
+
+    // Latest (today) vs Previous (yesterday)
+    const latest = formattedRows[formattedRows.length - 1];
+    const prev = formattedRows.length >= 2 ? formattedRows[formattedRows.length - 2] : latest;
+
+    const buyDiff = latest.buying - prev.buying;
+    const buyPct = prev.buying > 0 ? ((buyDiff / prev.buying) * 100).toFixed(2) : '0.00';
+
+    const sellDiff = latest.selling - prev.selling;
+    const sellPct = prev.selling > 0 ? ((sellDiff / prev.selling) * 100).toFixed(2) : '0.00';
+
+    return {
+      chartData: formattedRows,
+      latest,
+      buyTrend: { diff: buyDiff, pct: buyPct, isUp: buyDiff >= 0 },
+      sellTrend: { diff: sellDiff, pct: sellPct, isUp: sellDiff >= 0 }
+    };
+  }, [rows, columns]);
+
+  if (!parsedData) return null;
+
+  const { chartData, latest, buyTrend, sellTrend } = parsedData;
+
+  return (
+    <div className="space-y-6 mb-6">
+      
+      {/* ── TODAY'S BUYING & SELLING DEV BOXES (UP: GREEN, DOWN: RED) ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        
+        {/* Today's Buying Price */}
+        <div className="bg-[#051428] border border-sky-500/30 rounded-2xl p-5 shadow-xl relative overflow-hidden">
+          <span className="text-[9px] font-mono font-bold text-sky-400 uppercase tracking-widest block mb-1">TODAY'S BUYING PRICE</span>
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl font-black text-white">{latest.buying.toFixed(2)}</span>
+            <span className="text-xs font-mono font-bold text-slate-400">LKR</span>
+          </div>
+          <div className="mt-3 flex items-center gap-1.5">
+            <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-lg border ${
+              buyTrend.isUp
+                ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                : 'bg-rose-500/15 text-rose-400 border-rose-500/30'
+            }`}>
+              {buyTrend.isUp ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+              {buyTrend.isUp ? '+' : ''}{buyTrend.diff.toFixed(2)} LKR ({buyTrend.pct}%)
+            </span>
+          </div>
+        </div>
+
+        {/* Today's Selling Price */}
+        <div className="bg-[#051428] border border-emerald-500/30 rounded-2xl p-5 shadow-xl relative overflow-hidden">
+          <span className="text-[9px] font-mono font-bold text-emerald-400 uppercase tracking-widest block mb-1">TODAY'S SELLING PRICE</span>
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl font-black text-white">{latest.selling.toFixed(2)}</span>
+            <span className="text-xs font-mono font-bold text-slate-400">LKR</span>
+          </div>
+          <div className="mt-3 flex items-center gap-1.5">
+            <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-lg border ${
+              sellTrend.isUp
+                ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                : 'bg-rose-500/15 text-rose-400 border-rose-500/30'
+            }`}>
+              {sellTrend.isUp ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+              {sellTrend.isUp ? '+' : ''}{sellTrend.diff.toFixed(2)} LKR ({sellTrend.pct}%)
+            </span>
+          </div>
+        </div>
+
+        {/* Market Spread / Mid-Rate */}
+        <div className="bg-[#051428] border border-slate-800 rounded-2xl p-5 shadow-xl relative overflow-hidden">
+          <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest block mb-1">BANK SPREAD</span>
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl font-black text-white">{latest.spread}</span>
+            <span className="text-xs font-mono font-bold text-slate-400">LKR</span>
+          </div>
+          <div className="mt-3 text-[10px] font-mono text-slate-400">
+            Latest Record Date: <span className="text-white font-bold">{latest.date}</span>
+          </div>
+        </div>
+
+      </div>
+
+      {/* ── GOOGLE FINANCE STYLE DUAL LINE CHART ── */}
+      <div className="bg-[#050d1a] border border-lanka-border rounded-2xl p-6 shadow-2xl">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6 border-b border-slate-800 pb-4">
+          <div>
+            <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+              <Activity size={16} className="text-sky-400" />
+              BUYING & SELLING EXCHANGE RATE HISTORICAL TREND
+            </h3>
+            <p className="text-[11px] text-slate-400 font-mono mt-0.5">Google Finance Interactive Comparison (USD to LKR)</p>
+          </div>
+          <div className="flex items-center gap-4 text-xs font-mono">
+            <div className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded-full bg-sky-400" />
+              <span className="text-slate-300 font-bold">Buying Rate</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded-full bg-emerald-400" />
+              <span className="text-slate-300 font-bold">Selling Rate</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="h-72 sm:h-80 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+              <defs>
+                <linearGradient id="buyingGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#38bdf8" stopOpacity={0}/>
+                </linearGradient>
+                <linearGradient id="sellingGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <XAxis dataKey="date" stroke="#475569" fontSize={10} tickLine={false} axisLine={false} />
+              <YAxis stroke="#475569" fontSize={10} tickLine={false} axisLine={false} domain={['auto', 'auto']} />
+              <Tooltip contentStyle={{ backgroundColor: '#040d1a', borderColor: '#1e293b', borderRadius: '16px', fontSize: '11px', color: '#fff' }} />
+              <Area type="monotone" dataKey="buying" name="Buying Rate (LKR)" stroke="#38bdf8" strokeWidth={3} fill="url(#buyingGrad)" />
+              <Area type="monotone" dataKey="selling" name="Selling Rate (LKR)" stroke="#10b981" strokeWidth={3} fill="url(#sellingGrad)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+    </div>
+  );
+};
+
 
 // ── Main Dataset Detail Component ─────────────────────────────────────────────
 export const DatasetDetail: React.FC = () => {
@@ -416,8 +581,12 @@ export const DatasetDetail: React.FC = () => {
           {/* ── LEFT COLUMN (70%) ──────────────────────────────────── */}
           <div className="lg:col-span-2 space-y-6">
 
-            {/* Automatically Generated Charts */}
-            <DynamicDatasetCharts rows={rows} columns={columns} primaryDateCol={dataset.primary_date_column} />
+            {/* Exchange Rate Finance Charts or Generic Charts */}
+            {isExchangeRateDataset(dataset.id, dataset.table_name) ? (
+              <ExchangeRateFinanceChart rows={rows} columns={columns} />
+            ) : (
+              <DynamicDatasetCharts rows={rows} columns={columns} primaryDateCol={dataset.primary_date_column} />
+            )}
 
             {/* Views & Downloads Stats Bar */}
             <div className="flex items-center gap-4 bg-[#050d1a] border border-lanka-border/80 rounded-xl px-5 py-3 text-xs font-bold text-lanka-muted">
