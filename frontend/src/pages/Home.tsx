@@ -249,18 +249,29 @@ export const Home: React.FC = () => {
                 <RefreshCw size={12} className="text-emerald-400/60 animate-spin" />
               </div>
 
-              {/* Forex Section */}
+              {/* Forex Section (cbsl_usd_exchange_rates) */}
               <div>
-                <span className="text-[9px] font-mono font-bold text-emerald-300/70 tracking-widest uppercase block mb-1">FOREX (USD/LKR)</span>
-                <div className="flex items-center gap-2.5">
-                  <span className="text-3xl font-black text-white">{todaysLiveData?.economy?.forex?.value || '335.35'}</span>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[9px] font-mono font-bold text-emerald-300/70 tracking-widest uppercase">FOREX (USD/LKR)</span>
                   <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-md">
                     {todaysLiveData?.economy?.forex?.trend === 'down' ? <TrendingDown size={10} /> : <TrendingUp size={10} />}
                     {todaysLiveData?.economy?.forex?.change || '+0.02%'}
                   </span>
                 </div>
-                <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest block mt-1">
-                  CBSL • {todaysLiveData?.economy?.forex?.label || 'CENTRAL BANK OFFICIAL RATE'}
+
+                <div className="grid grid-cols-2 gap-2 bg-[#051424]/80 border border-emerald-500/20 rounded-xl p-2.5 my-1.5">
+                  <div>
+                    <span className="text-[8px] font-mono text-slate-400 uppercase tracking-wider block">BUYING RATE</span>
+                    <span className="text-base font-black text-white">{todaysLiveData?.economy?.forex?.buy || '301.50'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[8px] font-mono text-slate-400 uppercase tracking-wider block">SELLING RATE</span>
+                    <span className="text-base font-black text-white">{todaysLiveData?.economy?.forex?.sell || '306.80'}</span>
+                  </div>
+                </div>
+
+                <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest block">
+                  CBSL • CENTRAL BANK OFFICIAL RATE
                 </span>
               </div>
 
@@ -305,11 +316,11 @@ export const Home: React.FC = () => {
                   </div>
                   <div className="flex justify-between items-center text-slate-300">
                     <span>92 Octane</span>
-                    <span className="font-bold text-white">{todaysLiveData?.economy?.fuel?.petrol_92 || todaysLiveData?.economy?.fuel?.octane92 || '311.00'}</span>
+                    <span className="font-bold text-white">{todaysLiveData?.economy?.fuel?.petrol_92 || '311.00'}</span>
                   </div>
                   <div className="flex justify-between items-center text-slate-300">
                     <span>Auto Diesel</span>
-                    <span className="font-bold text-white">{todaysLiveData?.economy?.fuel?.auto_diesel || todaysLiveData?.economy?.fuel?.diesel || '283.00'}</span>
+                    <span className="font-bold text-white">{todaysLiveData?.economy?.fuel?.auto_diesel || '283.00'}</span>
                   </div>
                 </div>
               </div>
