@@ -2,14 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   Zap, ArrowRight, TrendingUp, TrendingDown, Globe,
-  CloudRain, Terminal, MapPin, Building2, RefreshCw
+  CloudRain, MapPin, Building2, RefreshCw, Search
 } from 'lucide-react';
-import {
-  ResponsiveContainer, AreaChart, Area, XAxis, Tooltip
-} from 'recharts';
 
 import { SriLankaMap } from '../components/SriLankaMap';
-import { SriLankaPhysicalMap } from '../components/SriLankaPhysicalMap';
 import { USDExchangeRateComparison } from '../components/USDExchangeRateComparison';
 import { fetchProvinces } from '../services/provinceService';
 import type { Province } from '../services/provinceService';
@@ -54,11 +50,6 @@ export const Home: React.FC = () => {
     if (searchQuery.trim()) navigate(`/datasets?search=${encodeURIComponent(searchQuery.trim())}`);
   };
 
-  const gdpAreaData = [
-    { y: '2019', v: 2.3 }, { y: '2020', v: -3.6 }, { y: '2021', v: 3.5 },
-    { y: '2022', v: -7.8 }, { y: '2023', v: 2.9 }, { y: '2024', v: 4.2 },
-  ];
-
   return (
     <div className="flex-1 bg-lanka-bg grid-bg overflow-x-hidden">
 
@@ -95,34 +86,26 @@ export const Home: React.FC = () => {
                 Sri Lanka's central platform for real-time national intelligence & open data core.
               </p>
 
-              {/* Terminal command search bar */}
+              {/* Search bar under LankaData Hub Title */}
               <div className="w-full max-w-lg pt-2">
                 <form onSubmit={handleSearchSubmit} className="relative group">
-                  <div className="relative flex items-center bg-[#07182b]/95 hover:bg-[#07182b] border border-[#38bdf8]/40 hover:border-[#38bdf8]/80 rounded-2xl p-2 pl-4 shadow-[0_0_30px_rgba(3,15,30,0.8)] backdrop-blur-md transition-all">
-                    <span className="text-cyan-400 text-xs mr-2 select-none">✦</span>
-                    <Terminal size={17} className="text-[#38bdf8] flex-shrink-0 mr-3" />
+                  <div className="relative flex items-center bg-[#07182b]/95 hover:bg-[#07182b] border border-[#38bdf8]/40 hover:border-[#38bdf8]/80 rounded-full p-1.5 pl-5 pr-2 shadow-[0_0_30px_rgba(3,15,30,0.8)] backdrop-blur-md transition-all">
+                    <Search size={18} className="text-[#38bdf8] flex-shrink-0 mr-3" />
                     <input
                       type="text"
-                      placeholder="EXECUTE COMMAND_"
+                      placeholder="Search datasets, indicators..."
                       value={searchQuery}
                       onChange={e => setSearchQuery(e.target.value)}
-                      className="w-full bg-transparent text-xs sm:text-sm font-mono text-white placeholder-slate-500 tracking-wider focus:outline-none uppercase"
+                      className="w-full bg-transparent text-xs sm:text-sm text-white placeholder-slate-400 focus:outline-none"
                     />
                     <button
                       type="submit"
-                      className="bg-[#13304d] hover:bg-[#1a4066] border border-[#38bdf8]/40 text-[#38bdf8] hover:text-white font-extrabold text-xs tracking-wider px-5 py-2.5 rounded-xl transition-all uppercase shadow-[0_0_15px_rgba(56,189,248,0.2)]"
+                      className="bg-[#13304d] hover:bg-[#1a4066] border border-[#38bdf8]/40 text-[#38bdf8] hover:text-white font-extrabold text-xs tracking-wider px-5 py-2.5 rounded-full transition-all uppercase shadow-[0_0_15px_rgba(56,189,248,0.2)]"
                     >
                       SEARCH
                     </button>
                   </div>
                 </form>
-
-                {/* Telemetry micro stats */}
-                <div className="flex items-center gap-6 mt-3 px-1 text-[10px] font-mono font-bold text-slate-400/80 tracking-widest uppercase select-none">
-                  <span>NODES: <span className="text-cyan-400">1,422</span></span>
-                  <span>LATENCY: <span className="text-teal-400">14MS</span></span>
-                  <span>STATUS: <span className="text-emerald-400">ONLINE</span></span>
-                </div>
               </div>
             </div>
 
@@ -404,44 +387,6 @@ export const Home: React.FC = () => {
       </section>
 
       {/* ══════════════════════════════════════════════════
-          GDP AREA CHART BANNER
-      ══════════════════════════════════════════════════ */}
-      <section className="max-w-7xl mx-auto px-6 py-6">
-        <div className="relative rounded-3xl overflow-hidden border border-lanka-border bg-gradient-to-r from-[#050f20] to-[#060d1b] p-6">
-          <div className="absolute right-0 top-0 w-80 h-full bg-blue-600/10 blur-[80px] pointer-events-none" />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
-            <div>
-              <span className="text-[10px] font-bold text-lanka-blue-light uppercase tracking-widest block mb-1">Economic Indicator</span>
-              <h3 className="text-xl font-black text-white">Sri Lanka GDP Growth</h3>
-              <p className="text-xs text-lanka-muted mt-1 leading-relaxed">Annual GDP growth rate (%) from 2019 to projected 2024.</p>
-              <div className="mt-4 flex items-end gap-2">
-                <span className="text-4xl font-black text-teal-400">4.2%</span>
-                <span className="text-sm text-teal-400 mb-1 font-bold">▲ projected 2024</span>
-              </div>
-            </div>
-            <div className="md:col-span-2 h-32">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={gdpAreaData}>
-                  <defs>
-                    <linearGradient id="gdpGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0.02} />
-                    </linearGradient>
-                  </defs>
-                  <XAxis dataKey="y" stroke="#475569" fontSize={10} tickLine={false} axisLine={false} />
-                  <Tooltip
-                    contentStyle={{ background: '#071428', border: '1px solid rgba(59,130,246,0.2)', borderRadius: 10, fontSize: 11 }}
-                    formatter={(v: any) => [`${v}%`, 'GDP Growth']}
-                  />
-                  <Area type="monotone" dataKey="v" stroke="#0ea5e9" strokeWidth={2.5} fill="url(#gdpGrad)" dot={{ fill: '#0ea5e9', r: 3 }} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════════════════
           DISCOVER SRI LANKA
       ══════════════════════════════════════════════════ */}
       <section className="max-w-7xl mx-auto px-6 py-10">
@@ -453,33 +398,25 @@ export const Home: React.FC = () => {
           </p>
         </div>
 
-        {/* ── 50% / 50% Dual Map Grid ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-          {/* Left 50%: Provincial Intelligence Map & Data */}
-          <div className="flex flex-col h-full">
-            {provincesLoading ? (
-              <div className="flex flex-col items-center justify-center gap-3 text-lanka-muted py-24 bg-[#050d1a]/90 border border-lanka-border rounded-2xl">
-                <div className="w-8 h-8 border-2 border-lanka-cyan border-t-transparent rounded-full animate-spin" />
-                <span className="text-xs uppercase tracking-wider font-semibold">Loading provincial map data…</span>
-              </div>
-            ) : provincesError ? (
-              <div className="p-8 text-center bg-[#050d1a]/90 border border-lanka-border rounded-2xl">
-                <p className="text-sm text-red-400">{provincesError}</p>
-              </div>
-            ) : (
-              <SriLankaMap
-                provinces={provinces}
-                selectedProvince={selectedProvince}
-                onHoverProvince={setSelectedProvince}
-                onSelectProvince={setSelectedProvince}
-              />
-            )}
-          </div>
-
-          {/* Right 50%: Physical Geography Map (Rivers, Forests, Mountains, Total Area) */}
-          <div className="flex flex-col h-full">
-            <SriLankaPhysicalMap />
-          </div>
+        {/* ── Full Width Provincial Intelligence Map ── */}
+        <div className="w-full">
+          {provincesLoading ? (
+            <div className="flex flex-col items-center justify-center gap-3 text-lanka-muted py-24 bg-[#050d1a]/90 border border-lanka-border rounded-2xl">
+              <div className="w-8 h-8 border-2 border-lanka-cyan border-t-transparent rounded-full animate-spin" />
+              <span className="text-xs uppercase tracking-wider font-semibold">Loading provincial map data…</span>
+            </div>
+          ) : provincesError ? (
+            <div className="p-8 text-center bg-[#050d1a]/90 border border-lanka-border rounded-2xl">
+              <p className="text-sm text-red-400">{provincesError}</p>
+            </div>
+          ) : (
+            <SriLankaMap
+              provinces={provinces}
+              selectedProvince={selectedProvince}
+              onHoverProvince={setSelectedProvince}
+              onSelectProvince={setSelectedProvince}
+            />
+          )}
         </div>
       </section>
 

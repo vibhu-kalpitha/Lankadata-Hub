@@ -36,8 +36,6 @@ export const Footer: React.FC = () => {
         {/* Links Column */}
         <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-xs">
           <Link to="/about" className="hover:text-white transition-colors">About Us</Link>
-          <Link to="/documentation" className="hover:text-white transition-colors">Developer Portal</Link>
-          <Link to="/apis" className="hover:text-white transition-colors">API Status</Link>
           <Link to="/contact" className="hover:text-white transition-colors font-semibold text-lanka-cyan">Contact Us</Link>
         </div>
 
