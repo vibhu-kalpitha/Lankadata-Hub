@@ -147,6 +147,9 @@ services:
       MB_DB_USER: postgres
       MB_DB_PASS: postgres
       MB_DB_HOST: postgres
+      MB_ENABLE_EMBEDDING: "true"
+      MB_EMBEDDING_HEADER_XFRAME_OPTIONS: "ALLOWALL"
+      MB_EMBEDDING_HEADER_CSP: "frame-ancestors 'self' https://lankadatahub.com https://*.lankadatahub.com http://localhost:* http://127.0.0.1:*"
 
     volumes:
       # NEW LOCATION
