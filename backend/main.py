@@ -807,7 +807,8 @@ def get_todays_sri_lanka_stats(db: Session = Depends(get_db)):
 
     economy_data = {
         "forex": {
-            "value": "335.35",
+            "buy": "301.50",
+            "sell": "306.80",
             "source": "CBSL",
             "label": "CENTRAL BANK OFFICIAL RATE",
             "change": "+0.02%",
@@ -902,17 +903,18 @@ def get_todays_sri_lanka_stats(db: Session = Depends(get_db)):
                 q_forex = text(f'SELECT * FROM "cbsl_usd_exchange_rates"{order_by_sql} LIMIT 2')
                 rows = db.execute(q_forex).mappings().all()
                 if rows:
-                    curr_buy = float(rows[0].get(buy_col) or 335.35) if buy_col else 335.35
-                    curr_sell = float(rows[0].get(sell_col) or 340.50) if sell_col else 340.50
-                    avg_rate = round((curr_buy + curr_sell) / 2.0, 2)
-                    economy_data["forex"]["value"] = f"{avg_rate:.2f}"
+                    curr_buy = float(rows[0].get(buy_col) or 301.50) if buy_col else 301.50
+                    curr_sell = float(rows[0].get(sell_col) or 306.80) if sell_col else 306.80
+                    economy_data["forex"]["buy"] = f"{curr_buy:.2f}"
+                    economy_data["forex"]["sell"] = f"{curr_sell:.2f}"
 
                     if len(rows) > 1 and buy_col:
                         prev_buy = float(rows[1].get(buy_col) or curr_buy)
                         prev_sell = float(rows[1].get(sell_col) or curr_sell) if sell_col else curr_sell
+                        curr_avg = (curr_buy + curr_sell) / 2.0
                         prev_avg = (prev_buy + prev_sell) / 2.0
                         if prev_avg > 0:
-                            diff_pct = round(((avg_rate - prev_avg) / prev_avg) * 100, 2)
+                            diff_pct = round(((curr_avg - prev_avg) / prev_avg) * 100, 2)
                             economy_data["forex"]["change"] = f"{'+' if diff_pct >= 0 else ''}{diff_pct}%"
                             economy_data["forex"]["trend"] = "up" if diff_pct >= 0 else "down"
         except Exception:
@@ -955,7 +957,7 @@ def get_todays_sri_lanka_stats(db: Session = Depends(get_db)):
                 cols = [c["name"].lower() for c in inspector.get_columns("fuel_prices", schema="public")]
                 p95_col = next((c for c in cols if "95" in c or "petrol_95" in c), None)
                 p92_col = next((c for c in cols if "92" in c or "petrol_92" in c), None)
-                diesel_col = next((c for c in cols if "diesel" in c or "auto_diesel" in c), None)
+                diesel_col = next((c for c in cols if "auto_diesel" in c or "diesel" in c), None)
 
                 q_fuel = text('SELECT * FROM "fuel_prices" ORDER BY 1 DESC LIMIT 1')
                 f_row = db.execute(q_fuel).mappings().first()
