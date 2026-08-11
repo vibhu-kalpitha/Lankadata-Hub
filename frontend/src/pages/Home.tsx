@@ -260,17 +260,37 @@ export const Home: React.FC = () => {
 
               {/* Stock Market Section (colombo_stock_market_live) */}
               <div className="pt-3 border-t border-emerald-500/15">
-                <span className="text-[9px] font-mono font-bold text-emerald-300/70 tracking-widest uppercase block mb-1">STOCK MARKET</span>
-                <div className="flex items-center gap-2.5">
-                  <span className="text-2xl font-black text-white">{todaysLiveData?.economy?.stock?.value || '21,370.1'}</span>
-                  <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-md">
-                    {todaysLiveData?.economy?.stock?.trend === 'down' ? <TrendingDown size={10} /> : <TrendingUp size={10} />}
-                    {todaysLiveData?.economy?.stock?.change || '+1.5%'}
-                  </span>
+                <span className="text-[9px] font-mono font-bold text-emerald-300/70 tracking-widest uppercase block mb-1.5">STOCK MARKET</span>
+
+                <div className="grid grid-cols-2 gap-3 mb-2.5">
+                  {/* ASPI */}
+                  <div>
+                    <span className="text-[8px] font-mono font-bold text-slate-400 uppercase tracking-widest block mb-0.5">
+                      CSE: ASPI
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xl font-black text-white">{todaysLiveData?.economy?.stock?.value || '21,370.1'}</span>
+                      <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 rounded">
+                        {todaysLiveData?.economy?.stock?.trend === 'down' ? <TrendingDown size={9} /> : <TrendingUp size={9} />}
+                        {todaysLiveData?.economy?.stock?.change || '+1.5%'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* S&P SL20 */}
+                  <div className="border-l border-emerald-500/15 pl-3">
+                    <span className="text-[8px] font-mono font-bold text-slate-400 uppercase tracking-widest block mb-0.5">
+                      S&P SL20
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xl font-black text-white">{todaysLiveData?.economy?.stock?.sp_sl20_value || '3,120.5'}</span>
+                      <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 rounded">
+                        {todaysLiveData?.economy?.stock?.sp_sl20_trend === 'down' ? <TrendingDown size={9} /> : <TrendingUp size={9} />}
+                        {todaysLiveData?.economy?.stock?.sp_sl20_change || '+0.8%'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest block mt-0.5 mb-2">
-                  {todaysLiveData?.economy?.stock?.label || 'CSE: ASPI'}
-                </span>
                 
                 {/* Micro Telemetry Stats for Stock Market */}
                 <div className="grid grid-cols-3 gap-1 bg-[#051424]/80 border border-emerald-500/20 rounded-xl p-2 text-[9px] font-mono">
