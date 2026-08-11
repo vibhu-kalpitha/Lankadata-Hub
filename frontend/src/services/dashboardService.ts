@@ -17,6 +17,8 @@ export interface Dashboard {
 }
 
 export interface DashboardDetail extends Dashboard {
+  embed_url?: string;
+  embedUrl?: string;
   chartData?: Array<{ month: string; Projected: number; Actual: number }>;
   insights?: string[];
   metrics?: Array<{ title: string; value: string; change: string; isPositive: boolean; type: string }>;
