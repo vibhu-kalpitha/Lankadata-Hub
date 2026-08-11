@@ -307,15 +307,6 @@ export const Home: React.FC = () => {
                   </div>
                 </div>
               </div>
-
-              {/* Tea Auction Section */}
-              <div className="pt-3 border-t border-emerald-500/15">
-                <span className="text-[9px] font-mono font-bold text-emerald-300/70 tracking-widest uppercase block mb-1">TEA AUCTION</span>
-                <div className="text-xl font-black text-white">{todaysLiveData?.economy?.tea?.value || '1,180.00 LKR'}</div>
-                <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest block mt-0.5">
-                  {todaysLiveData?.economy?.tea?.label || 'COLOMBO TEA AUCTION'}
-                </span>
-              </div>
             </div>
           </div>
 

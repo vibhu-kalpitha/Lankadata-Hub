@@ -969,19 +969,33 @@ def get_todays_sri_lanka_stats(db: Session = Depends(get_db)):
         try:
             if inspector.has_table("fuel_prices", schema="public"):
                 cols = [c["name"].lower() for c in inspector.get_columns("fuel_prices", schema="public")]
-                p95_col = next((c for c in cols if "95" in c or "petrol_95" in c), None)
-                p92_col = next((c for c in cols if "92" in c or "petrol_92" in c), None)
-                diesel_col = next((c for c in cols if "auto_diesel" in c or "diesel" in c), None)
+                if "fuel_type" in cols and "price_lkr" in cols:
+                    q_fuel_types = text('SELECT fuel_type, price_lkr FROM "fuel_prices" ORDER BY id DESC LIMIT 20')
+                    f_rows = db.execute(q_fuel_types).mappings().all()
+                    for fr in f_rows:
+                        ft = str(fr.get("fuel_type", "")).lower()
+                        pr = fr.get("price_lkr")
+                        if pr is not None:
+                            if ("95" in ft or "octane 95" in ft) and "petrol_95" not in economy_data["fuel"]:
+                                economy_data["fuel"]["petrol_95"] = f"{float(pr):.2f}"
+                            elif ("92" in ft or "octane 92" in ft) and "petrol_92" not in economy_data["fuel"]:
+                                economy_data["fuel"]["petrol_92"] = f"{float(pr):.2f}"
+                            elif "diesel" in ft and "auto_diesel" not in economy_data["fuel"]:
+                                economy_data["fuel"]["auto_diesel"] = f"{float(pr):.2f}"
+                else:
+                    p95_col = next((c for c in cols if "95" in c or "petrol_95" in c), None)
+                    p92_col = next((c for c in cols if "92" in c or "petrol_92" in c), None)
+                    diesel_col = next((c for c in cols if "auto_diesel" in c or "diesel" in c), None)
 
-                q_fuel = text('SELECT * FROM "fuel_prices" ORDER BY 1 DESC LIMIT 1')
-                f_row = db.execute(q_fuel).mappings().first()
-                if f_row:
-                    if p95_col and f_row.get(p95_col) is not None:
-                        economy_data["fuel"]["petrol_95"] = f"{float(f_row.get(p95_col)):.2f}"
-                    if p92_col and f_row.get(p92_col) is not None:
-                        economy_data["fuel"]["petrol_92"] = f"{float(f_row.get(p92_col)):.2f}"
-                    if diesel_col and f_row.get(diesel_col) is not None:
-                        economy_data["fuel"]["auto_diesel"] = f"{float(f_row.get(diesel_col)):.2f}"
+                    q_fuel = text('SELECT * FROM "fuel_prices" ORDER BY 1 DESC LIMIT 1')
+                    f_row = db.execute(q_fuel).mappings().first()
+                    if f_row:
+                        if p95_col and f_row.get(p95_col) is not None:
+                            economy_data["fuel"]["petrol_95"] = f"{float(f_row.get(p95_col)):.2f}"
+                        if p92_col and f_row.get(p92_col) is not None:
+                            economy_data["fuel"]["petrol_92"] = f"{float(f_row.get(p92_col)):.2f}"
+                        if diesel_col and f_row.get(diesel_col) is not None:
+                            economy_data["fuel"]["auto_diesel"] = f"{float(f_row.get(diesel_col)):.2f}"
         except Exception:
             db.rollback()
 

@@ -225,7 +225,7 @@ export const USDExchangeRateComparison: React.FC = () => {
         {/* Bottom Bar Inside Big Dev Box with View Full Dashboard Button */}
         <div className="flex items-center justify-end border-t border-white/[0.06] pt-2 mt-1 shrink-0">
           <Link
-            to="/dashboards"
+            to="/dashboards/usd-exchange-rates"
             className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-gradient-to-r from-lanka-blue to-cyan-500 hover:from-blue-600 hover:to-cyan-400 text-white text-[11px] font-bold shadow-cyan-glow transition-all active:scale-95"
           >
             View Full Dashboard <ArrowRight size={12} />

@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
-  Calendar, Share2, FileText, ArrowRight, Award, User,
-  ExternalLink, Eye, Copy, Check, X, Database, Layers,
-  Building2, Globe, RefreshCw, ShieldCheck
+  Calendar, Share2, FileText, User, ExternalLink, Eye, Copy, Check, X, Database
 } from 'lucide-react';
 import { dashboardService } from '../services/dashboardService';
 import type { DashboardDetail as DashboardDetailType } from '../services/dashboardService';
@@ -14,7 +12,6 @@ export const DashboardDetail: React.FC = () => {
   const [dashboard, setDashboard] = useState<DashboardDetailType | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
-  const [copiedApi, setCopiedApi] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
 
   useEffect(() => {
@@ -64,11 +61,13 @@ export const DashboardDetail: React.FC = () => {
     });
   }, [id]);
 
-  // Determine iframe embed URL
+  // Determine iframe embed URL with Dark Theme
   const getEmbedUrl = (): string => {
-    if (dashboard?.embed_url) return dashboard.embed_url;
-    if (dashboard?.embedUrl) return dashboard.embedUrl;
-    return 'https://dashboard.lankadatahub.com/public/dashboard/344702c1-4246-4e01-a9b5-b870adbbe5bc';
+    const base = dashboard?.embed_url || dashboard?.embedUrl || 'https://dashboard.lankadatahub.com/public/dashboard/344702c1-4246-4e01-a9b5-b870adbbe5bc';
+    if (!base.includes('#theme=dark') && !base.includes('theme=dark')) {
+      return `${base}#theme=dark`;
+    }
+    return base;
   };
 
   const handleExportPDF = () => {
@@ -79,12 +78,6 @@ export const DashboardDetail: React.FC = () => {
     navigator.clipboard.writeText(window.location.href);
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
-  };
-
-  const handleCopyApi = (apiPath: string) => {
-    navigator.clipboard.writeText(`https://lankadatahub.com${apiPath}`);
-    setCopiedApi(true);
-    setTimeout(() => setCopiedApi(false), 2500);
   };
 
   if (loading) {
@@ -194,149 +187,44 @@ export const DashboardDetail: React.FC = () => {
         </div>
       </div>
 
-      {/* ── METADATA OF DASHBOARD (SHOW UNDER DASHBOARD) ── */}
-      <div className="space-y-8 bg-[#040e1d] border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl">
-
-        <div className="flex items-center gap-3 border-b border-slate-800 pb-4">
-          <div className="w-10 h-10 rounded-2xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400">
-            <Database size={20} />
-          </div>
-          <div>
-            <h2 className="text-xl font-extrabold text-white tracking-tight">Dashboard Metadata & Telemetry Specification</h2>
-            <p className="text-xs text-slate-400">Detailed dataset metadata, parameters, sync frequency, and API endpoints.</p>
-          </div>
+      {/* ── METADATA FROM DASHBOARDS TABLE (SHOW UNDER DASHBOARD) ── */}
+      <div className="bg-[#040e1d] border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+          <h2 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
+            <Database size={18} className="text-sky-400" />
+            Dashboard Details
+          </h2>
+          <span className="text-[10px] font-mono font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20 px-2.5 py-0.5 rounded-full uppercase">
+            {dashboard?.category || 'Economy'}
+          </span>
         </div>
 
-        {/* Description Section */}
-        <div className="space-y-3">
-          <h3 className="text-xs font-mono font-bold text-sky-400 uppercase tracking-widest flex items-center gap-1.5">
-            <FileText size={14} />
-            DASHBOARD OVERVIEW & SCOPE
-          </h3>
-          <p className="text-sm text-slate-300 leading-relaxed bg-[#07172b]/60 border border-sky-500/15 rounded-2xl p-5">
-            {dashboard?.description || 'Comprehensive real-time Central Bank of Sri Lanka (CBSL) USD/LKR exchange rates, buying/selling telemetry, historical rate fluctuations, and macroeconomic data streams.'}
-          </p>
-        </div>
+        <p className="text-xs text-slate-300 leading-relaxed">
+          {dashboard?.description || 'Official real-time Central Bank of Sri Lanka (CBSL) USD/LKR exchange rates, buying/selling telemetry, historical rate fluctuations, and macroeconomic data streams.'}
+        </p>
 
-        {/* Technical Metadata Attributes Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-
-          <div className="bg-[#07162a]/90 border border-slate-800 rounded-2xl p-4 space-y-1">
-            <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-wider block">DATA SOURCE</span>
-            <div className="flex items-center gap-2 text-sm font-bold text-white">
-              <Building2 size={16} className="text-sky-400" />
-              <span>Central Bank of Sri Lanka (CBSL)</span>
-            </div>
-            <span className="text-[10px] text-slate-400 block pt-1">Verified Official Telemetry Feed</span>
+        {/* Dashboards Table Attributes */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 text-xs">
+          <div className="bg-[#07162a] border border-slate-800 p-3 rounded-xl">
+            <span className="text-[9px] font-mono text-slate-400 uppercase tracking-wider block mb-0.5">AUTHOR</span>
+            <span className="font-bold text-white">{dashboard?.author || 'Central Bank of Sri Lanka'}</span>
           </div>
 
-          <div className="bg-[#07162a]/90 border border-slate-800 rounded-2xl p-4 space-y-1">
-            <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-wider block">UPDATE FREQUENCY</span>
-            <div className="flex items-center gap-2 text-sm font-bold text-emerald-400">
-              <RefreshCw size={16} className="text-emerald-400 animate-spin" />
-              <span>Real-Time / Daily Auto-Sync</span>
-            </div>
-            <span className="text-[10px] text-slate-400 block pt-1">Automated Cron Pipeline Active</span>
+          <div className="bg-[#07162a] border border-slate-800 p-3 rounded-xl">
+            <span className="text-[9px] font-mono text-slate-400 uppercase tracking-wider block mb-0.5">CATEGORY</span>
+            <span className="font-bold text-white">{dashboard?.category || 'Economy'}</span>
           </div>
 
-          <div className="bg-[#07162a]/90 border border-slate-800 rounded-2xl p-4 space-y-1">
-            <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-wider block">COVERAGE & FREQUENCY</span>
-            <div className="flex items-center gap-2 text-sm font-bold text-white">
-              <Globe size={16} className="text-sky-400" />
-              <span>Sri Lanka (National)</span>
-            </div>
-            <span className="text-[10px] text-slate-400 block pt-1">Daily Exchange Rates (USD/LKR)</span>
+          <div className="bg-[#07162a] border border-slate-800 p-3 rounded-xl">
+            <span className="text-[9px] font-mono text-slate-400 uppercase tracking-wider block mb-0.5">LAST UPDATED</span>
+            <span className="font-bold text-emerald-400">{dashboard?.updatedAt || 'Daily Auto-Sync'}</span>
           </div>
 
-          <div className="bg-[#07162a]/90 border border-slate-800 rounded-2xl p-4 space-y-1">
-            <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-wider block">PUBLISHER & MAINTAINER</span>
-            <div className="flex items-center gap-2 text-sm font-bold text-white">
-              <ShieldCheck size={16} className="text-teal-400" />
-              <span>LankaData Hub Analytics</span>
-            </div>
-            <span className="text-[10px] text-slate-400 block pt-1">Open Data Standard Spec 1.0</span>
-          </div>
-
-        </div>
-
-        {/* Rest API Developer Endpoint Card */}
-        <div className="bg-[#07172b] border border-sky-500/25 rounded-2xl p-5 space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-mono font-bold text-sky-400 uppercase tracking-widest flex items-center gap-1.5">
-              <Layers size={14} />
-              DEVELOPER REST API STREAM
-            </h3>
-            <Link to="/apis" className="text-[10px] font-bold text-sky-400 hover:underline uppercase flex items-center gap-1">
-              <span>View API Spec</span>
-              <ArrowRight size={12} />
-            </Link>
-          </div>
-
-          <p className="text-xs text-slate-300">
-            Query raw structured JSON data stream for this dashboard programmatically:
-          </p>
-
-          <div className="flex items-center gap-3 bg-[#030914] border border-slate-800 p-3 rounded-xl font-mono text-xs text-sky-300 overflow-x-auto">
-            <span className="bg-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded text-[10px]">GET</span>
-            <span className="flex-1 truncate">https://lankadatahub.com{dashboard?.apiEndpoint || '/api/v1/todays-sri-lanka-stats'}</span>
-            <button
-              onClick={() => handleCopyApi(dashboard?.apiEndpoint || '/api/v1/todays-sri-lanka-stats')}
-              className="px-3 py-1 bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 rounded-lg text-[10px] font-bold transition-colors flex items-center gap-1"
-            >
-              {copiedApi ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
-              <span>{copiedApi ? 'Copied' : 'Copy URL'}</span>
-            </button>
+          <div className="bg-[#07162a] border border-slate-800 p-3 rounded-xl">
+            <span className="text-[9px] font-mono text-slate-400 uppercase tracking-wider block mb-0.5">TOTAL VIEWS</span>
+            <span className="font-bold text-white">{(dashboard?.views || 14250).toLocaleString()}</span>
           </div>
         </div>
-
-        {/* Related Datasets Section */}
-        <div className="space-y-4 pt-4 border-t border-slate-800">
-          <h3 className="text-xs font-mono font-bold text-slate-300 uppercase tracking-widest flex items-center gap-1.5">
-            <Award size={14} className="text-sky-400" />
-            RELATED OPEN DATASET TABLES
-          </h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-
-            <Link
-              to="/datasets/cbsl_usd_exchange_rates"
-              className="bg-[#07162a]/70 hover:bg-[#091c36] border border-slate-800 hover:border-sky-500/40 p-4 rounded-2xl transition-all group"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[9px] font-mono font-bold text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded">POSTGRES TABLE</span>
-                <ArrowRight size={14} className="text-slate-500 group-hover:text-sky-400 group-hover:translate-x-1 transition-all" />
-              </div>
-              <h4 className="text-sm font-bold text-white group-hover:text-sky-300">cbsl_usd_exchange_rates</h4>
-              <p className="text-[11px] text-slate-400 mt-1">Daily buying & selling rates from Central Bank of Sri Lanka.</p>
-            </Link>
-
-            <Link
-              to="/datasets/colombo_stock_market_live"
-              className="bg-[#07162a]/70 hover:bg-[#091c36] border border-slate-800 hover:border-sky-500/40 p-4 rounded-2xl transition-all group"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[9px] font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">POSTGRES TABLE</span>
-                <ArrowRight size={14} className="text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all" />
-              </div>
-              <h4 className="text-sm font-bold text-white group-hover:text-emerald-300">colombo_stock_market_live</h4>
-              <p className="text-[11px] text-slate-400 mt-1">CSE ASPI index, turnover LKR, volume traded, and trades count.</p>
-            </Link>
-
-            <Link
-              to="/datasets/fuel_prices"
-              className="bg-[#07162a]/70 hover:bg-[#091c36] border border-slate-800 hover:border-sky-500/40 p-4 rounded-2xl transition-all group"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[9px] font-mono font-bold text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded">POSTGRES TABLE</span>
-                <ArrowRight size={14} className="text-slate-500 group-hover:text-rose-400 group-hover:translate-x-1 transition-all" />
-              </div>
-              <h4 className="text-sm font-bold text-white group-hover:text-rose-300">fuel_prices</h4>
-              <p className="text-[11px] text-slate-400 mt-1">Latest petroleum rates for 95 Octane, 92 Octane & Auto Diesel.</p>
-            </Link>
-
-          </div>
-        </div>
-
       </div>
 
       {/* ── SHARE MODAL ── */}
