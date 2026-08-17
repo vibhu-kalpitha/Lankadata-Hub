@@ -1059,6 +1059,13 @@ def ingest_news(
     db: Session = Depends(get_db),
     token: str = Depends(verify_token)
 ):
+    # Validation: Ensure URL is present and non-empty
+    if not item.url or not item.url.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="URL cannot be empty"
+        )
+
     try:
         # 1. Ensure sri_lanka_news table exists in database with unique constraint on url
         create_table_sql = text("""
@@ -1113,7 +1120,7 @@ def ingest_news(
         """)
 
         db.execute(upsert_sql, {
-            "url": item.url,
+            "url": item.url.strip(),
             "title": item.title,
             "source": item.source,
             "content": item.content,
@@ -1134,6 +1141,6 @@ def ingest_news(
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to ingest news article: {str(e)}"
+            detail=str(e)
         )
 
