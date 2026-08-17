@@ -271,11 +271,47 @@ const DynamicDatasetCharts: React.FC<{ rows: Array<Record<string, any>>; columns
   );
 };
 
-// ── Check if dataset is one of the 7 exchange rate tables ─────────────────────
+// ── Robust Multi-Format Date Parser ──────────────────────────────────────────
+const parseDateToTimestamp = (dateStr: string): number => {
+  if (!dateStr) return 0;
+  const str = dateStr.trim();
+
+  let ts = Date.parse(str);
+  if (!isNaN(ts) && ts > 0) return ts;
+
+  // DD/MM/YYYY or DD-MM-YYYY or DD.MM.YYYY
+  const dmyMatch = str.match(/^(\d{1,2})[\/\.-](\d{1,2})[\/\.-](\d{4})/);
+  if (dmyMatch) {
+    const day = parseInt(dmyMatch[1], 10);
+    const month = parseInt(dmyMatch[2], 10) - 1;
+    const year = parseInt(dmyMatch[3], 10);
+    return new Date(year, month, day).getTime();
+  }
+
+  // YYYY/MM/DD or YYYY.MM.DD or YYYY-MM-DD
+  const ymdMatch = str.match(/^(\d{4})[\/\.-](\d{1,2})[\/\.-](\d{1,2})/);
+  if (ymdMatch) {
+    const year = parseInt(ymdMatch[1], 10);
+    const month = parseInt(ymdMatch[2], 10) - 1;
+    const day = parseInt(ymdMatch[3], 10);
+    return new Date(year, month, day).getTime();
+  }
+
+  return 0;
+};
+
+// ── Check if dataset is an exchange rate table ────────────────────────────────
 const isExchangeRateDataset = (datasetId?: string, tableName?: string): boolean => {
   const normId = (datasetId || '').toLowerCase().replace(/-/g, '_');
   const normTable = (tableName || '').toLowerCase().replace(/-/g, '_');
-  return normId.includes('usd_exchange_rates') || normTable.includes('usd_exchange_rates');
+  return (
+    normId.includes('exchange_rate') ||
+    normTable.includes('exchange_rate') ||
+    normId.includes('usd_exchange') ||
+    normTable.includes('usd_exchange') ||
+    normId.includes('forex') ||
+    normTable.includes('forex')
+  );
 };
 
 // ── Dedicated Google Finance Style Exchange Rate Component ────────────────────
@@ -297,7 +333,7 @@ const ExchangeRateFinanceChart: React.FC<{ rows: Array<Record<string, any>>; col
       const dVal = String(r[dateKey] || '').trim();
       const bVal = parseFloat(String(r[buyKey || ''] || '0').replace(/,/g, '')) || 0;
       const sVal = parseFloat(String(r[sellKey || ''] || '0').replace(/,/g, '')) || 0;
-      const timeNum = Date.parse(dVal) || 0;
+      const timeNum = parseDateToTimestamp(dVal);
       return {
         date: dVal,
         timeNum,
@@ -309,9 +345,9 @@ const ExchangeRateFinanceChart: React.FC<{ rows: Array<Record<string, any>>; col
 
     if (rawRows.length === 0) return null;
 
-    // 2. Explicitly sort chronologically (oldest to newest by date)
+    // 2. Explicitly sort chronologically (oldest to newest by timestamp)
     rawRows.sort((a, b) => {
-      if (a.timeNum && b.timeNum) return a.timeNum - b.timeNum;
+      if (a.timeNum > 0 && b.timeNum > 0) return a.timeNum - b.timeNum;
       return a.date.localeCompare(b.date);
     });
 

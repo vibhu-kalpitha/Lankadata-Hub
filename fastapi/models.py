@@ -84,8 +84,27 @@ class Dashboard(Base):
     featured = Column(Boolean, default=False)
     views = Column(Integer, default=0)
     api_endpoint = Column(String(200), nullable=True)
+    data_source = Column(String(200), nullable=True)
+    last_updated = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class SriLankaNews(Base):
+    """News article entity for Sri Lanka news feed."""
+    __tablename__ = "sri_lanka_news"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    title = Column(Text, unique=True, nullable=False, index=True)
+    url = Column(Text, nullable=True)
+    source = Column(Text, nullable=True)
+    content = Column(Text, nullable=True)
+    is_sri_lanka_related = Column(Boolean, default=True)
+    category = Column(String(100), nullable=True)
+    province = Column(String(100), nullable=True)
+    summary = Column(Text, nullable=True)
+    keywords = Column(Text, nullable=True)
+    useful_for_sri_lankan_news = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
 
 class APISpec(Base):

@@ -13,11 +13,14 @@ Swagger UI: http://localhost:8000/docs
 ReDoc:       http://localhost:8000/redoc
 """
 
-from fastapi import FastAPI, Depends, HTTPException, Query
+from fastapi import FastAPI, Depends, HTTPException, Query, Security, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from typing import List, Optional
 import os
+import json
 
 from database import get_db
 import models, schemas
@@ -1030,3 +1033,99 @@ def get_todays_sri_lanka_stats(db: Session = Depends(get_db)):
         "economy": economy_data,
         "infrastructure": infrastructure_data
     }
+
+
+# ─── Bearer Token Security ───────────────────────────────────────────────────
+security_scheme = HTTPBearer(auto_error=False)
+
+def verify_token(credentials: Optional[HTTPAuthorizationCredentials] = Security(security_scheme)):
+    api_secret_token = os.getenv("API_SECRET_TOKEN", "your-super-secret-api-token-here")
+    if not credentials or not credentials.credentials or credentials.credentials != api_secret_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or missing Authorization token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return credentials.credentials
+
+
+# ─── News Ingestion Endpoint ──────────────────────────────────────────────────
+@app.post("/api/v1/news/ingest", tags=["News"], response_model=schemas.NewsIngestResponse)
+def ingest_news(
+    item: schemas.NewsIngestRequest,
+    db: Session = Depends(get_db),
+    token: str = Depends(verify_token)
+):
+    try:
+        # 1. Ensure sri_lanka_news table exists in database
+        create_table_sql = text("""
+            CREATE TABLE IF NOT EXISTS sri_lanka_news (
+                id SERIAL PRIMARY KEY,
+                title TEXT UNIQUE NOT NULL,
+                url TEXT,
+                source TEXT,
+                content TEXT,
+                is_sri_lanka_related BOOLEAN,
+                category VARCHAR(100),
+                province VARCHAR(100),
+                summary TEXT,
+                keywords TEXT,
+                useful_for_sri_lankan_news BOOLEAN,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+        """)
+        db.execute(create_table_sql)
+
+        # 2. Serialize keywords list to JSON string
+        keywords_json = json.dumps(item.keywords) if isinstance(item.keywords, list) else str(item.keywords)
+
+        # 3. UPSERT query (ON CONFLICT (title) DO UPDATE)
+        upsert_sql = text("""
+            INSERT INTO sri_lanka_news (
+                title, url, source, content, is_sri_lanka_related,
+                category, province, summary, keywords, useful_for_sri_lankan_news,
+                updated_at
+            ) VALUES (
+                :title, :url, :source, :content, :is_sri_lanka_related,
+                :category, :province, :summary, :keywords, :useful_for_sri_lankan_news,
+                CURRENT_TIMESTAMP
+            )
+            ON CONFLICT (title) DO UPDATE SET
+                url = EXCLUDED.url,
+                source = EXCLUDED.source,
+                content = EXCLUDED.content,
+                is_sri_lanka_related = EXCLUDED.is_sri_lanka_related,
+                category = EXCLUDED.category,
+                province = EXCLUDED.province,
+                summary = EXCLUDED.summary,
+                keywords = EXCLUDED.keywords,
+                useful_for_sri_lankan_news = EXCLUDED.useful_for_sri_lankan_news,
+                updated_at = CURRENT_TIMESTAMP;
+        """)
+
+        db.execute(upsert_sql, {
+            "title": item.title,
+            "url": item.url or "",
+            "source": item.source,
+            "content": item.content,
+            "is_sri_lanka_related": item.is_sri_lanka_related,
+            "category": item.category,
+            "province": item.province,
+            "summary": item.summary,
+            "keywords": keywords_json,
+            "useful_for_sri_lankan_news": item.useful_for_sri_lankan_news
+        })
+        db.commit()
+
+        return {
+            "status": "success",
+            "message": "Article ingested successfully"
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to ingest news article: {str(e)}"
+        )
+

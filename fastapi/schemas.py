@@ -139,3 +139,24 @@ class ProvinceOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# ─── News Ingestion Schemas ───────────────────────────────────────────────────
+
+class NewsIngestRequest(BaseModel):
+    title: str
+    url: Optional[str] = None
+    source: str
+    content: str
+    is_sri_lanka_related: bool
+    category: str
+    province: str
+    summary: str
+    keywords: List[str]
+    useful_for_sri_lankan_news: bool
+
+
+class NewsIngestResponse(BaseModel):
+    status: str
+    message: str
+
