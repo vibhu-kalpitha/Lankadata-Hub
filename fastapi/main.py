@@ -1069,7 +1069,7 @@ def ingest_news(
     # 2. Ensure item.keywords is a native Python list
     keywords_list = list(item.keywords) if isinstance(item.keywords, list) else [str(item.keywords)]
 
-    # 3. Clean UPSERT query with explicit :keywords::text[] casting
+    # 3. Clean UPSERT query with ANSI SQL CAST(:keywords AS text[])
     upsert_sql = text("""
         INSERT INTO sri_lanka_news (
             url, title, source, content, is_sri_lanka_related,
@@ -1077,7 +1077,7 @@ def ingest_news(
             updated_at
         ) VALUES (
             :url, :title, :source, :content, :is_sri_lanka_related,
-            :category, :province, :summary, :keywords::text[], :useful_for_sri_lankan_news,
+            :category, :province, :summary, CAST(:keywords AS text[]), :useful_for_sri_lankan_news,
             CURRENT_TIMESTAMP
         )
         ON CONFLICT (url) DO UPDATE SET
