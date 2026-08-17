@@ -21,6 +21,9 @@ from sqlalchemy import text
 from typing import List, Optional
 import os
 import json
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from database import get_db
 import models, schemas
@@ -1039,7 +1042,7 @@ def get_todays_sri_lanka_stats(db: Session = Depends(get_db)):
 security_scheme = HTTPBearer(auto_error=False)
 
 def verify_token(credentials: Optional[HTTPAuthorizationCredentials] = Security(security_scheme)):
-    api_secret_token = os.getenv("API_SECRET_TOKEN", "your-super-secret-api-token-here")
+    api_secret_token = os.getenv("API_SECRET_TOKEN", "ldh_secret_7385b02f3201f0768ca721dfc6bac192ba8098326491f0215b42efb07b138199")
     if not credentials or not credentials.credentials or credentials.credentials != api_secret_token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -1052,17 +1055,17 @@ def verify_token(credentials: Optional[HTTPAuthorizationCredentials] = Security(
 # ─── News Ingestion Endpoint ──────────────────────────────────────────────────
 @app.post("/api/v1/news/ingest", tags=["News"], response_model=schemas.NewsIngestResponse)
 def ingest_news(
-    item: schemas.NewsIngestRequest,
+    item: schemas.NewsIngestSchema,
     db: Session = Depends(get_db),
     token: str = Depends(verify_token)
 ):
     try:
-        # 1. Ensure sri_lanka_news table exists in database
+        # 1. Ensure sri_lanka_news table exists in database with unique constraint on url
         create_table_sql = text("""
             CREATE TABLE IF NOT EXISTS sri_lanka_news (
                 id SERIAL PRIMARY KEY,
-                title TEXT UNIQUE NOT NULL,
-                url TEXT,
+                url TEXT UNIQUE NOT NULL,
+                title TEXT NOT NULL,
                 source TEXT,
                 content TEXT,
                 is_sri_lanka_related BOOLEAN,
@@ -1077,22 +1080,27 @@ def ingest_news(
         """)
         db.execute(create_table_sql)
 
+        try:
+            db.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS uq_sri_lanka_news_url ON sri_lanka_news(url);"))
+        except Exception:
+            pass
+
         # 2. Serialize keywords list to JSON string
         keywords_json = json.dumps(item.keywords) if isinstance(item.keywords, list) else str(item.keywords)
 
-        # 3. UPSERT query (ON CONFLICT (title) DO UPDATE)
+        # 3. UPSERT query (ON CONFLICT (url) DO UPDATE)
         upsert_sql = text("""
             INSERT INTO sri_lanka_news (
-                title, url, source, content, is_sri_lanka_related,
+                url, title, source, content, is_sri_lanka_related,
                 category, province, summary, keywords, useful_for_sri_lankan_news,
                 updated_at
             ) VALUES (
-                :title, :url, :source, :content, :is_sri_lanka_related,
+                :url, :title, :source, :content, :is_sri_lanka_related,
                 :category, :province, :summary, :keywords, :useful_for_sri_lankan_news,
                 CURRENT_TIMESTAMP
             )
-            ON CONFLICT (title) DO UPDATE SET
-                url = EXCLUDED.url,
+            ON CONFLICT (url) DO UPDATE SET
+                title = EXCLUDED.title,
                 source = EXCLUDED.source,
                 content = EXCLUDED.content,
                 is_sri_lanka_related = EXCLUDED.is_sri_lanka_related,
@@ -1105,8 +1113,8 @@ def ingest_news(
         """)
 
         db.execute(upsert_sql, {
+            "url": item.url,
             "title": item.title,
-            "url": item.url or "",
             "source": item.source,
             "content": item.content,
             "is_sri_lanka_related": item.is_sri_lanka_related,

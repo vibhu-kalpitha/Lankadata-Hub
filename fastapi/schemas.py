@@ -143,9 +143,9 @@ class ProvinceOut(BaseModel):
 
 # ─── News Ingestion Schemas ───────────────────────────────────────────────────
 
-class NewsIngestRequest(BaseModel):
+class NewsIngestSchema(BaseModel):
     title: str
-    url: Optional[str] = None
+    url: str
     source: str
     content: str
     is_sri_lanka_related: bool
@@ -156,7 +156,11 @@ class NewsIngestRequest(BaseModel):
     useful_for_sri_lankan_news: bool
 
 
+NewsIngestRequest = NewsIngestSchema
+
+
 class NewsIngestResponse(BaseModel):
     status: str
     message: str
+
 
