@@ -1059,82 +1059,41 @@ def ingest_news(
     db: Session = Depends(get_db),
     token: str = Depends(verify_token)
 ):
-    # Validation: Ensure URL is present and non-empty
+    # 1. Validation: Ensure URL is present and non-empty
     if not item.url or not item.url.strip():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="URL cannot be empty"
         )
 
+    # 2. Ensure item.keywords is a native Python list
+    keywords_list = list(item.keywords) if isinstance(item.keywords, list) else [str(item.keywords)]
+
+    # 3. Clean UPSERT query with explicit :keywords::text[] casting
+    upsert_sql = text("""
+        INSERT INTO sri_lanka_news (
+            url, title, source, content, is_sri_lanka_related,
+            category, province, summary, keywords, useful_for_sri_lankan_news,
+            updated_at
+        ) VALUES (
+            :url, :title, :source, :content, :is_sri_lanka_related,
+            :category, :province, :summary, :keywords::text[], :useful_for_sri_lankan_news,
+            CURRENT_TIMESTAMP
+        )
+        ON CONFLICT (url) DO UPDATE SET
+            title = EXCLUDED.title,
+            source = EXCLUDED.source,
+            content = EXCLUDED.content,
+            is_sri_lanka_related = EXCLUDED.is_sri_lanka_related,
+            category = EXCLUDED.category,
+            province = EXCLUDED.province,
+            summary = EXCLUDED.summary,
+            keywords = EXCLUDED.keywords,
+            useful_for_sri_lankan_news = EXCLUDED.useful_for_sri_lankan_news,
+            updated_at = CURRENT_TIMESTAMP;
+    """)
+
     try:
-        # 1. Ensure sri_lanka_news table exists in database with unique constraint on url
-        create_table_sql = text("""
-            CREATE TABLE IF NOT EXISTS sri_lanka_news (
-                id SERIAL PRIMARY KEY,
-                url TEXT UNIQUE NOT NULL,
-                title TEXT NOT NULL,
-                source TEXT,
-                content TEXT,
-                is_sri_lanka_related BOOLEAN,
-                category VARCHAR(100),
-                province VARCHAR(100),
-                summary TEXT,
-                keywords TEXT,
-                useful_for_sri_lankan_news BOOLEAN,
-                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-            );
-        """)
-        db.execute(create_table_sql)
-
-        try:
-            db.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS uq_sri_lanka_news_url ON sri_lanka_news(url);"))
-        except Exception:
-            pass
-
-        # 2. Determine PostgreSQL data type for keywords parameter binding (TEXT, TEXT[], or JSONB)
-        keywords_list = list(item.keywords) if isinstance(item.keywords, list) else [str(item.keywords)]
-        keywords_json = json.dumps(keywords_list)
-        keywords_param: Union[str, List[str]] = keywords_json
-
-        try:
-            col_type_row = db.execute(text("""
-                SELECT data_type, udt_name FROM information_schema.columns 
-                WHERE table_name = 'sri_lanka_news' AND column_name = 'keywords';
-            """)).mappings().first()
-
-            if col_type_row:
-                dt = str(col_type_row.get("data_type", "")).lower()
-                udt = str(col_type_row.get("udt_name", "")).lower()
-                if dt == "array" or udt.startswith("_"):
-                    keywords_param = keywords_list
-        except Exception:
-            pass
-
-        # 3. UPSERT query (ON CONFLICT (url) DO UPDATE)
-        upsert_sql = text("""
-            INSERT INTO sri_lanka_news (
-                url, title, source, content, is_sri_lanka_related,
-                category, province, summary, keywords, useful_for_sri_lankan_news,
-                updated_at
-            ) VALUES (
-                :url, :title, :source, :content, :is_sri_lanka_related,
-                :category, :province, :summary, :keywords, :useful_for_sri_lankan_news,
-                CURRENT_TIMESTAMP
-            )
-            ON CONFLICT (url) DO UPDATE SET
-                title = EXCLUDED.title,
-                source = EXCLUDED.source,
-                content = EXCLUDED.content,
-                is_sri_lanka_related = EXCLUDED.is_sri_lanka_related,
-                category = EXCLUDED.category,
-                province = EXCLUDED.province,
-                summary = EXCLUDED.summary,
-                keywords = EXCLUDED.keywords,
-                useful_for_sri_lankan_news = EXCLUDED.useful_for_sri_lankan_news,
-                updated_at = CURRENT_TIMESTAMP;
-        """)
-
         db.execute(upsert_sql, {
             "url": item.url.strip(),
             "title": item.title,
@@ -1144,7 +1103,7 @@ def ingest_news(
             "category": item.category,
             "province": item.province,
             "summary": item.summary,
-            "keywords": keywords_param,
+            "keywords": keywords_list,
             "useful_for_sri_lankan_news": item.useful_for_sri_lankan_news
         })
         db.commit()
