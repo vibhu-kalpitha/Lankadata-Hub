@@ -57,6 +57,50 @@ app.add_middleware(
 )
 
 
+# ─── Startup Database Schema Migrations ──────────────────────────────────────
+@app.on_event("startup")
+def run_startup_migrations():
+    """Ensure database tables and columns (e.g. url column in sri_lanka_news) exist on startup."""
+    try:
+        from database import SessionLocal
+        db = SessionLocal()
+        try:
+            # 1. Create table sri_lanka_news if not exists
+            db.execute(text("""
+                CREATE TABLE IF NOT EXISTS sri_lanka_news (
+                    id SERIAL PRIMARY KEY,
+                    url TEXT UNIQUE,
+                    title TEXT NOT NULL,
+                    source TEXT,
+                    content TEXT,
+                    is_sri_lanka_related BOOLEAN,
+                    category VARCHAR(100),
+                    province VARCHAR(100),
+                    summary TEXT,
+                    keywords TEXT[],
+                    useful_for_sri_lankan_news BOOLEAN,
+                    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                );
+            """))
+            db.commit()
+
+            # 2. Migration: Add url column if table pre-existed without url column
+            db.execute(text("ALTER TABLE sri_lanka_news ADD COLUMN IF NOT EXISTS url TEXT UNIQUE;"))
+            db.commit()
+
+            # 3. Ensure unique constraint/index on url exists
+            try:
+                db.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS uq_sri_lanka_news_url ON sri_lanka_news(url);"))
+                db.commit()
+            except Exception:
+                db.rollback()
+        finally:
+            db.close()
+    except Exception as e:
+        print(f"Startup migration status: {e}")
+
+
 # ─── Health Check ─────────────────────────────────────────────────────────────
 @app.get("/", tags=["Health"])
 def root():
