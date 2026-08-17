@@ -18,7 +18,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import text
-from typing import List, Optional
+from typing import List, Optional, Union
 import os
 import json
 from dotenv import load_dotenv
@@ -1092,8 +1092,24 @@ def ingest_news(
         except Exception:
             pass
 
-        # 2. Serialize keywords list to JSON string
-        keywords_json = json.dumps(item.keywords) if isinstance(item.keywords, list) else str(item.keywords)
+        # 2. Determine PostgreSQL data type for keywords parameter binding (TEXT, TEXT[], or JSONB)
+        keywords_list = list(item.keywords) if isinstance(item.keywords, list) else [str(item.keywords)]
+        keywords_json = json.dumps(keywords_list)
+        keywords_param: Union[str, List[str]] = keywords_json
+
+        try:
+            col_type_row = db.execute(text("""
+                SELECT data_type, udt_name FROM information_schema.columns 
+                WHERE table_name = 'sri_lanka_news' AND column_name = 'keywords';
+            """)).mappings().first()
+
+            if col_type_row:
+                dt = str(col_type_row.get("data_type", "")).lower()
+                udt = str(col_type_row.get("udt_name", "")).lower()
+                if dt == "array" or udt.startswith("_"):
+                    keywords_param = keywords_list
+        except Exception:
+            pass
 
         # 3. UPSERT query (ON CONFLICT (url) DO UPDATE)
         upsert_sql = text("""
@@ -1128,7 +1144,7 @@ def ingest_news(
             "category": item.category,
             "province": item.province,
             "summary": item.summary,
-            "keywords": keywords_json,
+            "keywords": keywords_param,
             "useful_for_sri_lankan_news": item.useful_for_sri_lankan_news
         })
         db.commit()
