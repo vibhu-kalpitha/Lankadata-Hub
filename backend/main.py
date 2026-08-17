@@ -85,8 +85,9 @@ def run_startup_migrations():
             """))
             db.commit()
 
-            # 2. Migration: Add url column if table pre-existed without url column
+            # 2. Migrations: Add url and updated_at columns if table pre-existed without them
             db.execute(text("ALTER TABLE sri_lanka_news ADD COLUMN IF NOT EXISTS url TEXT UNIQUE;"))
+            db.execute(text("ALTER TABLE sri_lanka_news ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;"))
             db.commit()
 
             # 3. Ensure unique constraint/index on url exists
