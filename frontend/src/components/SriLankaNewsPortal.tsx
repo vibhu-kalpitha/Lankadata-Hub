@@ -5,61 +5,75 @@ import { srilankaDistricts, type DistrictMapFeature } from '../assets/srilankaDi
 
 interface SourceDetails {
   name: string;
+  domain: string;
   logo: string;
 }
 
-const MEDIA_DOMAIN_MAP: Record<string, { name: string; logo: string }> = {
+const MEDIA_DOMAIN_MAP: Record<string, { name: string; domain: string; logo: string }> = {
   'hirunews.lk': {
     name: 'Hiru News',
-    logo: 'https://www.hirunews.lk/assets/images/hirunews-logo.png'
+    domain: 'hirunews.lk',
+    logo: 'https://www.google.com/s2/favicons?domain=hirunews.lk&sz=64'
   },
   'adaderana.lk': {
     name: 'Ada Derana',
-    logo: 'https://logo.clearbit.com/adaderana.lk'
+    domain: 'adaderana.lk',
+    logo: 'https://www.google.com/s2/favicons?domain=adaderana.lk&sz=64'
   },
   'dailymirror.lk': {
     name: 'Daily Mirror',
-    logo: 'https://logo.clearbit.com/dailymirror.lk'
+    domain: 'dailymirror.lk',
+    logo: 'https://www.google.com/s2/favicons?domain=dailymirror.lk&sz=64'
   },
   'cbsl.gov.lk': {
     name: 'Central Bank of Sri Lanka',
-    logo: 'https://logo.clearbit.com/cbsl.gov.lk'
+    domain: 'cbsl.gov.lk',
+    logo: 'https://www.google.com/s2/favicons?domain=cbsl.gov.lk&sz=64'
   },
   'newsfirst.lk': {
     name: 'News First',
-    logo: 'https://logo.clearbit.com/newsfirst.lk'
+    domain: 'newsfirst.lk',
+    logo: 'https://www.google.com/s2/favicons?domain=newsfirst.lk&sz=64'
   },
   'themorning.lk': {
     name: 'The Morning',
-    logo: 'https://logo.clearbit.com/themorning.lk'
+    domain: 'themorning.lk',
+    logo: 'https://www.google.com/s2/favicons?domain=themorning.lk&sz=64'
   },
   'lankadeepa.lk': {
     name: 'Lankadeepa',
-    logo: 'https://logo.clearbit.com/lankadeepa.lk'
+    domain: 'lankadeepa.lk',
+    logo: 'https://www.google.com/s2/favicons?domain=lankadeepa.lk&sz=64'
   },
   'island.lk': {
     name: 'The Island',
-    logo: 'https://logo.clearbit.com/island.lk'
+    domain: 'island.lk',
+    logo: 'https://www.google.com/s2/favicons?domain=island.lk&sz=64'
   },
   'ft.lk': {
     name: 'Daily FT',
-    logo: 'https://logo.clearbit.com/ft.lk'
+    domain: 'ft.lk',
+    logo: 'https://www.google.com/s2/favicons?domain=ft.lk&sz=64'
   },
   'news.lk': {
     name: 'Government News Portal',
-    logo: 'https://logo.clearbit.com/news.lk'
+    domain: 'news.lk',
+    logo: 'https://www.google.com/s2/favicons?domain=news.lk&sz=64'
   },
   'slpa.lk': {
     name: 'Ports Authority Sri Lanka',
-    logo: 'https://logo.clearbit.com/slpa.lk'
+    domain: 'slpa.lk',
+    logo: 'https://www.google.com/s2/favicons?domain=slpa.lk&sz=64'
   },
   'rda.gov.lk': {
     name: 'Road Development Authority',
-    logo: 'https://logo.clearbit.com/rda.gov.lk'
+    domain: 'rda.gov.lk',
+    logo: 'https://www.google.com/s2/favicons?domain=rda.gov.lk&sz=64'
   },
   'fisheries.gov.lk': {
     name: 'Department of Fisheries',
-    logo: 'https://logo.clearbit.com/fisheries.gov.lk'
+    domain: 'fisheries.gov.lk',
+    logo: 'https://www.google.com/s2/favicons?domain=fisheries.gov.lk&sz=64'
   }
 };
 
@@ -83,6 +97,7 @@ const getSourceDetailsFromUrl = (url: string, rawSource: string): SourceDetails 
 
       return {
         name: cleanName || rawSource || 'Verified Source',
+        domain: hostname,
         logo: `https://www.google.com/s2/favicons?domain=${hostname}&sz=64`
       };
     } catch {
@@ -100,6 +115,7 @@ const getSourceDetailsFromUrl = (url: string, rawSource: string): SourceDetails 
 
   return {
     name: rawSource || 'Verified Source',
+    domain: 'lankadatahub.lk',
     logo: `https://www.google.com/s2/favicons?domain=lankadatahub.lk&sz=64`
   };
 };
@@ -460,9 +476,9 @@ export const SriLankaNewsPortal: React.FC = () => {
                         <img
                           src={sourceInfo.logo}
                           alt={sourceInfo.name}
-                          className="w-4 h-4 rounded-full object-cover bg-white/10 p-0.5 border border-slate-700/80 flex-shrink-0"
+                          className="w-4 h-4 rounded-sm object-contain bg-white/90 p-0.5 border border-slate-700/80 flex-shrink-0"
                           onError={(e) => {
-                            (e.target as HTMLImageElement).src = 'https://www.google.com/s2/favicons?domain=lankadatahub.lk&sz=64';
+                            (e.target as HTMLImageElement).src = `https://www.google.com/s2/favicons?domain=${sourceInfo.domain || 'lankadatahub.lk'}&sz=64`;
                           }}
                         />
                         <span className="text-[10px] font-black text-slate-200 truncate font-mono uppercase tracking-wider">
