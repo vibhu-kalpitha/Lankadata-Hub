@@ -22,6 +22,27 @@ export interface ApiEndpoint {
   }>;
 }
 
+export interface RegionalNewsData {
+  province: string;
+  total_articles: number;
+  economy_count: number;
+  politics_count: number;
+  crime_count: number;
+  general_count: number;
+}
+
+export interface NewsFeedItem {
+  id: number | string;
+  title: string;
+  source: string;
+  category: string;
+  province: string;
+  summary: string;
+  keywords: string[];
+  url: string;
+  created_at: string;
+}
+
 export interface PricingPlan {
   id: string;
   name: string;
@@ -210,6 +231,26 @@ export const apiService = {
     } catch (error) {
       console.warn('Using fallback todays stats data:', error);
       return null;
+    }
+  },
+
+  getRegionalNewsMapData: async (): Promise<RegionalNewsData[]> => {
+    try {
+      const response = await axios.get(`${FASTAPI_API_URL}/v1/news/regional-map`, { timeout: 8000 });
+      return response.data || [];
+    } catch (error) {
+      console.warn('Failed to fetch regional news map data:', error);
+      return [];
+    }
+  },
+
+  getLiveNewsFeed: async (): Promise<NewsFeedItem[]> => {
+    try {
+      const response = await axios.get(`${FASTAPI_API_URL}/v1/news/live-feed`, { timeout: 8000 });
+      return response.data || [];
+    } catch (error) {
+      console.warn('Failed to fetch live news feed:', error);
+      return [];
     }
   }
 };

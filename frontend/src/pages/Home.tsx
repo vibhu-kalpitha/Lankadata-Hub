@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 
 import { SriLankaMap } from '../components/SriLankaMap';
+import { SriLankaNewsPortal } from '../components/SriLankaNewsPortal';
 import { USDExchangeRateComparison } from '../components/USDExchangeRateComparison';
 import { fetchProvinces } from '../services/provinceService';
 import type { Province } from '../services/provinceService';
@@ -30,7 +31,6 @@ export const Home: React.FC = () => {
       if (data) setTodaysLiveData(data);
     });
 
-    // Fetch provinces from FastAPI → PostgreSQL
     fetchProvinces()
       .then(data => {
         setProvinces(data);
@@ -54,53 +54,49 @@ export const Home: React.FC = () => {
     <div className="flex-1 bg-lanka-bg grid-bg overflow-x-hidden">
 
       {/* ══════════════════════════════════════════════════
-          HERO HEADER SECTION (Clean Suitable Dark Design)
+          HERO HEADER & NEWS PORTAL DASHBOARD SECTION
       ══════════════════════════════════════════════════ */}
-      <section className="relative flex flex-col items-center justify-center px-6 pt-8 pb-8 md:pt-12 md:pb-10 overflow-hidden">
-        {/* Subtle, Clean Design Background */}
+      <section className="relative flex flex-col items-center justify-center px-4 pt-2 pb-6 md:pt-4 md:pb-8 overflow-hidden">
+        {/* Deep Dark Ambient Backdrop */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden select-none">
-          {/* Deep dark gradient backdrop */}
           <div className="absolute inset-0 bg-gradient-to-b from-[#020712] via-[#051328] to-[#040d1a]" />
-          
-          {/* Subtle Ambient Glows */}
           <div className="absolute top-1/3 left-1/4 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[140px]" />
           <div className="absolute bottom-1/3 right-1/4 w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[140px]" />
-
-          {/* Minimalist Grid Pattern */}
           <div className="absolute inset-0 grid-bg opacity-30" />
-
-          {/* Seamless gradient fade at bottom */}
           <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#040d1a] via-[#040d1a]/85 to-transparent pointer-events-none z-10" />
         </div>
 
         {/* Content container */}
-        <div className="relative z-20 max-w-7xl mx-auto w-full px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-            {/* LEFT SIDE: Left-aligned hero title & command search */}
-            <div className="lg:col-span-6 text-left space-y-4">
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight drop-shadow-[0_0_35px_rgba(255,255,255,0.35)]">
-                LankaData <span className="bg-gradient-to-r from-white via-slate-100 to-cyan-300 bg-clip-text text-transparent">Hub</span>
-              </h1>
+        <div className="relative z-20 max-w-7xl mx-auto w-full px-2 sm:px-4">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            
+            {/* LEFT SIDE (Hero Title + Subtitle + Search Bar) */}
+            <div className="lg:col-span-5 text-left space-y-4 my-auto">
+              <div className="space-y-2">
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-none drop-shadow-[0_0_35px_rgba(255,255,255,0.35)]">
+                  LankaData <span className="bg-gradient-to-r from-white via-slate-100 to-cyan-300 bg-clip-text text-transparent">Hub</span>
+                </h1>
 
-              <p className="text-sm sm:text-base text-lanka-muted max-w-lg leading-relaxed">
-                Sri Lanka's central platform for real-time national intelligence & open data core.
-              </p>
+                <p className="text-xs sm:text-sm text-lanka-muted leading-relaxed font-medium">
+                  Sri Lanka's central platform for real-time national intelligence & open data core.
+                </p>
+              </div>
 
-              {/* Search bar under LankaData Hub Title */}
-              <div className="w-full max-w-lg pt-2">
+              {/* Command Search Bar */}
+              <div className="w-full pt-1">
                 <form onSubmit={handleSearchSubmit} className="relative group">
-                  <div className="relative flex items-center bg-[#07182b]/95 hover:bg-[#07182b] border border-[#38bdf8]/40 hover:border-[#38bdf8]/80 rounded-full p-1.5 pl-5 pr-2 shadow-[0_0_30px_rgba(3,15,30,0.8)] backdrop-blur-md transition-all">
-                    <Search size={18} className="text-[#38bdf8] flex-shrink-0 mr-3" />
+                  <div className="relative flex items-center bg-[#07182b]/95 hover:bg-[#07182b] border border-[#38bdf8]/40 hover:border-[#38bdf8]/80 rounded-full p-2 pl-4 pr-2 shadow-[0_0_30px_rgba(3,15,30,0.8)] backdrop-blur-md transition-all">
+                    <Search size={16} className="text-[#38bdf8] flex-shrink-0 mr-2.5" />
                     <input
                       type="text"
                       placeholder="Search datasets, indicators..."
                       value={searchQuery}
                       onChange={e => setSearchQuery(e.target.value)}
-                      className="w-full bg-transparent text-xs sm:text-sm text-white placeholder-slate-400 focus:outline-none"
+                      className="w-full bg-transparent text-xs text-white placeholder-slate-400 focus:outline-none"
                     />
                     <button
                       type="submit"
-                      className="bg-[#13304d] hover:bg-[#1a4066] border border-[#38bdf8]/40 text-[#38bdf8] hover:text-white font-extrabold text-xs tracking-wider px-5 py-2.5 rounded-full transition-all uppercase shadow-[0_0_15px_rgba(56,189,248,0.2)]"
+                      className="bg-[#13304d] hover:bg-[#1a4066] border border-[#38bdf8]/40 text-[#38bdf8] hover:text-white font-extrabold text-[10px] tracking-wider px-4 py-2 rounded-full transition-all uppercase shadow-[0_0_15px_rgba(56,189,248,0.2)]"
                     >
                       SEARCH
                     </button>
@@ -109,17 +105,11 @@ export const Home: React.FC = () => {
               </div>
             </div>
 
-            {/* RIGHT SIDE: Edge-to-Edge 3D Sri Lanka Hologram Map Card */}
-            <div className="lg:col-span-6 relative">
-              <div className="relative rounded-3xl overflow-hidden border border-[#38bdf8]/35 shadow-[0_0_50px_rgba(56,189,248,0.25)] bg-[#040e1a] group w-full h-[260px] sm:h-[320px] lg:h-[340px]">
-                <img
-                  src="/srilanka-subtle-cyan.png"
-                  alt="Sri Lanka National Intelligence Hologram Core"
-                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#040c18] via-transparent to-transparent opacity-70 pointer-events-none" />
-              </div>
+            {/* RIGHT SIDE: Regional News Map + Live Feed Portal */}
+            <div className="lg:col-span-7">
+              <SriLankaNewsPortal />
             </div>
+
           </div>
         </div>
       </section>
@@ -468,7 +458,7 @@ export const Home: React.FC = () => {
               </div>
               <div className="flex justify-between items-center pt-3 border-t border-lanka-border">
                 <div className="flex gap-1.5">
-                  {d.formats.slice(0, 3).map((f, i) => (
+                  {d.formats.slice(0, 3).map((f: string, i: number) => (
                     <span key={i} className="text-[8px] font-black text-cyan-300 bg-cyan-500/10 border border-cyan-500/25 px-1.5 py-0.5 rounded uppercase">{f}</span>
                   ))}
                 </div>

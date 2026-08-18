@@ -1164,3 +1164,72 @@ def ingest_news(
             detail=str(e)
         )
 
+
+# ─── 1. QUERY: Fetch region activity counts strictly for Sri Lanka news ───────
+@app.get("/api/v1/news/regional-map", tags=["News Feed"])
+def get_sri_lanka_map_data(db: Session = Depends(get_db)):
+    """Fetch region activity counts from 'sri_lanka_news' table strictly for local news."""
+    query = text("""
+        SELECT
+          sln.province,
+          COUNT(sln.id) AS total_articles,
+          SUM(CASE WHEN sln.category ILIKE 'Economy' THEN 1 ELSE 0 END) AS economy_count,
+          SUM(CASE WHEN sln.category ILIKE 'Politics' THEN 1 ELSE 0 END) AS politics_count,
+          SUM(CASE WHEN sln.category ILIKE 'Crime & Law' OR sln.category ILIKE 'Crime' THEN 1 ELSE 0 END) AS crime_count,
+          SUM(CASE WHEN sln.category ILIKE 'General' THEN 1 ELSE 0 END) AS general_count
+        FROM sri_lanka_news sln
+        WHERE
+          sln.is_sri_lanka_related = true
+          AND sln.useful_for_sri_lankan_news = true
+          AND sln.province NOT IN ('National / Unspecified', 'International')
+          AND sln.province IS NOT NULL
+        GROUP BY sln.province
+    """)
+    try:
+        rows = db.execute(query).mappings().all()
+        return [dict(r) for r in rows]
+    except Exception as e:
+        db.rollback()
+        return []
+
+
+# ─── 2. QUERY: Fetch live news feed items for Sri Lanka ──────────────────────
+@app.get("/api/v1/news/live-feed", tags=["News Feed"])
+def get_sri_lanka_live_feed(db: Session = Depends(get_db)):
+    """Fetch live news feed items for Sri Lanka."""
+    query = text("""
+        SELECT
+          sln.id,
+          sln.title,
+          sln.source,
+          sln.category,
+          sln.province,
+          sln.summary,
+          sln.keywords,
+          sln.url,
+          sln.created_at
+        FROM sri_lanka_news sln
+        WHERE
+          sln.is_sri_lanka_related = true
+          AND sln.useful_for_sri_lankan_news = true
+        ORDER BY sln.created_at DESC
+        LIMIT 20
+    """)
+    try:
+        rows = db.execute(query).mappings().all()
+        res = []
+        for r in rows:
+            d = dict(r)
+            kw = d.get("keywords")
+            if isinstance(kw, str):
+                try:
+                    d["keywords"] = json.loads(kw)
+                except Exception:
+                    d["keywords"] = [k.strip() for k in kw.split(",") if k.strip()]
+            res.append(d)
+        return res
+    except Exception as e:
+        db.rollback()
+        return []
+
+
