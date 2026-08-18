@@ -84,9 +84,9 @@ export const Home: React.FC = () => {
 
               {/* Command Search Bar */}
               <div className="w-full pt-1">
-                <form onSubmit={handleSearchSubmit} className="relative group">
-                  <div className="relative flex items-center bg-[#07182b]/95 hover:bg-[#07182b] border border-[#38bdf8]/40 hover:border-[#38bdf8]/80 rounded-full p-2 pl-4 pr-2 shadow-[0_0_30px_rgba(3,15,30,0.8)] backdrop-blur-md transition-all">
-                    <Search size={16} className="text-[#38bdf8] flex-shrink-0 mr-2.5" />
+                <form onSubmit={handleSearchSubmit} className="relative group max-w-md">
+                  <div className="relative flex items-center bg-[#07182b]/95 hover:bg-[#07182b] border border-[#38bdf8]/40 hover:border-[#38bdf8]/80 rounded-full p-1.5 pl-3.5 pr-1.5 shadow-[0_0_25px_rgba(3,15,30,0.8)] backdrop-blur-md transition-all">
+                    <Search size={15} className="text-[#38bdf8] flex-shrink-0 mr-2" />
                     <input
                       type="text"
                       placeholder="Search datasets, indicators..."
@@ -96,7 +96,7 @@ export const Home: React.FC = () => {
                     />
                     <button
                       type="submit"
-                      className="bg-[#13304d] hover:bg-[#1a4066] border border-[#38bdf8]/40 text-[#38bdf8] hover:text-white font-extrabold text-[10px] tracking-wider px-4 py-2 rounded-full transition-all uppercase shadow-[0_0_15px_rgba(56,189,248,0.2)]"
+                      className="bg-[#13304d] hover:bg-[#1a4066] border border-[#38bdf8]/40 text-[#38bdf8] hover:text-white font-extrabold text-[9.5px] tracking-wider px-3.5 py-1.5 rounded-full transition-all uppercase shadow-[0_0_12px_rgba(56,189,248,0.2)]"
                     >
                       SEARCH
                     </button>

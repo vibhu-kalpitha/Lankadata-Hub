@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { MapPin, ExternalLink, RefreshCw, Filter, AlertCircle } from 'lucide-react';
+import { ExternalLink, RefreshCw, Filter, AlertCircle } from 'lucide-react';
 import { apiService, type RegionalNewsData, type NewsFeedItem } from '../services/apiService';
 import { srilankaDistricts, type DistrictMapFeature } from '../assets/srilankaDistrictsMapData';
 
@@ -247,11 +247,13 @@ export const SriLankaNewsPortal: React.FC = () => {
     return 'rgba(56, 189, 248, 0.18)';
   };
 
+  const effectiveFilter = hoveredDistrict ? hoveredDistrict.province : selectedProvinceFilter;
+
   const filteredFeed = useMemo(() => {
-    if (!selectedProvinceFilter) return liveFeed;
-    const filterLower = selectedProvinceFilter.toLowerCase();
+    if (!effectiveFilter) return liveFeed;
+    const filterLower = effectiveFilter.toLowerCase();
     return liveFeed.filter(item => (item.province || '').toLowerCase() === filterLower);
-  }, [liveFeed, selectedProvinceFilter]);
+  }, [liveFeed, effectiveFilter]);
 
   const hoveredProvinceData = useMemo(() => {
     if (!hoveredDistrict) return null;
@@ -319,16 +321,6 @@ export const SriLankaNewsPortal: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          {selectedProvinceFilter && (
-            <button
-              onClick={() => setSelectedProvinceFilter(null)}
-              className="text-[10px] font-bold text-cyan-400 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 px-2.5 py-0.5 rounded-full flex items-center gap-1 transition-all"
-            >
-              <Filter size={11} />
-              {selectedProvinceFilter} (Clear)
-            </button>
-          )}
-
           <button
             onClick={loadPortalData}
             disabled={loading}
@@ -340,25 +332,17 @@ export const SriLankaNewsPortal: React.FC = () => {
         </div>
       </div>
 
-      {/* 2/3 Width News Portal Grid (Map 65% | Live Feed 35%) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+      {/* News Portal Grid (Map 5/12 Width | Live Feed 7/12 Width) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
 
-        {/* ── MAP COMPONENT (65% Width / lg:col-span-7) ── */}
-        <div className="lg:col-span-7 bg-[#051326]/40 backdrop-blur-md border border-slate-800/70 rounded-2xl p-3 relative h-[365px] flex flex-col justify-between overflow-hidden shadow-lg hover:border-cyan-500/30 transition-all">
+        {/* ── MAP COMPONENT (5 Columns Width / lg:col-span-5) ── */}
+        <div className="lg:col-span-5 relative h-[460px] flex flex-col justify-center items-center py-2 overflow-visible">
           
-          <div className="flex justify-between items-center z-10 relative mb-1">
-            <div className="flex items-center gap-1.5 text-[11px] font-mono font-bold text-slate-400">
-              <MapPin size={13} className="text-[#00E5FF]" />
-              <span>REGIONAL HEATMAP (PROVINCE ACTIVITY)</span>
-            </div>
-            <span className="text-[9px] text-slate-500 font-mono">Hover details • Click filter</span>
-          </div>
-
-          {/* SVG Map Container */}
-          <div className="relative w-full flex justify-center items-center py-1 my-auto">
+          {/* SVG Map Rendered Cleanly without Activity Level Legend */}
+          <div className="relative w-full flex justify-center items-center my-auto">
             <svg
               viewBox="0 0 450 650"
-              className="w-full max-h-[250px] transition-transform duration-300 drop-shadow-[0_0_20px_rgba(0,229,255,0.2)]"
+              className="w-full max-h-[400px] transition-transform duration-300 drop-shadow-[0_0_25px_rgba(0,229,255,0.25)]"
             >
               <g className="cursor-pointer">
                 {srilankaDistricts.map(d => {
@@ -371,9 +355,13 @@ export const SriLankaNewsPortal: React.FC = () => {
                       key={d.id}
                       d={d.d}
                       fill={fillStyle}
-                      stroke={isHovered ? '#FFFFFF' : isSelected ? '#00E5FF' : 'rgba(0, 229, 255, 0.35)'}
-                      strokeWidth={isHovered ? 2.2 : isSelected ? 1.8 : 1.2}
-                      className="transition-all duration-200 outline-none hover:opacity-90"
+                      stroke={isHovered ? '#FFFFFF' : isSelected ? '#00E5FF' : 'rgba(0, 229, 255, 0.4)'}
+                      strokeWidth={isHovered ? 2.5 : isSelected ? 2.0 : 1.3}
+                      className={`transition-all duration-200 outline-none ${
+                        isHovered
+                          ? 'filter drop-shadow-[0_0_12px_#00E5FF] opacity-100 scale-[1.015]'
+                          : 'hover:opacity-95'
+                      }`}
                       onMouseEnter={e => handleMouseEnterDistrict(d, e)}
                       onMouseMove={handleMouseMoveDistrict}
                       onMouseLeave={handleMouseLeaveDistrict}
@@ -383,7 +371,7 @@ export const SriLankaNewsPortal: React.FC = () => {
                 })}
               </g>
 
-              {/* Pulsing Hotspot Marker Pins for Provinces with Active News */}
+              {/* Pulsing Hotspot Pins */}
               <g className="pointer-events-none">
                 {mapData.filter(m => m.total_articles > 0).map((m, idx) => {
                   const centroids: Record<string, { x: number; y: number }> = {
@@ -402,7 +390,7 @@ export const SriLankaNewsPortal: React.FC = () => {
 
                   return (
                     <g key={`pin-${idx}`} transform={`translate(${pos.x}, ${pos.y})`}>
-                      <circle r="8" fill="#00E5FF" opacity="0.35" className="animate-ping" />
+                      <circle r="8" fill="#00E5FF" opacity="0.4" className="animate-ping" />
                       <circle r="4" fill="#00E5FF" stroke="#FFFFFF" strokeWidth="1.2" />
                     </g>
                   );
@@ -410,42 +398,48 @@ export const SriLankaNewsPortal: React.FC = () => {
               </g>
             </svg>
           </div>
-
-          {/* Heatmap Legend */}
-          <div className="relative z-10 flex items-center justify-between bg-[#030a16]/90 border border-slate-800/80 rounded-xl p-2 text-[9px] text-slate-400">
-            <span className="font-mono font-bold uppercase text-slate-300">Activity Level:</span>
-            <div className="flex items-center gap-2.5">
-              <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-sm bg-[rgba(10,30,56,0.8)] border border-slate-700" /> 0
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-sm bg-[rgba(56,189,248,0.3)]" /> Low
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-sm bg-[rgba(14,165,233,0.6)]" /> Med
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-sm bg-[#00E5FF]" /> High
-              </span>
-            </div>
-          </div>
         </div>
 
 
-        {/* ── LIVE NEWS FEED LIST (35% Width / lg:col-span-5) ── */}
-        <div className="lg:col-span-5 bg-[#051326]/40 backdrop-blur-md border border-slate-800/70 rounded-2xl p-3 flex flex-col h-[365px] shadow-lg">
+        {/* ── EXPANDED LIVE NEWS FEED LIST (7 Columns Width / lg:col-span-7 with h-[460px]) ── */}
+        <div className="lg:col-span-7 bg-[#051326]/40 backdrop-blur-md border border-slate-800/70 rounded-2xl p-4 flex flex-col h-[460px] shadow-lg">
           
-          {/* Feed Header */}
+          {/* Feed Header with ALL Small Button & Province Filter indicator */}
           <div className="flex items-center justify-between pb-2.5 mb-2 border-b border-slate-800/80">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
               <span className="text-xs font-black text-white tracking-wider uppercase">
-                {selectedProvinceFilter ? `${selectedProvinceFilter} News` : 'Live News Stream'}
+                {effectiveFilter ? `${effectiveFilter} News` : 'Live Stream'}
               </span>
             </div>
-            <span className="text-[10px] font-mono text-slate-400 font-bold bg-slate-800/60 px-2 py-0.5 rounded-md">
-              {filteredFeed.length} Articles
-            </span>
+
+            <div className="flex items-center gap-1.5">
+              {/* ALL Button to show all news */}
+              <button
+                onClick={() => setSelectedProvinceFilter(null)}
+                className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border transition-all ${
+                  !selectedProvinceFilter
+                    ? 'bg-[#00E5FF] text-slate-950 border-[#00E5FF] shadow-[0_0_10px_rgba(0,229,255,0.4)]'
+                    : 'bg-slate-800/60 text-slate-300 border-slate-700 hover:text-white hover:border-slate-600'
+                }`}
+              >
+                ALL
+              </button>
+
+              {selectedProvinceFilter && (
+                <button
+                  onClick={() => setSelectedProvinceFilter(null)}
+                  className="text-[9px] font-bold text-cyan-400 bg-cyan-500/10 border border-cyan-500/30 px-2 py-0.5 rounded-full flex items-center gap-1"
+                >
+                  <Filter size={10} />
+                  {selectedProvinceFilter}
+                </button>
+              )}
+
+              <span className="text-[10px] font-mono text-slate-400 font-bold bg-slate-800/60 px-2 py-0.5 rounded-md">
+                {filteredFeed.length} Articles
+              </span>
+            </div>
           </div>
 
           {/* Scrollable Feed List */}
