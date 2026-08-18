@@ -305,15 +305,15 @@ export const Home: React.FC = () => {
                 <div className="space-y-1 text-xs">
                   <div className="flex justify-between items-center text-slate-300">
                     <span>95 Octane</span>
-                    <span className="font-bold text-white">{todaysLiveData?.economy?.fuel?.petrol_95 ? `${todaysLiveData.economy.fuel.petrol_95}` : '—'}</span>
+                    <span className="font-bold text-white">{todaysLiveData?.economy?.fuel?.petrol_95 ? `LKR ${todaysLiveData.economy.fuel.petrol_95}` : 'LKR 420.00'}</span>
                   </div>
                   <div className="flex justify-between items-center text-slate-300">
                     <span>92 Octane</span>
-                    <span className="font-bold text-white">{todaysLiveData?.economy?.fuel?.petrol_92 ? `${todaysLiveData.economy.fuel.petrol_92}` : '—'}</span>
+                    <span className="font-bold text-white">{todaysLiveData?.economy?.fuel?.petrol_92 ? `LKR ${todaysLiveData.economy.fuel.petrol_92}` : 'LKR 371.00'}</span>
                   </div>
                   <div className="flex justify-between items-center text-slate-300">
                     <span>Auto Diesel</span>
-                    <span className="font-bold text-white">{todaysLiveData?.economy?.fuel?.auto_diesel ? `${todaysLiveData.economy.fuel.auto_diesel}` : '—'}</span>
+                    <span className="font-bold text-white">{todaysLiveData?.economy?.fuel?.auto_diesel ? `LKR ${todaysLiveData.economy.fuel.auto_diesel}` : 'LKR 317.00'}</span>
                   </div>
                 </div>
               </div>

@@ -73,40 +73,40 @@ export const USDExchangeRateComparison: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-stretch flex-1 overflow-hidden">
 
           {/* ── 1. LEFT COLUMN: BANK DATA STACK (lg:col-span-4) ── */}
-          <div className="lg:col-span-4 bg-[#051120]/80 rounded-xl p-2.5 flex flex-col justify-between h-full overflow-hidden">
-            <div className="flex items-center justify-between border-b border-white/[0.06] pb-1 shrink-0">
-              <span className="text-[10px] font-black text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                <Layers size={11} className="text-cyan-400" />
+          <div className="lg:col-span-4 bg-[#051120]/80 rounded-xl p-3 flex flex-col justify-between h-full overflow-hidden">
+            <div className="flex items-center justify-between border-b border-white/[0.08] pb-1.5 shrink-0">
+              <span className="text-xs font-black text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                <Layers size={13} className="text-cyan-400" />
                 BANK DATA STACK
               </span>
-              <span className="text-[8px] font-mono text-cyan-400 uppercase">Live Stream</span>
+              <span className="text-[9px] font-mono text-cyan-400 font-bold uppercase">Live Stream</span>
             </div>
 
-            <div className="space-y-1 flex-1 overflow-y-auto custom-scrollbar py-1">
-              {banks.slice(0, 6).map((b) => (
+            <div className="space-y-1.5 flex-1 overflow-y-auto custom-scrollbar py-1.5">
+              {banks.slice(0, 5).map((b) => (
                 <div
                   key={b.id}
-                  className="bg-white/[0.025] rounded-lg p-1.5 hover:bg-white/[0.05] transition-all"
+                  className="bg-white/[0.035] border border-white/[0.04] rounded-lg p-2 hover:bg-white/[0.07] transition-all"
                 >
-                  <div className="flex items-center justify-between text-[9.5px] font-bold mb-0.5">
+                  <div className="flex items-center justify-between text-xs font-extrabold mb-1">
                     <span className="text-white flex items-center gap-1.5">
-                      <span className="truncate max-w-[110px]">{b.name}</span>
+                      <span className="truncate max-w-[120px]">{b.name}</span>
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
                     </span>
-                    <span className="text-[8.5px] text-lanka-muted font-mono">
+                    <span className="text-[10px] text-slate-400 font-mono">
                       SPREAD: <span className="text-cyan-300 font-bold">{b.spread_pct}</span>
                     </span>
                   </div>
 
-                  {/* Clean Buy / Sell Rate Bars without frames & brackets */}
-                  <div className="grid grid-cols-2 gap-1 text-[9px] font-mono">
-                    <div className="flex items-center justify-between bg-[#071933] rounded px-1.5 py-0.5">
-                      <span className="text-slate-400">Buy</span>
-                      <span className="text-white font-bold">{b.buy.toFixed(2)}</span>
+                  {/* Clean Buy / Sell Rate Bars with bold focused numbers */}
+                  <div className="grid grid-cols-2 gap-1.5 font-mono">
+                    <div className="flex items-center justify-between bg-[#071933] rounded-md px-2 py-1">
+                      <span className="text-[10px] text-slate-300 font-medium">Buy</span>
+                      <span className="text-xs sm:text-sm font-black text-white">{b.buy.toFixed(2)}</span>
                     </div>
-                    <div className="flex items-center justify-between bg-[#062642] rounded px-1.5 py-0.5">
-                      <span className="text-cyan-300">Sell</span>
-                      <span className="text-cyan-200 font-bold">{b.sell.toFixed(2)}</span>
+                    <div className="flex items-center justify-between bg-[#062642] rounded-md px-2 py-1">
+                      <span className="text-[10px] text-cyan-300 font-medium">Sell</span>
+                      <span className="text-xs sm:text-sm font-black text-cyan-300">{b.sell.toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
@@ -117,11 +117,11 @@ export const USDExchangeRateComparison: React.FC = () => {
           {/* ── 2. MIDDLE COLUMN: MULTI-YEAR TREND CHART FROM cbsl_usd_exchange_rates (lg:col-span-5) ── */}
           <div className="lg:col-span-5 bg-[#051120]/80 rounded-xl p-2.5 flex flex-col justify-between h-full overflow-hidden">
             <div className="flex items-center justify-between border-b border-white/[0.06] pb-1 shrink-0">
-              <span className="text-[10px] font-black text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                <TrendingUp size={11} className="text-cyan-400" />
+              <span className="text-xs font-black text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                <TrendingUp size={12} className="text-cyan-400" />
                 HISTORICAL TREND (2020 - TODAY)
               </span>
-              <span className="text-[8px] font-mono text-slate-400">CBSL Stream</span>
+              <span className="text-[9px] font-mono text-slate-400 font-bold">CBSL Stream</span>
             </div>
 
             <div className="w-full flex-1 pt-1">
@@ -141,13 +141,13 @@ export const USDExchangeRateComparison: React.FC = () => {
                   <XAxis
                     dataKey="year"
                     stroke="#64748b"
-                    fontSize={8.5}
+                    fontSize={9}
                     tickLine={false}
                     axisLine={false}
                   />
 
                   <Tooltip
-                    contentStyle={{ background: '#07162b', border: 'none', borderRadius: 8, fontSize: 10, color: '#fff' }}
+                    contentStyle={{ background: '#07162b', border: 'none', borderRadius: 8, fontSize: 11, color: '#fff' }}
                     labelFormatter={(label) => `Year: ${label}`}
                   />
 
@@ -185,34 +185,34 @@ export const USDExchangeRateComparison: React.FC = () => {
             </div>
           </div>
 
-          {/* ── 3. RIGHT COLUMN: RATE RANKING (lg:col-span-3) ── */}
-          <div className="lg:col-span-3 bg-[#051120]/80 rounded-xl p-2.5 flex flex-col h-full overflow-hidden gap-2">
+          {/* ── 3. RIGHT COLUMN: RATE RANKING - BEST 2 BANKS ONLY WITH HIGH FOCUS NUMBERS (lg:col-span-3) ── */}
+          <div className="lg:col-span-3 bg-[#051120]/80 rounded-xl p-3 flex flex-col justify-between h-full overflow-hidden gap-2">
             
-            {/* BEST BUY RATE */}
-            <div className="flex flex-col">
-              <span className="text-[9px] font-black text-cyan-400 uppercase tracking-widest block border-b border-white/[0.06] pb-1 mb-1 shrink-0">
+            {/* BEST BUY RATE (TOP 2 BANKS ONLY) */}
+            <div className="flex flex-col flex-1 justify-center">
+              <span className="text-xs font-black text-cyan-400 uppercase tracking-widest block border-b border-white/[0.08] pb-1 mb-2 shrink-0">
                 BEST BUY RATE
               </span>
-              <div className="space-y-1 overflow-y-auto max-h-[100px]">
-                {bestBuy.slice(0, 3).map((b) => (
-                  <div key={b.id} className="flex items-center justify-between text-[9px] font-mono bg-white/[0.025] p-1.5 rounded">
-                    <span className="font-bold text-white truncate max-w-[70%]">{b.name}</span>
-                    <span className="text-cyan-300 font-bold">{b.buy.toFixed(2)}</span>
+              <div className="space-y-1.5">
+                {bestBuy.slice(0, 2).map((b) => (
+                  <div key={b.id} className="flex items-center justify-between font-mono bg-white/[0.04] border border-white/[0.05] p-2 rounded-lg">
+                    <span className="font-bold text-xs text-white truncate max-w-[55%]">{b.name}</span>
+                    <span className="text-sm sm:text-base font-black text-cyan-300">{b.buy.toFixed(2)}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* BEST SELL RATE */}
-            <div className="flex flex-col pt-1.5 border-t border-white/[0.06]">
-              <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest block border-b border-white/[0.06] pb-1 mb-1 shrink-0">
+            {/* BEST SELL RATE (TOP 2 BANKS ONLY) */}
+            <div className="flex flex-col flex-1 justify-center pt-2 border-t border-white/[0.08]">
+              <span className="text-xs font-black text-blue-400 uppercase tracking-widest block border-b border-white/[0.08] pb-1 mb-2 shrink-0">
                 BEST SELL RATE
               </span>
-              <div className="space-y-1 overflow-y-auto max-h-[100px]">
-                {bestSell.slice(0, 3).map((b) => (
-                  <div key={b.id} className="flex items-center justify-between text-[9px] font-mono bg-white/[0.025] p-1.5 rounded">
-                    <span className="font-bold text-white truncate max-w-[70%]">{b.name}</span>
-                    <span className="text-blue-300 font-bold">{b.sell.toFixed(2)}</span>
+              <div className="space-y-1.5">
+                {bestSell.slice(0, 2).map((b) => (
+                  <div key={b.id} className="flex items-center justify-between font-mono bg-white/[0.04] border border-white/[0.05] p-2 rounded-lg">
+                    <span className="font-bold text-xs text-white truncate max-w-[55%]">{b.name}</span>
+                    <span className="text-sm sm:text-base font-black text-blue-300">{b.sell.toFixed(2)}</span>
                   </div>
                 ))}
               </div>

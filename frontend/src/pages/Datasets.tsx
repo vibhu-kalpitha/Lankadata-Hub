@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { Search, SlidersHorizontal, ArrowUpDown, ChevronLeft, ChevronRight, Database, X } from 'lucide-react';
 import { datasetService } from '../services/datasetService';
 import type { Dataset, Category } from '../services/datasetService';
@@ -16,6 +16,7 @@ const categoryColors: Record<string, string> = {
 };
 
 export const Datasets: React.FC = () => {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -166,14 +167,15 @@ export const Datasets: React.FC = () => {
                 const color = catColor(d.category.toLowerCase());
                 return (
                   <div key={d.id}
-                    className="group relative bg-gradient-to-br from-[#060f1e] to-[#040b16] border border-lanka-border hover:border-lanka-border-hover rounded-2xl p-5 flex flex-col justify-between min-h-[260px] transition-all hover:scale-[1.01] hover:shadow-[0_0_30px_rgba(37,99,235,0.12)] overflow-hidden">
+                    onClick={() => navigate(`/datasets/${d.id}`)}
+                    className="group relative bg-gradient-to-br from-[#060f1e] to-[#040b16] border border-lanka-border hover:border-cyan-500/40 rounded-2xl p-5 flex flex-col justify-between min-h-[260px] transition-all hover:scale-[1.01] hover:shadow-[0_0_30px_rgba(37,99,235,0.2)] cursor-pointer overflow-hidden">
                     <div className="absolute bottom-0 right-0 w-28 h-28 bg-blue-600/5 group-hover:bg-blue-600/10 rounded-full blur-2xl transition-colors pointer-events-none" />
                     <div>
                       <div className="flex justify-between items-start mb-2">
                         <span className={`text-[9px] font-black bg-gradient-to-r ${color} border px-2.5 py-0.5 rounded-full uppercase tracking-wider`}>{d.category}</span>
                         {d.live && <span className="flex items-center gap-1 text-[9px] font-bold text-teal-400"><span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-ping" />LIVE</span>}
                       </div>
-                      <h3 className="text-sm font-black text-white leading-tight mb-1">{d.title}</h3>
+                      <h3 className="text-sm font-black text-white leading-tight mb-1 group-hover:text-cyan-300 transition-colors">{d.title}</h3>
                       <p className="text-[11px] text-lanka-muted line-clamp-2 leading-relaxed mb-3">{d.description}</p>
                     </div>
 
@@ -192,9 +194,9 @@ export const Datasets: React.FC = () => {
                             <span key={i} className="text-[8px] font-black text-cyan-300 bg-cyan-500/10 border border-cyan-500/25 px-1.5 py-0.5 rounded uppercase">{f}</span>
                           ))}
                         </div>
-                        <Link to={`/datasets/${d.id}`} className="text-[11px] font-bold text-cyan-400 hover:text-white flex items-center gap-1 transition-colors">
+                        <span className="text-[11px] font-bold text-cyan-400 group-hover:text-white flex items-center gap-1 transition-colors">
                           View Data <ChevronRight size={12} className="group-hover:translate-x-0.5 transition-transform" />
-                        </Link>
+                        </span>
                       </div>
                     </div>
                   </div>
