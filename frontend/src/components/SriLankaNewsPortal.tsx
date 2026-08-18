@@ -3,42 +3,105 @@ import { MapPin, ExternalLink, RefreshCw, Filter, AlertCircle } from 'lucide-rea
 import { apiService, type RegionalNewsData, type NewsFeedItem } from '../services/apiService';
 import { srilankaDistricts, type DistrictMapFeature } from '../assets/srilankaDistrictsMapData';
 
-const REAL_NEWS_SOURCE_LOGOS: Record<string, string> = {
-  'hiru news': 'https://www.hirunews.lk/assets/images/hirunews-logo.png',
-  'hiru': 'https://www.hirunews.lk/assets/images/hirunews-logo.png',
-  'ada derana': 'https://logo.clearbit.com/adaderana.lk',
-  'derana': 'https://logo.clearbit.com/adaderana.lk',
-  'daily mirror': 'https://logo.clearbit.com/dailymirror.lk',
-  'central bank of sri lanka': 'https://logo.clearbit.com/cbsl.gov.lk',
-  'cbsl': 'https://logo.clearbit.com/cbsl.gov.lk',
-  'news first': 'https://logo.clearbit.com/newsfirst.lk',
-  'sirasa': 'https://logo.clearbit.com/newsfirst.lk',
-  'the morning': 'https://logo.clearbit.com/themorning.lk',
-  'lankadeepa': 'https://logo.clearbit.com/lankadeepa.lk',
-  'ports authority sri lanka': 'https://logo.clearbit.com/slpa.lk',
-  'sri lanka ports authority': 'https://logo.clearbit.com/slpa.lk',
-  'road development authority': 'https://logo.clearbit.com/rda.gov.lk',
-  'department of fisheries': 'https://logo.clearbit.com/fisheries.gov.lk'
+interface SourceDetails {
+  name: string;
+  logo: string;
+}
+
+const MEDIA_DOMAIN_MAP: Record<string, { name: string; logo: string }> = {
+  'hirunews.lk': {
+    name: 'Hiru News',
+    logo: 'https://www.hirunews.lk/assets/images/hirunews-logo.png'
+  },
+  'adaderana.lk': {
+    name: 'Ada Derana',
+    logo: 'https://logo.clearbit.com/adaderana.lk'
+  },
+  'dailymirror.lk': {
+    name: 'Daily Mirror',
+    logo: 'https://logo.clearbit.com/dailymirror.lk'
+  },
+  'cbsl.gov.lk': {
+    name: 'Central Bank of Sri Lanka',
+    logo: 'https://logo.clearbit.com/cbsl.gov.lk'
+  },
+  'newsfirst.lk': {
+    name: 'News First',
+    logo: 'https://logo.clearbit.com/newsfirst.lk'
+  },
+  'themorning.lk': {
+    name: 'The Morning',
+    logo: 'https://logo.clearbit.com/themorning.lk'
+  },
+  'lankadeepa.lk': {
+    name: 'Lankadeepa',
+    logo: 'https://logo.clearbit.com/lankadeepa.lk'
+  },
+  'island.lk': {
+    name: 'The Island',
+    logo: 'https://logo.clearbit.com/island.lk'
+  },
+  'ft.lk': {
+    name: 'Daily FT',
+    logo: 'https://logo.clearbit.com/ft.lk'
+  },
+  'news.lk': {
+    name: 'Government News Portal',
+    logo: 'https://logo.clearbit.com/news.lk'
+  },
+  'slpa.lk': {
+    name: 'Ports Authority Sri Lanka',
+    logo: 'https://logo.clearbit.com/slpa.lk'
+  },
+  'rda.gov.lk': {
+    name: 'Road Development Authority',
+    logo: 'https://logo.clearbit.com/rda.gov.lk'
+  },
+  'fisheries.gov.lk': {
+    name: 'Department of Fisheries',
+    logo: 'https://logo.clearbit.com/fisheries.gov.lk'
+  }
 };
 
-const getSourceLogoUrl = (sourceName: string, articleUrl: string): string => {
-  if (!sourceName) return 'https://www.google.com/s2/favicons?domain=lankadatahub.lk&sz=64';
-  const nameLower = sourceName.toLowerCase().trim();
-  
-  for (const [key, logo] of Object.entries(REAL_NEWS_SOURCE_LOGOS)) {
-    if (nameLower.includes(key)) return logo;
-  }
-
-  if (articleUrl) {
+const getSourceDetailsFromUrl = (url: string, rawSource: string): SourceDetails => {
+  if (url) {
     try {
-      const domain = new URL(articleUrl).hostname;
-      return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+      const hostname = new URL(url).hostname.toLowerCase().replace(/^www\./, '');
+      
+      // 1. Check known domain map
+      for (const [domainKey, details] of Object.entries(MEDIA_DOMAIN_MAP)) {
+        if (hostname.includes(domainKey)) {
+          return details;
+        }
+      }
+
+      // 2. Format custom domain name (e.g. "colombogazette.com" -> "Colombo Gazette")
+      const cleanName = hostname
+        .split('.')[0]
+        .replace(/[-_]/g, ' ')
+        .replace(/\b\w/g, char => char.toUpperCase());
+
+      return {
+        name: cleanName || rawSource || 'Verified Source',
+        logo: `https://www.google.com/s2/favicons?domain=${hostname}&sz=64`
+      };
     } catch {
       // fallback
     }
   }
 
-  return `https://www.google.com/s2/favicons?domain=${nameLower.replace(/\s+/g, '')}.lk&sz=64`;
+  // 3. Check rawSource if URL fails
+  const rawLower = (rawSource || '').toLowerCase();
+  for (const [domainKey, details] of Object.entries(MEDIA_DOMAIN_MAP)) {
+    if (rawLower.includes(details.name.toLowerCase()) || rawLower.includes(domainKey.split('.')[0])) {
+      return details;
+    }
+  }
+
+  return {
+    name: rawSource || 'Verified Source',
+    logo: `https://www.google.com/s2/favicons?domain=lankadatahub.lk&sz=64`
+  };
 };
 
 const FALLBACK_MAP_DATA: RegionalNewsData[] = [
@@ -383,26 +446,29 @@ export const SriLankaNewsPortal: React.FC = () => {
                 </button>
               </div>
             ) : (
-              filteredFeed.map((item, idx) => (
-                <div
-                  key={item.id || idx}
-                  className="bg-slate-900/35 backdrop-blur-sm border border-slate-800/60 hover:border-cyan-500/40 hover:bg-slate-900/50 rounded-xl p-3 space-y-2 transition-all duration-200 group shadow-sm"
-                >
-                  {/* TOP BAR: News Source Logo & Name (LEFT) | Category Badge & Time (RIGHT) */}
-                  <div className="flex items-center justify-between gap-2 pb-1.5 border-b border-slate-800/40">
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <img
-                        src={getSourceLogoUrl(item.source, item.url)}
-                        alt={item.source}
-                        className="w-4 h-4 rounded-full object-cover bg-white/10 p-0.5 border border-slate-700/80 flex-shrink-0"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = 'https://www.google.com/s2/favicons?domain=lankadatahub.lk&sz=64';
-                        }}
-                      />
-                      <span className="text-[10px] font-black text-slate-200 truncate font-mono uppercase tracking-wider">
-                        {item.source || 'Verified Source'}
-                      </span>
-                    </div>
+              filteredFeed.map((item, idx) => {
+                const sourceInfo = getSourceDetailsFromUrl(item.url, item.source);
+
+                return (
+                  <div
+                    key={item.id || idx}
+                    className="bg-slate-900/35 backdrop-blur-sm border border-slate-800/60 hover:border-cyan-500/40 hover:bg-slate-900/50 rounded-xl p-3 space-y-2 transition-all duration-200 group shadow-sm"
+                  >
+                    {/* TOP BAR: News Source Logo & Name (LEFT) | Category Badge & Time (RIGHT) */}
+                    <div className="flex items-center justify-between gap-2 pb-1.5 border-b border-slate-800/40">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <img
+                          src={sourceInfo.logo}
+                          alt={sourceInfo.name}
+                          className="w-4 h-4 rounded-full object-cover bg-white/10 p-0.5 border border-slate-700/80 flex-shrink-0"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = 'https://www.google.com/s2/favicons?domain=lankadatahub.lk&sz=64';
+                          }}
+                        />
+                        <span className="text-[10px] font-black text-slate-200 truncate font-mono uppercase tracking-wider">
+                          {sourceInfo.name}
+                        </span>
+                      </div>
 
                     <div className="flex items-center gap-1.5 flex-shrink-0 text-[9px] font-mono font-bold">
                       <span className={`px-1.5 py-0.5 rounded uppercase tracking-wider ${
@@ -455,8 +521,9 @@ export const SriLankaNewsPortal: React.FC = () => {
                     )}
                   </div>
                 </div>
-              ))
-            )}
+              );
+            })
+          )}
           </div>
         </div>
       </div>
