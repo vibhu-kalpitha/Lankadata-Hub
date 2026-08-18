@@ -336,13 +336,13 @@ export const SriLankaNewsPortal: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
 
         {/* ── MAP COMPONENT (5 Columns Width / lg:col-span-5) ── */}
-        <div className="lg:col-span-5 relative h-[460px] flex flex-col justify-center items-center py-2 overflow-visible">
+        <div className="lg:col-span-5 relative h-[360px] flex flex-col justify-center items-center py-1 overflow-visible">
           
           {/* SVG Map Rendered Cleanly without Activity Level Legend */}
           <div className="relative w-full flex justify-center items-center my-auto">
             <svg
               viewBox="0 0 450 650"
-              className="w-full max-h-[400px] transition-transform duration-300 drop-shadow-[0_0_25px_rgba(0,229,255,0.25)]"
+              className="w-full max-h-[320px] transition-transform duration-300 drop-shadow-[0_0_20px_rgba(0,229,255,0.25)]"
             >
               <g className="cursor-pointer">
                 {srilankaDistricts.map(d => {
@@ -401,8 +401,8 @@ export const SriLankaNewsPortal: React.FC = () => {
         </div>
 
 
-        {/* ── EXPANDED LIVE NEWS FEED LIST (7 Columns Width / lg:col-span-7 with h-[460px]) ── */}
-        <div className="lg:col-span-7 bg-[#051326]/40 backdrop-blur-md border border-slate-800/70 rounded-2xl p-4 flex flex-col h-[460px] shadow-lg">
+        {/* ── LIVE NEWS FEED LIST (7 Columns Width / lg:col-span-7 with Compact h-[360px]) ── */}
+        <div className="lg:col-span-7 bg-[#051326]/40 backdrop-blur-md border border-slate-800/70 rounded-2xl p-3 flex flex-col h-[360px] shadow-lg">
           
           {/* Feed Header with ALL Small Button & Province Filter indicator */}
           <div className="flex items-center justify-between pb-2.5 mb-2 border-b border-slate-800/80">
