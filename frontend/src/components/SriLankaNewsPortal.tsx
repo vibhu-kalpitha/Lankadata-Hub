@@ -255,6 +255,31 @@ export const SriLankaNewsPortal: React.FC = () => {
     return liveFeed.filter(item => (item.province || '').toLowerCase() === filterLower);
   }, [liveFeed, effectiveFilter]);
 
+  const getCategoryPriority = (category: string): number => {
+    if (!category) return 3;
+    const cat = category.toLowerCase();
+    if (cat.includes('crime') || cat.includes('law')) return 1;
+    if (cat.includes('politi')) return 2;
+    return 3;
+  };
+
+  const sortedFeed = useMemo(() => {
+    const list = [...filteredFeed];
+
+    return list.sort((a, b) => {
+      const prioA = getCategoryPriority(a.category);
+      const prioB = getCategoryPriority(b.category);
+
+      if (prioA !== prioB) {
+        return prioA - prioB; // Priority 1 (Crime & Law), then Priority 2 (Politics), then Priority 3 (Others)
+      }
+
+      const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return timeB - timeA;
+    });
+  }, [filteredFeed]);
+
   const hoveredProvinceData = useMemo(() => {
     if (!hoveredDistrict) return null;
     const provName = hoveredDistrict.province;
@@ -437,14 +462,14 @@ export const SriLankaNewsPortal: React.FC = () => {
               )}
 
               <span className="text-[10px] font-mono text-slate-400 font-bold bg-slate-800/60 px-2 py-0.5 rounded-md">
-                {filteredFeed.length} Articles
+                {sortedFeed.length} Articles
               </span>
             </div>
           </div>
 
-          {/* Scrollable Feed List */}
+          {/* Scrollable Feed List (Prioritizes Crime & Law -> Politics -> Others) */}
           <div className="flex-1 overflow-y-auto space-y-2.5 pr-1.5 custom-scrollbar">
-            {filteredFeed.length === 0 ? (
+            {sortedFeed.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center p-6 text-slate-400">
                 <AlertCircle size={28} className="text-slate-600 mb-2" />
                 <p className="text-xs font-medium">No live news articles for {selectedProvinceFilter || 'this filter'}.</p>
@@ -456,7 +481,7 @@ export const SriLankaNewsPortal: React.FC = () => {
                 </button>
               </div>
             ) : (
-              filteredFeed.map((item, idx) => {
+              sortedFeed.map((item, idx) => {
                 const sourceInfo = getSourceDetailsFromUrl(item.url, item.source);
 
                 return (

@@ -113,7 +113,6 @@ services:
   # ── Mage AI ────────────────────────────────────────
   mage:
     image: mageai/mageai:latest
-
     container_name: lankadata_mage
     restart: unless-stopped
 
@@ -122,9 +121,9 @@ services:
 
     environment:
       MAGE_DATABASE_CONNECTION_URL: postgresql://postgres:postgres@postgres:5432/lankadata_hub
+      USER_CODE_PATH: /home/src/default_repo
 
     volumes:
-      # NEW LOCATION
       - /mnt/data/lankadatahub/mage:/home/src
 
     depends_on:
