@@ -121,8 +121,12 @@ services:
 
     environment:
       MAGE_DATABASE_CONNECTION_URL: postgresql://postgres:postgres@postgres:5432/lankadata_hub
+      MAGE_DATA_DIR: /home/src/mage_data
 
     volumes:
+      # IMPORTANT:
+      # The actual Mage project is default_repo.
+      # Mount default_repo itself as /home/src.
       - /mnt/data/lankadatahub/mage/default_repo:/home/src
 
     depends_on:
