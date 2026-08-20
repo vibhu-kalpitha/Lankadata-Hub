@@ -124,10 +124,8 @@ services:
       MAGE_DATA_DIR: /home/src/mage_data
 
     volumes:
-      # IMPORTANT:
-      # The actual Mage project is default_repo.
-      # Mount default_repo itself as /home/src.
-      - /mnt/data/lankadatahub/mage/default_repo:/home/src
+      # Mount the MAGE DIRECTORY, NOT default_repo itself.
+      - /mnt/data/lankadatahub/mage:/home/src
 
     depends_on:
       postgres:
