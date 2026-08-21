@@ -1336,8 +1336,11 @@ def get_sri_lanka_live_feed(db: Session = Depends(get_db)):
         WHERE
           sln.is_sri_lanka_related = true
           AND sln.useful_for_sri_lankan_news = true
+          AND (
+            sln.created_at >= NOW() - INTERVAL '2 days'
+            OR sln.created_at IS NULL
+          )
         ORDER BY sln.created_at DESC
-        LIMIT 20
     """)
     try:
         rows = db.execute(query).mappings().all()
