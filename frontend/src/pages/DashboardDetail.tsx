@@ -42,6 +42,20 @@ export const DashboardDetail: React.FC = () => {
     dashboardService.getDashboardById(targetId).then((res: DashboardDetailType | null) => {
       if (res) {
         setDashboard(res);
+      } else if (targetId.includes('ceb') || targetId.includes('energy')) {
+        setDashboard({
+          id: 'ceb-power-grid',
+          title: 'CEB National Energy & Power Grid Intelligence Dashboard',
+          description: 'Real-time Ceylon Electricity Board (CEB) daily energy generation mix, peak demand, major hydro reservoirs storage levels, and evening night peak load breakdown telemetry.',
+          category: 'Infrastructure',
+          author: 'Ceylon Electricity Board / LankaData Hub',
+          live: true,
+          featured: true,
+          views: 18920,
+          updatedAt: '2026-08-20',
+          embed_url: 'https://dashboard.lankadatahub.com/public/dashboard/927ffac5-2852-4bb3-a4df-3e43e932dbaa',
+          apiEndpoint: '/api/v1/todays-sri-lanka-stats'
+        });
       } else {
         // Fallback metadata for USD Exchange Rates dashboard if API returns null
         setDashboard({
@@ -54,6 +68,7 @@ export const DashboardDetail: React.FC = () => {
           featured: true,
           views: 14250,
           updatedAt: '2026-08-10',
+          embed_url: 'https://dashboard.lankadatahub.com/public/dashboard/344702c1-4246-4e01-a9b5-b870adbbe5bc',
           apiEndpoint: '/api/v1/todays-sri-lanka-stats'
         });
       }

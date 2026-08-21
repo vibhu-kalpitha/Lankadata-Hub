@@ -252,5 +252,15 @@ export const apiService = {
       console.warn('Failed to fetch live news feed:', error);
       return [];
     }
+  },
+
+  getCebPowerGridStats: async (): Promise<any> => {
+    try {
+      const response = await axios.get(`${FASTAPI_API_URL}/v1/ceb-power-grid-stats`, { timeout: 8000 });
+      return response.data;
+    } catch (error) {
+      console.warn('Failed to fetch CEB power grid stats:', error);
+      return null;
+    }
   }
 };

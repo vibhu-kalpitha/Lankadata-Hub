@@ -133,60 +133,73 @@ const FALLBACK_MAP_DATA: RegionalNewsData[] = [
 ];
 
 const FALLBACK_LIVE_FEED: NewsFeedItem[] = [
+  // ── TODAY'S NEWS ──
   {
     id: 1,
-    title: 'Central Bank of Sri Lanka Holds Key Policy Interest Rates Constant in August Review',
-    source: 'Central Bank of Sri Lanka',
-    category: 'Economy',
+    title: 'Hiru News Special: Police Special Task Force Intercepts Illicit Financial Telemetry Syndicate in Colombo',
+    source: 'Hiru News',
+    category: 'Crime & Law',
     province: 'Western',
-    summary: 'The Monetary Board of the Central Bank maintained policy rates to preserve single-digit inflation targets and foster macro financial stability.',
-    keywords: ['CBSL', 'Economy', 'Monetary Policy', 'Inflation'],
-    url: 'https://www.cbsl.gov.lk',
-    created_at: new Date(Date.now() - 1000 * 60 * 25).toISOString()
+    summary: 'Law enforcement task force executes synchronized operations across Western Province uncovering illicit financial networks.',
+    keywords: ['Hiru News', 'Police', 'Crime & Law', 'Law Enforcement'],
+    url: 'https://www.hirunews.lk',
+    created_at: new Date(Date.now() - 1000 * 60 * 30).toISOString() // 30m ago (Today)
   },
   {
     id: 2,
-    title: 'Hiru News Alert: Cabinet Approves National Digital Infrastructure Telemetry Framework',
-    source: 'Hiru News',
+    title: 'Ada Derana Alert: Cabinet Approves National Digital Open Data Governance Framework',
+    source: 'Ada Derana',
     category: 'Politics',
     province: 'Western',
     summary: 'Government cabinet approves national open data governance framework to modernize public service telemetry infrastructure.',
-    keywords: ['Hiru News', 'Cabinet', 'Digital Infrastructure', 'Governance'],
-    url: 'https://www.hirunews.lk',
-    created_at: new Date(Date.now() - 1000 * 60 * 65).toISOString()
+    keywords: ['Ada Derana', 'Cabinet', 'Digital Infrastructure', 'Governance'],
+    url: 'https://www.adaderana.lk',
+    created_at: new Date(Date.now() - 1000 * 60 * 120).toISOString() // 2h ago (Today)
   },
   {
     id: 3,
-    title: 'Ada Derana: Treasury Yields Decline Following High Investor Demand in Bond Auction',
-    source: 'Ada Derana',
+    title: 'Central Bank of Sri Lanka Holds Key Policy Interest Rates Constant in Monetary Review',
+    source: 'Central Bank of Sri Lanka',
     category: 'Economy',
     province: 'Western',
-    summary: 'Strong investor demand pushes treasury bill yield rates lower across primary debt market auctions.',
-    keywords: ['Ada Derana', 'Treasury', 'Bonds', 'Economy'],
-    url: 'https://www.adaderana.lk',
-    created_at: new Date(Date.now() - 1000 * 60 * 140).toISOString()
+    summary: 'The Monetary Board of the Central Bank maintained policy rates to preserve single-digit inflation targets.',
+    keywords: ['CBSL', 'Economy', 'Monetary Policy', 'Inflation'],
+    url: 'https://www.cbsl.gov.lk',
+    created_at: new Date(Date.now() - 1000 * 60 * 240).toISOString() // 4h ago (Today)
   },
+  // ── YESTERDAY'S NEWS ──
   {
     id: 4,
-    title: 'Daily Mirror: Colombo West International Terminal Expansion Crosses 85% Milestone',
+    title: 'Daily Mirror Report: Southern Provincial Police Dismantle Illegal Cyber-Laundering Ring in Galle',
     source: 'Daily Mirror',
-    category: 'General',
-    province: 'Western',
-    summary: 'Deep-water terminal expansion in Colombo harbor advances ahead of scheduled commercial operations.',
-    keywords: ['Daily Mirror', 'Colombo Port', 'Infrastructure', 'Maritime'],
+    category: 'Crime & Law',
+    province: 'Southern',
+    summary: 'Provincial law enforcement officers apprehend key suspects involved in regional cyber fraud telemetry.',
+    keywords: ['Daily Mirror', 'Galle', 'Police', 'Crime & Law'],
     url: 'https://www.dailymirror.lk',
-    created_at: new Date(Date.now() - 1000 * 60 * 210).toISOString()
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 26).toISOString() // 26h ago (Yesterday)
   },
   {
     id: 5,
-    title: 'News First: Northern Coastal Fisheries Cooperatives Launch Real-time Telemetry',
+    title: 'News First: Parliamentary Select Committee Convenes National Energy Telemetry Public Hearing',
     source: 'News First',
-    category: 'Economy',
-    province: 'Northern',
-    summary: 'Marine cooperatives across Jaffna coastal harbors integrate solar cold-storage telemetry to elevate seafood exports.',
-    keywords: ['News First', 'Jaffna', 'Northern Province', 'Fisheries'],
+    category: 'Politics',
+    province: 'Western',
+    summary: 'Parliamentary oversight panel reviews Ceylon Electricity Board grid modernization and storage telemetry.',
+    keywords: ['News First', 'Parliament', 'CEB', 'Politics'],
     url: 'https://www.newsfirst.lk',
-    created_at: new Date(Date.now() - 1000 * 60 * 380).toISOString()
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 30).toISOString() // 30h ago (Yesterday)
+  },
+  {
+    id: 6,
+    title: 'Daily FT: Treasury Bill Yields Decline Following Record High Investor Demand in Primary Auction',
+    source: 'Daily FT',
+    category: 'Economy',
+    province: 'Western',
+    summary: 'Strong institutional investor demand pushes treasury bill yield rates lower across debt market auctions.',
+    keywords: ['Daily FT', 'Treasury', 'Bonds', 'Economy'],
+    url: 'https://www.ft.lk',
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 34).toISOString() // 34h ago (Yesterday)
   }
 ];
 
@@ -263,17 +276,45 @@ export const SriLankaNewsPortal: React.FC = () => {
     return 3;
   };
 
-  const sortedFeed = useMemo(() => {
-    const list = [...filteredFeed];
+  const getDayBucket = (dateStr: string, nowMs: number): number => {
+    if (!dateStr) return 0;
+    const dMs = new Date(dateStr).getTime();
+    if (isNaN(dMs)) return 0;
+    const diffMs = Math.max(0, nowMs - dMs);
+    return Math.floor(diffMs / (24 * 60 * 60 * 1000)); // 0 = Today, 1 = Yesterday
+  };
 
-    return list.sort((a, b) => {
+  const sortedFeed = useMemo(() => {
+    const nowMs = Date.now();
+    const TWO_DAYS_MS = 2 * 24 * 60 * 60 * 1000;
+
+    // 1. Filter articles from the last 2 days (48 hours)
+    const last2DaysFeed = filteredFeed.filter(item => {
+      if (!item.created_at) return true;
+      const itemMs = new Date(item.created_at).getTime();
+      if (isNaN(itemMs)) return true;
+      return (nowMs - itemMs) <= TWO_DAYS_MS;
+    });
+
+    // 2. Sort by: Day Bucket ASC (Today -> Yesterday) -> Category Priority ASC (Crime -> Politics -> Others) -> Timestamp DESC
+    return last2DaysFeed.sort((a, b) => {
+      const bucketA = getDayBucket(a.created_at, nowMs);
+      const bucketB = getDayBucket(b.created_at, nowMs);
+
+      // 1st Priority: Date Hierarchy (Today first, Yesterday second)
+      if (bucketA !== bucketB) {
+        return bucketA - bucketB;
+      }
+
+      // 2nd Priority: Category Hierarchy within the same day (1: Crime & Law, 2: Politics, 3: Others)
       const prioA = getCategoryPriority(a.category);
       const prioB = getCategoryPriority(b.category);
 
       if (prioA !== prioB) {
-        return prioA - prioB; // Priority 1 (Crime & Law), then Priority 2 (Politics), then Priority 3 (Others)
+        return prioA - prioB;
       }
 
+      // 3rd Priority: Timestamp DESC (Newest first within same category)
       const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
       const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
       return timeB - timeA;
@@ -339,9 +380,6 @@ export const SriLankaNewsPortal: React.FC = () => {
           <span className="w-1.5 h-4 bg-gradient-to-b from-[#00E5FF] to-cyan-500 rounded-full" />
           <h3 className="text-sm font-black text-white tracking-wider uppercase flex items-center gap-2">
             SRI LANKA REGIONAL NEWS INTELLIGENCE
-            <span className="text-[9px] font-mono font-bold bg-[#00E5FF]/15 text-[#00E5FF] border border-[#00E5FF]/30 px-2 py-0.5 rounded-full tracking-widest uppercase">
-              LIVE STREAM
-            </span>
           </h3>
         </div>
 

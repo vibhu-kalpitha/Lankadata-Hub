@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
-  Zap, ArrowRight, TrendingUp, TrendingDown, Globe,
+  Zap, ArrowRight, TrendingUp, TrendingDown,
   CloudRain, MapPin, Building2, RefreshCw, Search
 } from 'lucide-react';
 
@@ -18,6 +18,7 @@ export const Home: React.FC = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [todaysLiveData, setTodaysLiveData] = useState<any>(null);
+  const [cebPowerStats, setCebPowerStats] = useState<any>(null);
   const [latestDatasets, setLatestDatasets] = useState<Dataset[]>([]);
   const [provinces, setProvinces] = useState<Province[]>([]);
   const [selectedProvince, setSelectedProvince] = useState<Province | null>(null);
@@ -29,6 +30,10 @@ export const Home: React.FC = () => {
 
     apiService.getTodaysSriLankaStats().then(data => {
       if (data) setTodaysLiveData(data);
+    });
+
+    apiService.getCebPowerGridStats().then(data => {
+      if (data) setCebPowerStats(data);
     });
 
     fetchProvinces()
@@ -204,7 +209,7 @@ export const Home: React.FC = () => {
 
 
           {/* ── DEV BOX 2: ECONOMY & MARKETS ── */}
-          <div className="relative rounded-3xl overflow-hidden border border-emerald-500/35 bg-[#040e1e]/90 p-6 flex flex-col justify-between shadow-[0_0_30px_rgba(74,222,128,0.15)] min-h-[460px] group transition-all duration-300 hover:border-emerald-400/60">
+          <div className="relative rounded-3xl overflow-hidden border border-cyan-500/35 bg-[#040e1e]/90 p-6 flex flex-col justify-between shadow-[0_0_30px_rgba(0,229,255,0.15)] min-h-[460px] group transition-all duration-300 hover:border-cyan-400/60">
             {/* Background Backdrop Image with Rich Visible Opacity */}
             <div 
               className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-50 transition-opacity duration-500 pointer-events-none"
@@ -215,31 +220,31 @@ export const Home: React.FC = () => {
             <div className="relative z-10 space-y-4">
               {/* Header Tag */}
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-emerald-400 font-extrabold text-xs uppercase tracking-widest">
-                  <Building2 size={16} className="text-emerald-400" />
+                <div className="flex items-center gap-2 text-cyan-400 font-extrabold text-xs uppercase tracking-widest">
+                  <Building2 size={16} className="text-cyan-400" />
                   <span>ECONOMY & MARKETS</span>
                 </div>
-                <RefreshCw size={12} className="text-emerald-400/60 animate-spin" />
+                <RefreshCw size={12} className="text-cyan-400/60 animate-spin" />
               </div>
 
               {/* Forex Section (cbsl_usd_exchange_rates) */}
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-[9px] font-mono font-bold text-emerald-300/70 tracking-widest uppercase">FOREX (USD/LKR)</span>
-                  <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-md">
+                  <span className="text-[9px] font-mono font-bold text-cyan-300/70 tracking-widest uppercase">FOREX (USD/LKR)</span>
+                  <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-cyan-300 bg-cyan-500/15 border border-cyan-500/30 px-2 py-0.5 rounded-md">
                     {todaysLiveData?.economy?.forex?.trend === 'down' ? <TrendingDown size={10} /> : <TrendingUp size={10} />}
                     {todaysLiveData?.economy?.forex?.change || '+0.02%'}
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 bg-[#051424]/80 border border-emerald-500/20 rounded-xl p-2.5 my-1.5">
+                <div className="grid grid-cols-2 gap-2 bg-[#051424]/80 border border-cyan-500/20 rounded-xl p-2.5 my-1.5">
                   <div>
                     <span className="text-[8px] font-mono text-slate-400 uppercase tracking-wider block">BUYING RATE</span>
                     <span className="text-base font-black text-white">{todaysLiveData?.economy?.forex?.buy || '301.50'}</span>
                   </div>
                   <div>
                     <span className="text-[8px] font-mono text-slate-400 uppercase tracking-wider block">SELLING RATE</span>
-                    <span className="text-base font-black text-white">{todaysLiveData?.economy?.forex?.sell || '306.80'}</span>
+                    <span className="text-base font-black text-cyan-300">{todaysLiveData?.economy?.forex?.sell || '306.80'}</span>
                   </div>
                 </div>
 
@@ -249,8 +254,8 @@ export const Home: React.FC = () => {
               </div>
 
               {/* Stock Market Section (colombo_stock_market_live) */}
-              <div className="pt-3 border-t border-emerald-500/15">
-                <span className="text-[9px] font-mono font-bold text-emerald-300/70 tracking-widest uppercase block mb-1.5">STOCK MARKET</span>
+              <div className="pt-3 border-t border-cyan-500/15">
+                <span className="text-[9px] font-mono font-bold text-cyan-300/70 tracking-widest uppercase block mb-1.5">STOCK MARKET</span>
 
                 <div className="grid grid-cols-2 gap-3 mb-2.5">
                   {/* ASPI */}
@@ -260,7 +265,7 @@ export const Home: React.FC = () => {
                     </span>
                     <div className="flex items-center gap-1.5">
                       <span className="text-xl font-black text-white">{todaysLiveData?.economy?.stock?.value || '21,370.1'}</span>
-                      <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 rounded">
+                      <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-cyan-300 bg-cyan-500/15 border border-cyan-500/30 px-1.5 py-0.5 rounded">
                         {todaysLiveData?.economy?.stock?.trend === 'down' ? <TrendingDown size={9} /> : <TrendingUp size={9} />}
                         {todaysLiveData?.economy?.stock?.change || '+1.5%'}
                       </span>
@@ -268,13 +273,13 @@ export const Home: React.FC = () => {
                   </div>
 
                   {/* S&P SL20 */}
-                  <div className="border-l border-emerald-500/15 pl-3">
+                  <div className="border-l border-cyan-500/15 pl-3">
                     <span className="text-[8px] font-mono font-bold text-slate-400 uppercase tracking-widest block mb-0.5">
                       S&P SL20
                     </span>
                     <div className="flex items-center gap-1.5">
                       <span className="text-xl font-black text-white">{todaysLiveData?.economy?.stock?.sp_sl20_value || '3,120.5'}</span>
-                      <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 rounded">
+                      <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-cyan-300 bg-cyan-500/15 border border-cyan-500/30 px-1.5 py-0.5 rounded">
                         {todaysLiveData?.economy?.stock?.sp_sl20_trend === 'down' ? <TrendingDown size={9} /> : <TrendingUp size={9} />}
                         {todaysLiveData?.economy?.stock?.sp_sl20_change || '+0.8%'}
                       </span>
@@ -283,7 +288,7 @@ export const Home: React.FC = () => {
                 </div>
                 
                 {/* Micro Telemetry Stats for Stock Market */}
-                <div className="grid grid-cols-3 gap-1 bg-[#051424]/80 border border-emerald-500/20 rounded-xl p-2 text-[9px] font-mono">
+                <div className="grid grid-cols-3 gap-1 bg-[#051424]/80 border border-cyan-500/20 rounded-xl p-2 text-[9px] font-mono">
                   <div>
                     <span className="text-slate-400 block text-[8px] uppercase">TURNOVER</span>
                     <span className="text-white font-bold">{todaysLiveData?.economy?.stock?.turnover_lkr || '2.4B LKR'}</span>
@@ -300,8 +305,8 @@ export const Home: React.FC = () => {
               </div>
 
               {/* Fuel Section (fuel_prices table) */}
-              <div className="pt-3 border-t border-emerald-500/15">
-                <span className="text-[9px] font-mono font-bold text-emerald-300/70 tracking-widest uppercase block mb-1.5">FUEL (LKR/L)</span>
+              <div className="pt-3 border-t border-cyan-500/15">
+                <span className="text-[9px] font-mono font-bold text-cyan-300/70 tracking-widest uppercase block mb-1.5">FUEL (LKR/L)</span>
                 <div className="space-y-1 text-xs">
                   <div className="flex justify-between items-center text-slate-300">
                     <span>95 Octane</span>
@@ -321,64 +326,97 @@ export const Home: React.FC = () => {
           </div>
 
 
-          {/* ── DEV BOX 3: INFRASTRUCTURE ── */}
-          <div className="relative rounded-3xl overflow-hidden border border-rose-500/35 bg-[#040e1e]/90 p-6 flex flex-col justify-between shadow-[0_0_30px_rgba(244,63,94,0.15)] min-h-[460px] group transition-all duration-300 hover:border-rose-400/60">
-            {/* Background Backdrop Image with Rich Visible Opacity */}
+          {/* ── DEV BOX 3: CEB NATIONAL POWER GRID ── */}
+          <div className="relative rounded-3xl overflow-hidden border border-sky-500/35 bg-[#040e1e]/90 p-6 flex flex-col justify-between shadow-[0_0_30px_rgba(56,189,248,0.15)] min-h-[460px] group transition-all duration-300 hover:border-sky-400/60">
+            {/* Background Backdrop Image */}
             <div 
               className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-50 transition-opacity duration-500 pointer-events-none"
               style={{ backgroundImage: `url('/infrastructure-bg.png')` }} 
             />
             <div className="absolute inset-0 bg-gradient-to-b from-[#040e1e]/60 via-[#040e1e]/80 to-[#040e1e] pointer-events-none" />
 
-            <div className="relative z-10 space-y-5">
+            <div className="relative z-10 space-y-4">
               {/* Header Tag */}
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-rose-400 font-extrabold text-xs uppercase tracking-widest">
-                  <Globe size={16} className="text-rose-400" />
-                  <span>INFRASTRUCTURE</span>
+                <div className="flex items-center gap-2 text-sky-400 font-extrabold text-xs uppercase tracking-widest">
+                  <Zap size={16} className="text-sky-400" />
+                  <span>CEB NATIONAL POWER GRID</span>
                 </div>
-                <Zap size={14} className="text-rose-400 animate-pulse" />
+                <span className="text-[9px] font-mono font-bold text-sky-300 bg-sky-500/15 border border-sky-500/30 px-2 py-0.5 rounded-full">
+                  LIVE TELEMETRY
+                </span>
               </div>
 
-              {/* Power Status */}
+              {/* Peak Demand & Generation */}
               <div>
-                <span className="text-[9px] font-mono font-bold text-rose-300/70 tracking-widest uppercase block mb-1">POWER STATUS</span>
-                <div className="text-4xl font-black text-white mb-2">{todaysLiveData?.infrastructure?.power?.value || '100%'}</div>
-                <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden mb-1.5">
-                  <div className="h-full bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full w-full" />
+                <span className="text-[9px] font-mono font-bold text-sky-300/70 tracking-widest uppercase block mb-1">
+                  CURRENT PEAK DEMAND & GENERATION
+                </span>
+                <div className="grid grid-cols-2 gap-2 bg-[#051424]/80 border border-sky-500/20 rounded-xl p-2.5 my-1">
+                  <div>
+                    <span className="text-[8px] font-mono text-slate-400 uppercase tracking-wider block">PEAK DEMAND</span>
+                    <span className="text-base font-black text-sky-300 font-mono">
+                      {cebPowerStats?.summary?.current_peak_demand_mw ? `${cebPowerStats.summary.current_peak_demand_mw} MW` : '2,925.8 MW'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[8px] font-mono text-slate-400 uppercase tracking-wider block">TOTAL GENERATION</span>
+                    <span className="text-base font-black text-[#00E5FF] font-mono">
+                      {cebPowerStats?.summary?.total_daily_generation_gwh ? `${cebPowerStats.summary.total_daily_generation_gwh} GWh` : '57.29 GWh'}
+                    </span>
+                  </div>
                 </div>
                 <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest block">
-                  {todaysLiveData?.infrastructure?.power?.status || 'Grid stability: High'}
+                  Grid Frequency: <span className="text-cyan-300 font-bold">{cebPowerStats?.summary?.grid_frequency_hz || '50.02'} Hz (Optimal)</span>
                 </span>
               </div>
 
-              {/* Public Health */}
-              <div className="pt-4 border-t border-rose-500/15">
-                <span className="text-[9px] font-mono font-bold text-rose-300/70 tracking-widest uppercase block mb-1">PUBLIC HEALTH</span>
-                <div className="flex items-center gap-2.5">
-                  <span className="text-3xl font-black text-white">{todaysLiveData?.infrastructure?.health?.value || '1,245'}</span>
-                  <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-rose-400 bg-rose-500/15 border border-rose-500/30 px-2 py-0.5 rounded-md">
-                    <TrendingDown size={10} />
-                    {todaysLiveData?.infrastructure?.health?.change || '-0.2%'}
+              {/* Major Reservoirs Water Level & Storage */}
+              <div className="pt-3 border-t border-sky-500/15">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-[9px] font-mono font-bold text-sky-300/70 tracking-widest uppercase">
+                    MAJOR HYDRO RESERVOIRS (WATER LEVEL)
+                  </span>
+                  <span className="text-[9px] font-mono font-black text-[#00E5FF]">
+                    AVG: {cebPowerStats?.summary?.avg_hydro_storage_pct || '78.4'}%
                   </span>
                 </div>
-                <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest block mt-0.5">
-                  {todaysLiveData?.infrastructure?.health?.label || 'Weekly Hospitalizations'}
-                </span>
+
+                <div className="space-y-1.5 text-xs">
+                  {((cebPowerStats?.major_reservoirs && cebPowerStats.major_reservoirs.length > 0)
+                    ? cebPowerStats.major_reservoirs.slice(0, 3)
+                    : [
+                        { reservoir: 'Randenigala', water_level_m: 234.5, storage_pct: 85.0 },
+                        { reservoir: 'Samanalawewa', water_level_m: 452.1, storage_pct: 81.0 },
+                        { reservoir: 'Victoria', water_level_m: 431.8, storage_pct: 72.0 }
+                      ]
+                  ).map((r: any, idx: number) => (
+                    <div key={idx} className="bg-[#051424]/80 border border-white/[0.04] p-1.5 rounded-lg">
+                      <div className="flex justify-between items-center text-[10px] font-bold">
+                        <span className="text-white">{r.reservoir}</span>
+                        <div className="flex items-center gap-2 font-mono">
+                          <span className="text-slate-300">{r.water_level_m}m</span>
+                          <span className="text-cyan-300 font-black">{r.storage_pct}%</span>
+                        </div>
+                      </div>
+                      <div className="w-full h-1 bg-slate-800 rounded-full mt-1 overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full"
+                          style={{ width: `${r.storage_pct}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              {/* Tourism */}
-              <div className="pt-4 border-t border-rose-500/15">
-                <span className="text-[9px] font-mono font-bold text-rose-300/70 tracking-widest uppercase block mb-1">TOURISM</span>
-                <div className="flex items-center gap-2.5">
-                  <span className="text-3xl font-black text-white">{todaysLiveData?.infrastructure?.tourism?.value || '4,820'}</span>
-                  <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-md">
-                    <TrendingUp size={10} />
-                    {todaysLiveData?.infrastructure?.tourism?.change || '+2.4%'}
-                  </span>
-                </div>
-                <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest block mt-0.5">
-                  {todaysLiveData?.infrastructure?.tourism?.label || 'Daily Arrivals'}
+              {/* Night Peak Load */}
+              <div className="pt-3 border-t border-sky-500/15 flex justify-between items-center">
+                <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest">
+                  NIGHT PEAK COMPLEX LOAD
+                </span>
+                <span className="text-xs font-mono font-black text-sky-300">
+                  2,840.5 MW
                 </span>
               </div>
             </div>
