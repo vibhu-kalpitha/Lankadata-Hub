@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
 
-  # ── PostgreSQL Database ────────────────────────────
+  # ── PostgreSQL Database ─────────────────────────────
   postgres:
     image: postgres:16-alpine
     container_name: lankadata_postgres
@@ -17,7 +17,6 @@ services:
       - "5432:5432"
 
     volumes:
-      # NEW LOCATION
       - /mnt/data/lankadatahub/postgres:/var/lib/postgresql/data
 
     networks:
@@ -30,7 +29,7 @@ services:
       retries: 5
 
 
-  # ── Backend Service ────────────────────────────────
+  # ── Backend ──────────────────────────────────────────
   backend:
     build:
       context: ./backend
@@ -46,6 +45,7 @@ services:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/lankadata_hub
       CORS_ORIGINS: "http://localhost,http://localhost:80,http://localhost:5173,http://localhost:3000"
       API_SECRET_TOKEN: "ldh_secret_7385b02f3201f0768ca721dfc6bac192ba8098326491f0215b42efb07b138199"
+
     env_file:
       - ./backend/.env
 
@@ -57,8 +57,7 @@ services:
       - lankadata_net
 
 
-
-  # ── FastAPI Service ────────────────────────────────
+  # ── FastAPI ──────────────────────────────────────────
   fastapi:
     build:
       context: ./fastapi
@@ -74,13 +73,13 @@ services:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/lankadata_hub
       CORS_ORIGINS: "http://localhost,http://localhost:80,http://localhost:5173,http://localhost:3000"
       API_SECRET_TOKEN: "ldh_secret_7385b02f3201f0768ca721dfc6bac192ba8098326491f0215b42efb07b138199"
+
     env_file:
       - ./fastapi/.env
 
     depends_on:
       postgres:
         condition: service_healthy
-
       backend:
         condition: service_started
 
@@ -88,8 +87,7 @@ services:
       - lankadata_net
 
 
-
-  # ── React Frontend ─────────────────────────────────
+  # ── React Frontend ──────────────────────────────────
   frontend:
     build:
       context: ./frontend
@@ -109,8 +107,7 @@ services:
       - lankadata_net
 
 
-
-  # ── Mage AI ────────────────────────────────────────
+  # ── Mage AI ─────────────────────────────────────────
   mage:
     image: mageai/mageai:latest
     container_name: lankadata_mage
@@ -124,7 +121,12 @@ services:
       MAGE_DATA_DIR: /home/src/mage_data
 
     volumes:
-      # Mount the MAGE DIRECTORY, NOT default_repo itself.
+      # IMPORTANT:
+      # /mnt/data/lankadatahub/mage contains default_repo.
+      #
+      # Therefore inside the container:
+      # /home/src/default_repo = actual Mage project
+      #
       - /mnt/data/lankadatahub/mage:/home/src
 
     depends_on:
@@ -135,11 +137,9 @@ services:
       - lankadata_net
 
 
-
-  # ── Metabase ───────────────────────────────────────
+  # ── Metabase ────────────────────────────────────────
   metabase:
     image: metabase/metabase:latest
-
     container_name: lankadata_metabase
     restart: unless-stopped
 
@@ -153,12 +153,12 @@ services:
       MB_DB_USER: postgres
       MB_DB_PASS: postgres
       MB_DB_HOST: postgres
+
       MB_ENABLE_EMBEDDING: "true"
       MB_EMBEDDING_HEADER_XFRAME_OPTIONS: "ALLOWALL"
       MB_EMBEDDING_HEADER_CSP: "frame-ancestors 'self' https://lankadatahub.com https://*.lankadatahub.com http://localhost:* http://127.0.0.1:*"
 
     volumes:
-      # NEW LOCATION
       - /mnt/data/lankadatahub/metabase:/metabase.db
 
     depends_on:
@@ -167,7 +167,6 @@ services:
 
     networks:
       - lankadata_net
-
 
 
 networks:
