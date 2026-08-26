@@ -135,3 +135,47 @@ class Province(Base):
     districts_included = Column(Text, nullable=False)  # comma-separated list
     data_source = Column(String(200), nullable=True)
     last_updated = Column(Date, nullable=True)
+
+
+class MetroMostConnectCity(Base):
+    """Most connected cities table for Metro Bus Analysis."""
+    __tablename__ = "metro_most_connect_cities"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    city_hub = Column(String(150), nullable=True)
+    routes_serving_it = Column(String(50), nullable=True)
+    primary_destinations = Column(Text, nullable=True)
+    major_connections = Column(Text, nullable=True)
+    total_stops = Column(String(50), nullable=True)
+
+
+class MetroBus(Base):
+    """Metro Bus routes table for Metro Bus Analysis."""
+    __tablename__ = "metro_bus"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    route_code = Column(String(50), nullable=True)
+    route_name = Column(String(200), nullable=True)
+    origin_terminal = Column(String(100), nullable=True)
+    destination_terminal = Column(String(100), nullable=True)
+    category = Column(String(100), nullable=True)
+    distance_km = Column(String(50), nullable=True)
+    approx_duration = Column(String(50), nullable=True)
+    total_stops = Column(Integer, nullable=True)
+    stops_sequence = Column(Text, nullable=True)
+    departure_schedules = Column(Text, nullable=True)
+    service_notes = Column(Text, nullable=True)
+    contact_number = Column(String(50), nullable=True)
+    data_source = Column(String(100), nullable=True)
+    pipeline_date = Column(Date, nullable=True)
+    last_updated_date = Column(DateTime(timezone=True), nullable=True)
+
+
+class MetroTotal(Base):
+    """Metro Bus totals summary table for Metro Bus Analysis."""
+    __tablename__ = "metro_total"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    network_metric = Column(String(150), nullable=True)
+    total_count = Column(String(50), nullable=True)
+    key_locations_and_details = Column(Text, nullable=True)

@@ -19,6 +19,7 @@ const CategoryDetail = lazy(() => import('./pages/CategoryDetail'));
 const AboutSriLanka = lazy(() => import('./pages/AboutSriLanka'));
 const AboutHub = lazy(() => import('./pages/AboutHub'));
 const Contact = lazy(() => import('./pages/Contact'));
+const MetroAnalysis = lazy(() => import('./pages/MetroAnalysis'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Shimmer page loading skeleton
@@ -57,6 +58,8 @@ export const App: React.FC = () => {
               <Route path="/about-srilanka" element={<AboutSriLanka />} />
               <Route path="/about" element={<AboutHub />} />
               <Route path="/contact" element={<Contact />} />
+              <Route path="/metro-analysis" element={<MetroAnalysis />} />
+              <Route path="/metro" element={<MetroAnalysis />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               

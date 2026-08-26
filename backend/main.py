@@ -1233,3 +1233,44 @@ def get_sri_lanka_live_feed(db: Session = Depends(get_db)):
         return []
 
 
+# ─── Metro Bus Analysis API Endpoints ────────────────────────────────────────
+
+@app.get("/api/v1/metro/totals", tags=["Metro Bus Analysis"])
+@app.get("/api/metro/totals", tags=["Metro Bus Analysis"])
+def get_metro_totals(db: Session = Depends(get_db)):
+    """Fetch Metro Bus summary totals from metro_total table."""
+    try:
+        rows = db.execute(text("SELECT id, network_metric, total_count, key_locations_and_details FROM metro_total ORDER BY id ASC")).mappings().all()
+        if rows:
+            return [dict(r) for r in rows]
+    except Exception:
+        db.rollback()
+    return []
+
+
+@app.get("/api/v1/metro/connected-cities", tags=["Metro Bus Analysis"])
+@app.get("/api/metro/connected-cities", tags=["Metro Bus Analysis"])
+def get_metro_connected_cities(db: Session = Depends(get_db)):
+    """Fetch connected cities analysis from metro_most_connect_cities table."""
+    try:
+        rows = db.execute(text("SELECT id, city_hub, routes_serving_it, primary_destinations, major_connections, total_stops FROM metro_most_connect_cities ORDER BY id ASC")).mappings().all()
+        if rows:
+            return [dict(r) for r in rows]
+    except Exception:
+        db.rollback()
+    return []
+
+
+@app.get("/api/v1/metro/buses", tags=["Metro Bus Analysis"])
+@app.get("/api/metro/buses", tags=["Metro Bus Analysis"])
+def get_metro_buses(db: Session = Depends(get_db)):
+    """Fetch Metro Bus route information from metro_bus table."""
+    try:
+        rows = db.execute(text("SELECT id, route_code, route_name, origin_terminal, destination_terminal, category, distance_km, approx_duration, total_stops, stops_sequence, departure_schedules, service_notes, contact_number, data_source FROM metro_bus ORDER BY id ASC")).mappings().all()
+        if rows:
+            return [dict(r) for r in rows]
+    except Exception:
+        db.rollback()
+    return []
+
+
