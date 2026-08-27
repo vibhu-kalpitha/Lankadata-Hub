@@ -12,7 +12,7 @@
 
 .metro-hero {
   border-bottom: 1px solid #20262f;
-  padding: 35px 6vw 50px;
+  padding: 10px 6vw 35px;
 }
 
 .metro-hero-grid {
@@ -27,9 +27,10 @@
 .metro-label,
 .metro-eyebrow {
   color: #00d2ff;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 2px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
 }
 
 .metro-hero h1 {
@@ -215,22 +216,101 @@
   border: 1px solid #252c35;
   background: #0d1218;
   padding: 12px;
-  border-radius: 4px;
+  border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  position: relative;
 }
 
 .metro-definition-image img {
   width: 100%;
   height: 380px;
-  object-fit: cover;
+  object-fit: contain;
+  background: #080c11;
   display: block;
-  border-radius: 2px;
+  border-radius: 4px;
   transition: transform 0.3s ease;
 }
 
 .metro-definition-image:hover img {
   transform: scale(1.02);
+}
+
+.metro-image-badge {
+  margin-top: 10px;
+  padding: 4px 6px;
+}
+
+.metro-image-badge span {
+  font-size: 10px;
+  font-weight: 700;
+  color: #00d2ff;
+  letter-spacing: 1.5px;
+  display: block;
+}
+
+.metro-image-badge p {
+  font-size: 12px;
+  color: #8c97a5;
+  margin: 2px 0 0;
+}
+
+/* ─── METRO MAP FULLSCREEN MODAL ─────────────────────────────────────────── */
+
+.metro-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(4, 7, 11, 0.92);
+  backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+}
+
+.metro-modal-content {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  background: #0d1218;
+  border: 1px solid #252c35;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.metro-modal-content img {
+  max-width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 6px;
+}
+
+.metro-modal-close {
+  align-self: flex-end;
+  background: #1c232b;
+  border: 1px solid #334155;
+  color: #00d2ff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 12px;
+  transition: all 0.2s ease;
+}
+
+.metro-modal-close:hover {
+  background: #00d2ff;
+  color: #04070b;
 }
 
 .metro-stats-section {
@@ -389,20 +469,178 @@
 }
 
 .traffic-step h3 {
-  margin: 25px 0 10px;
+  margin: 12px 0 8px;
   font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
 }
 
 .traffic-step p {
   color: #8d98a5;
-  font-size: 14px;
-  line-height: 1.7;
+  font-size: 13.5px;
+  line-height: 1.65;
+  margin: 0;
 }
 
-.traffic-arrow {
-  align-self: center;
-  color: #667280;
-  font-size: 22px;
+.traffic-main-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 36px;
+  align-items: center;
+}
+
+.traffic-flow-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.traffic-image-column {
+  display: flex;
+  justify-content: center;
+}
+
+.traffic-image-card {
+  border: 1px solid #252c35;
+  background: #0d1218;
+  padding: 12px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  position: relative;
+  width: 100%;
+}
+
+.traffic-image-card img {
+  width: 100%;
+  height: 380px;
+  object-fit: cover;
+  display: block;
+  border-radius: 6px;
+  transition: transform 0.3s ease;
+}
+
+.traffic-image-card:hover img {
+  transform: scale(1.02);
+}
+
+.traffic-image-caption {
+  margin-top: 12px;
+  padding: 4px 6px;
+}
+
+.traffic-image-caption span {
+  font-size: 10px;
+  font-weight: 700;
+  color: #00d2ff;
+  letter-spacing: 1.5px;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.traffic-image-caption p {
+  font-size: 12.5px;
+  color: #8c97a5;
+  margin: 0;
+}
+
+/* ─── SECTION 04 OPERATIONAL METRICS VISUAL GRID ───────────────────────────── */
+
+.metro-metrics-container {
+  margin-top: 45px;
+  background: #0d1218;
+  border: 1px solid #252c35;
+  border-radius: 8px;
+  padding: 32px;
+}
+
+.metrics-heading {
+  font-size: 11px;
+  font-weight: 700;
+  color: #00d2ff;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.metrics-card-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+}
+
+.metric-visual-card {
+  background: #080c11;
+  border: 1px solid #1c232b;
+  padding: 20px 16px;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.metric-visual-val {
+  font-size: 26px;
+  font-weight: 800;
+  color: #00d2ff;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.metric-visual-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 6px;
+}
+
+.metric-visual-desc {
+  font-size: 11px;
+  color: #8c97a5;
+  line-height: 1.45;
+}
+
+/* ─── SECTION 05 RIDE EXPERIENCE FEATURE CARDS ───────────────────────────── */
+
+.ride-features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.ride-feature-card {
+  background: #0d1218;
+  border: 1px solid #252c35;
+  padding: 28px;
+  border-radius: 8px;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.ride-feature-card:hover {
+  border-color: #00d2ff;
+  transform: translateY(-2px);
+}
+
+.feature-number {
+  font-size: 11px;
+  font-weight: 700;
+  color: #00d2ff;
+  font-family: monospace;
+  margin-bottom: 14px;
+}
+
+.ride-feature-card h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 12px;
+}
+
+.ride-feature-card p {
+  font-size: 13.5px;
+  color: #8c97a5;
+  line-height: 1.7;
+  margin: 0;
 }
 
 .connectivity-layout {
@@ -453,21 +691,36 @@
   font-size: 12px;
 }
 
+.connected-stop-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 480px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
 .connected-stop-detail {
-  padding: 55px;
+  padding: 30px;
   background: #0d1218;
+  border: 1px solid #252c35;
+  border-radius: 8px;
+  max-height: 480px;
+  overflow-y: auto;
 }
 
 .detail-label {
   color: #74808e;
   font-size: 10px;
   letter-spacing: 1.5px;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
 .connected-stop-detail h3 {
-  font-size: 45px;
-  margin: 15px 0 50px;
-  letter-spacing: -2px;
+  font-size: 24px;
+  margin: 10px 0 24px;
+  letter-spacing: -0.5px;
   background: linear-gradient(90deg, #00d2ff 0%, #3b82f6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -476,18 +729,21 @@
 
 .detail-stat-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
 }
 
 .detail-stat-grid div {
-  border-top: 1px solid #29313b;
-  padding-top: 18px;
+  border-top: 1px solid #252c35;
+  padding-top: 14px;
 }
 
 .detail-stat-grid strong {
   display: block;
-  font-size: 28px;
+  font-size: 24px;
+  color: #00d2ff;
+  font-weight: 700;
 }
 
 .detail-stat-grid span {
@@ -495,122 +751,263 @@
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 1px;
+  font-weight: 600;
 }
 
-.coverage-layout {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 50px;
-}
-
-.coverage-map {
-  height: 500px;
-  position: relative;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at 50% 45%, #303b48 0%, #141b23 30%, #090d12 65%);
-  border: 1px solid #252c35;
-}
-
-.coverage-zone {
-  position: absolute;
-  left: var(--position);
-  top: 45%;
-  width: 110px;
-  height: 110px;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: rgba(185, 197, 210, .08);
-  border: 1px solid rgba(185, 197, 210, .25);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  color: #b7c1cc;
-}
-
-.coverage-zone:nth-child(1) {
-  width: 180px;
-  height: 180px;
-}
-
-.coverage-zone:nth-child(2) {
-  width: 145px;
-  height: 145px;
-}
-
-.coverage-zone:nth-child(3) {
-  width: 90px;
-  height: 90px;
-}
-
-.coverage-map-title {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  font-size: 10px;
-  color: #707c8a;
-  letter-spacing: 1.5px;
-}
-
-.coverage-legend {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  margin-top: 15px;
-  color: #6e7a88;
-  font-size: 9px;
-}
-
-.coverage-gradient {
-  height: 4px;
-  flex: 1;
-  background: linear-gradient(90deg, #161c23, #aeb9c6);
-}
-
-.coverage-ranking {
+.detail-info-block {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 25px;
+  gap: 18px;
+  border-top: 1px solid #252c35;
+  padding-top: 20px;
 }
 
-.coverage-row {
-  display: grid;
-  grid-template-columns: 140px 1fr 40px;
-  align-items: center;
-  gap: 15px;
-}
-
-.coverage-area {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.coverage-area span {
-  color: #697583;
+.info-label {
   font-size: 10px;
+  text-transform: uppercase;
+  color: #74808e;
+  letter-spacing: 1px;
+  font-weight: 700;
+  display: block;
+  margin-bottom: 6px;
 }
 
-.coverage-area strong {
-  font-size: 13px;
+.info-value {
+  font-size: 13.5px;
+  color: #9ca7b5;
+  line-height: 1.6;
+  margin: 0;
 }
 
-.coverage-bar-wrapper {
-  height: 5px;
+/* ─── SECTION 06: COVERAGE & DISTRICT ANALYSIS ───────────────────────────── */
+
+.coverage-analysis-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.coverage-analyst-card {
+  background: #0d1218;
+  border: 1px solid #252c35;
+  padding: 28px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.pie-chart-infographic-card {
+  background: #0d1218 !important;
+  border: 1px solid #252c35 !important;
+  border-radius: 8px;
+  padding: 28px;
+  box-shadow: none !important;
+}
+
+.pie-chart-header {
+  margin-bottom: 16px;
+}
+
+.pie-chart-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.35;
+  margin: 6px 0 0;
+}
+
+.pie-chart-body {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.pie-chart-visual {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pie-chart-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+}
+
+.legend-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.legend-color-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
+.legend-label {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #e2e8f0;
+  line-height: 1.3;
+}
+
+.legend-stat {
+  font-size: 11.5px;
+  color: #94a3b8;
+  margin-top: 2px;
+  font-weight: 600;
+}
+
+.card-badge {
+  font-size: 10px;
+  font-weight: 700;
+  color: #707c89;
+  letter-spacing: 1.2px;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+}
+
+.card-badge.cyan {
+  color: #00d2ff;
+}
+
+.metric-large {
+  margin-bottom: 12px;
+}
+
+.metric-large span {
+  font-size: 44px;
+  font-weight: 800;
+  color: #00d2ff;
+  line-height: 1;
+  letter-spacing: -1.5px;
+}
+
+.metric-sub {
+  font-size: 12px;
+  color: #8c97a5;
+  margin-top: 6px;
+  font-weight: 600;
+}
+
+.card-desc {
+  font-size: 13.5px;
+  color: #9ca7b5;
+  line-height: 1.6;
+  margin: 12px 0 0;
+}
+
+.card-desc strong {
+  color: #ffffff;
+}
+
+.progress-bar-bg {
+  height: 6px;
   background: #1c232b;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 18px;
 }
 
-.coverage-bar {
+.progress-bar-fill {
   height: 100%;
-  background: #9aa6b4;
+  background: linear-gradient(90deg, #00d2ff 0%, #3b82f6 100%);
+  border-radius: 3px;
 }
 
-.coverage-score {
-  text-align: right;
-  font-size: 15px;
+.distance-compare-grid {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  background: #080c11;
+  border: 1px solid #1c232b;
+  padding: 16px;
+  border-radius: 6px;
+  margin-bottom: 12px;
 }
+
+.compare-item {
+  text-align: center;
+}
+
+.compare-item strong {
+  display: block;
+  font-size: 24px;
+  color: #38bdf8;
+  font-weight: 700;
+}
+
+.compare-item span {
+  font-size: 9.5px;
+  color: #707c89;
+  text-transform: uppercase;
+  margin-top: 4px;
+  display: block;
+  font-weight: 600;
+}
+
+.compare-divider {
+  width: 1px;
+  height: 36px;
+  background: #252c35;
+}
+
+.top-routes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.top-route-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #080c11;
+  border: 1px solid #1c232b;
+  padding: 10px 14px;
+  border-radius: 6px;
+}
+
+.route-code-pill {
+  font-size: 10px;
+  font-weight: 700;
+  color: #00d2ff;
+  font-family: monospace;
+}
+
+.route-name-text {
+  font-size: 12.5px;
+  color: #cbd5e1;
+}
+
+.route-count-badge {
+  font-size: 11px;
+  color: #10b981;
+  font-weight: 600;
+}
+
+.takeaway-card h3 {
+  font-size: 20px;
+  color: #ffffff;
+  margin: 0 0 10px;
+  font-weight: 700;
+}
+
+.takeaway-text {
+  font-size: 13.5px;
+  color: #9ca7b5;
+  line-height: 1.75;
+  margin: 0;
+}
+
+/* ─── SECTION 07: ROUTE ANALYSIS (MATCHED TO SECTION 08 FONT STYLING) ─────── */
 
 .route-grid {
   display: grid;
@@ -621,44 +1018,52 @@
 .route-card {
   background: #0d1218;
   border: 1px solid #252c35;
-  padding: 30px;
+  padding: 28px;
+  border-radius: 8px;
 }
 
 .route-card-top {
   display: flex;
   justify-content: space-between;
-  color: #707c89;
-  font-size: 10px;
-  letter-spacing: 1px;
+  color: #00d2ff;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: monospace;
+  letter-spacing: 0.5px;
 }
 
 .route-card h3 {
-  margin: 25px 0 35px;
-  font-size: 20px;
+  margin: 16px 0 20px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
 }
 
 .route-metrics {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 15px;
+  gap: 12px;
 }
 
 .route-metrics div {
-  border-top: 1px solid #272e37;
-  padding-top: 15px;
+  border-top: 1px solid #252c35;
+  padding-top: 12px;
 }
 
 .route-metrics strong {
   display: block;
-  font-size: 18px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #38bdf8;
 }
 
 .route-metrics span {
   display: block;
   color: #707c89;
-  font-size: 9px;
-  margin-top: 5px;
+  font-size: 9.5px;
+  margin-top: 4px;
   text-transform: uppercase;
+  font-weight: 600;
 }
 
 .interchange-grid {
