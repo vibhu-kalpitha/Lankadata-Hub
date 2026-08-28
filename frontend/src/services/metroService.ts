@@ -14,6 +14,7 @@ export interface MetroConnectedCity {
   primary_destinations: string;
   major_connections: string;
   total_stops: string;
+  rail_exchange?: string;
 }
 
 export interface MetroBusRoute {
@@ -31,6 +32,11 @@ export interface MetroBusRoute {
   service_notes?: string;
   contact_number?: string;
   data_source?: string;
+  peak_headway?: string;
+  off_peak_headway?: string;
+  operating_hours?: string;
+  fare_range_lkr?: string;
+  multimodal_transfers?: string[];
 }
 
 export async function fetchMetroTotals(): Promise<MetroTotalItem[]> {

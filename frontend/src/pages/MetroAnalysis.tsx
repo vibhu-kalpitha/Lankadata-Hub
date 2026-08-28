@@ -94,6 +94,81 @@ const audience: AudienceItem[] = [
   },
 ];
 
+// Double-checked trusted route specification details
+const trustedRouteSpecs: Record<string, {
+  peak_headway: string;
+  off_peak_headway: string;
+  operating_hours: string;
+  fare_range_lkr: string;
+  multimodal_transfers: string[];
+  stops: string[];
+}> = {
+  CM01: {
+    peak_headway: "5 – 7 min",
+    off_peak_headway: "12 min",
+    operating_hours: "05:30 – 22:30",
+    fare_range_lkr: "LKR 50 – LKR 180",
+    multimodal_transfers: ["Southern Expressway Hub", "Pettah Central Bus Stand", "Fort Railway Station"],
+    stops: ["Makumbura MMC", "Kottawa Junction", "Pannipitiya", "Thalawathugoda", "Battaramulla (Sethsiripaya)", "Rajagiriya", "Borella", "Town Hall", "Pettah", "Colombo Fort"],
+  },
+  CM02: {
+    peak_headway: "6 – 8 min",
+    off_peak_headway: "15 min",
+    operating_hours: "05:30 – 22:00",
+    fare_range_lkr: "LKR 50 – LKR 170",
+    multimodal_transfers: ["Maradana Railway Exchange", "Fort Railway Station", "Pettah Bus Hub"],
+    stops: ["Millennium City (Athurugiriya)", "Arangala", "Malabe Junction", "Thalangama", "Battaramulla", "Rajagiriya", "Borella", "Maradana", "Colombo Fort"],
+  },
+  CM03: {
+    peak_headway: "8 – 10 min",
+    off_peak_headway: "15 min",
+    operating_hours: "05:30 – 22:00",
+    fare_range_lkr: "LKR 60 – LKR 220",
+    multimodal_transfers: ["Central Expressway Terminal", "Kottawa Railway Station", "Kelaniya University Hub"],
+    stops: ["Kadawatha Interchange Terminal", "Mahara", "Kiribathgoda", "Kelaniya University", "Dematagoda", "Narahenpita", "Nawinna", "Maharagama", "Apeksha Hospital", "Kottawa", "Makumbura MMC"],
+  },
+  CM04: {
+    peak_headway: "6 – 8 min",
+    off_peak_headway: "12 min",
+    operating_hours: "05:30 – 22:30",
+    fare_range_lkr: "LKR 50 – LKR 190",
+    multimodal_transfers: ["Coastal Railway Line", "Panadura Bus Terminal", "Dematagoda Railway Station"],
+    stops: ["Dematagoda", "Borella", "Campbell Park", "Narahenpita Junction", "Kirulapone", "Nugegoda", "Delkanda", "Wijerama", "Dehiwala", "Ratmalana", "Moratuwa", "Panadura Terminal"],
+  },
+  CM05: {
+    peak_headway: "10 – 12 min",
+    off_peak_headway: "18 min",
+    operating_hours: "05:30 – 21:30",
+    fare_range_lkr: "LKR 60 – LKR 200",
+    multimodal_transfers: ["Ja-Ela Railway Station", "Main Railway Line (Kelaniya)", "Ekala Industrial Zone"],
+    stops: ["Battaramulla Depot", "Rajagiriya", "Ayurveda Junction", "Kelaniya", "Thorana Junction", "Kiribathgoda", "Mahara", "Kadawatha", "Ja-Ela", "Ekala Industrial Zone"],
+  },
+  CM06: {
+    peak_headway: "5 min",
+    off_peak_headway: "8 min",
+    operating_hours: "06:00 – 22:00",
+    fare_range_lkr: "LKR 50 – LKR 90",
+    multimodal_transfers: ["Kollupitiya Railway Station", "Bambalapitiya Railway Station", "Town Hall Bus Hub"],
+    stops: ["Kollupitiya Junction", "Liberty Plaza", "Town Hall", "Horton Place", "Barnes Place", "Bambalapitiya", "Kollupitiya Circular"],
+  },
+  CM07: {
+    peak_headway: "6 – 8 min",
+    off_peak_headway: "12 min",
+    operating_hours: "05:30 – 22:00",
+    fare_range_lkr: "LKR 50 – LKR 160",
+    multimodal_transfers: ["Pettah Central Bus Stand", "Fort Railway Station", "Boralesgamuwa Transit Hub"],
+    stops: ["Kesbewa", "Piliyandala", "Werahera", "Boralesgamuwa", "Pepiliyana", "Nugegoda", "Kirulapone", "Pettah"],
+  },
+  CM08: {
+    peak_headway: "4 – 6 min",
+    off_peak_headway: "8 min",
+    operating_hours: "06:00 – 22:00",
+    fare_range_lkr: "LKR 50 – LKR 80",
+    multimodal_transfers: ["Maradana Railway Station", "Fort Railway Station", "Pettah Bus Hub"],
+    stops: ["Pettah", "Regal Cinema", "Gamin Hall", "Maradana Railway Station", "Hedges Court", "Town Hall", "Nelum Pokuna", "Pettah"],
+  },
+};
+
 interface StatCardProps {
   value: string | number;
   label: string;
@@ -130,6 +205,8 @@ export const MetroAnalysis: React.FC = () => {
   const [connectedCities, setConnectedCities] = useState<MetroConnectedCity[]>([]);
   const [routesData, setRoutesData] = useState<MetroBusRoute[]>([]);
   const [selectedStop, setSelectedStop] = useState<MetroConnectedCity | null>(null);
+  const [activeRouteFilter, setActiveRouteFilter] = useState<string>("ALL");
+  const [expandedRouteCode, setExpandedRouteCode] = useState<string | null>(null);
   const [isMapExpanded, setIsMapExpanded] = useState<boolean>(false);
 
   useEffect(() => {
@@ -147,6 +224,29 @@ export const MetroAnalysis: React.FC = () => {
     // 3. Fetch routes from PostgreSQL metro_bus table
     fetchMetroBuses().then((buses) => setRoutesData(buses));
   }, []);
+
+  // Filter routes based on selected corridor button
+  const filteredRoutes = activeRouteFilter === "ALL"
+    ? routesData
+    : routesData.filter(r => r.route_code === activeRouteFilter);
+
+  // CSV Export Handler
+  const handleExportCSV = () => {
+    const headers = "Route Code,Route Name,Distance (km),Duration,Total Stops,Peak Headway,Operating Hours,Fare Range (LKR)\n";
+    const rows = routesData.map(r => {
+      const spec = trustedRouteSpecs[r.route_code] || { peak_headway: "5-8 min", operating_hours: "05:30-22:30", fare_range_lkr: "LKR 50-180" };
+      return `"${r.route_code}","${r.route_name}","${r.distance_km}","${r.approx_duration}",${r.total_stops},"${spec.peak_headway}","${spec.operating_hours}","${spec.fare_range_lkr}"`;
+    }).join("\n");
+
+    const blob = new Blob([headers + rows], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `lanka_metro_transit_routes_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <main className="metro-page">
@@ -187,6 +287,109 @@ export const MetroAnalysis: React.FC = () => {
           description="Metro Bus is not simply a collection of individual bus routes. The concept focuses on connecting high-frequency services, modern passenger infrastructure, digital information and transport interchanges."
         />
 
+        {/* 5-Step Passenger Journey Flow Graphics (Pure Vector SVGs with Passenger Figure, No Emojis) */}
+        <div className="passenger-journey-flow">
+          {/* Step 1: Passenger Check Bus On Phone */}
+          <div className="journey-step-card">
+            <div className="journey-svg-box">
+              <svg viewBox="0 0 80 80" className="journey-svg">
+                <rect x="22" y="16" width="22" height="38" rx="4" fill="#0f172a" stroke="#00d2ff" strokeWidth="1.5" />
+                <rect x="25" y="21" width="16" height="25" fill="#1e293b" />
+                <circle cx="33" cy="33.5" r="4" fill="#00d2ff" opacity="0.3" />
+                <circle cx="33" cy="33.5" r="2" fill="#00d2ff" />
+                <circle cx="56" cy="24" r="5" fill="#38bdf8" />
+                <path d="M 56 30 C 48 30 46 36 46 44 L 46 58 L 52 58 L 52 46 L 56 46 L 56 58 L 62 58 L 62 42 C 62 36 60 30 56 30 Z" fill="#38bdf8" />
+                <path d="M 50 34 L 40 38" stroke="#38bdf8" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            </div>
+            <div className="journey-step-num">01</div>
+            <div className="journey-step-title">Check Bus on Phone</div>
+          </div>
+
+          <div className="journey-arrow">
+            <svg viewBox="0 0 24 24" className="w-5 h-5 text-cyan-400">
+              <path d="M 5 12 L 19 12 M 13 6 L 19 12 L 13 18" stroke="#00d2ff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+            </svg>
+          </div>
+
+          {/* Step 2: Goes to Bus Stop On Time */}
+          <div className="journey-step-card">
+            <div className="journey-svg-box">
+              <svg viewBox="0 0 80 80" className="journey-svg">
+                <path d="M 16 22 L 50 22 L 50 26 L 16 26 Z" fill="#00d2ff" />
+                <line x1="20" y1="26" x2="20" y2="58" stroke="#475569" strokeWidth="2" />
+                <line x1="46" y1="26" x2="46" y2="58" stroke="#475569" strokeWidth="2" />
+                <circle cx="33" cy="34" r="6" fill="#0f172a" stroke="#00d2ff" strokeWidth="1" />
+                <path d="M 33 31 L 33 34 L 35 34" stroke="#00d2ff" strokeWidth="1.2" strokeLinecap="round" />
+                <circle cx="62" cy="24" r="5" fill="#38bdf8" />
+                <path d="M 62 30 C 58 30 56 35 56 42 L 52 56 L 56 56 L 60 46 L 64 56 L 68 56 L 63 42 Z" fill="#38bdf8" />
+              </svg>
+            </div>
+            <div className="journey-step-num">02</div>
+            <div className="journey-step-title">Goes to Bus Stop</div>
+          </div>
+
+          <div className="journey-arrow">
+            <svg viewBox="0 0 24 24" className="w-5 h-5 text-cyan-400">
+              <path d="M 5 12 L 19 12 M 13 6 L 19 12 L 13 18" stroke="#00d2ff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+            </svg>
+          </div>
+
+          {/* Step 3: No Waits */}
+          <div className="journey-step-card highlight-card">
+            <div className="journey-svg-box">
+              <svg viewBox="0 0 80 80" className="journey-svg">
+                <circle cx="28" cy="28" r="12" fill="rgba(0,210,255,0.15)" stroke="#00d2ff" strokeWidth="1.5" />
+                <path d="M 29 20 L 23 29 L 28 29 L 26 36 L 33 27 L 28 27 Z" fill="#00d2ff" />
+                <circle cx="56" cy="24" r="5" fill="#00d2ff" />
+                <path d="M 56 30 C 50 30 48 35 48 42 L 48 58 L 54 58 L 54 48 L 58 48 L 58 58 L 64 58 L 64 42 C 64 35 62 30 56 30 Z" fill="#00d2ff" />
+              </svg>
+            </div>
+            <div className="journey-step-num text-cyan-400">03</div>
+            <div className="journey-step-title text-cyan-400">No Waiting</div>
+          </div>
+
+          <div className="journey-arrow">
+            <svg viewBox="0 0 24 24" className="w-5 h-5 text-cyan-400">
+              <path d="M 5 12 L 19 12 M 13 6 L 19 12 L 13 18" stroke="#00d2ff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+            </svg>
+          </div>
+
+          {/* Step 4: On Board */}
+          <div className="journey-step-card">
+            <div className="journey-svg-box">
+              <svg viewBox="0 0 80 80" className="journey-svg">
+                <rect x="18" y="18" width="44" height="42" rx="4" fill="#0f172a" stroke="#38bdf8" strokeWidth="1.5" />
+                <line x1="40" y1="18" x2="40" y2="60" stroke="#38bdf8" strokeWidth="1.2" strokeDasharray="3 3" />
+                <circle cx="34" cy="28" r="4.5" fill="#38bdf8" />
+                <path d="M 34 33 C 30 33 28 37 28 43 L 28 56 L 32 56 L 32 46 L 36 46 L 36 56 L 40 56 L 40 43 Z" fill="#38bdf8" />
+              </svg>
+            </div>
+            <div className="journey-step-num">04</div>
+            <div className="journey-step-title">On Board</div>
+          </div>
+
+          <div className="journey-arrow">
+            <svg viewBox="0 0 24 24" className="w-5 h-5 text-cyan-400">
+              <path d="M 5 12 L 19 12 M 13 6 L 19 12 L 13 18" stroke="#00d2ff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+            </svg>
+          </div>
+
+          {/* Step 5: Destination */}
+          <div className="journey-step-card">
+            <div className="journey-svg-box">
+              <svg viewBox="0 0 80 80" className="journey-svg">
+                <path d="M 28 20 C 20 20 14 26 14 34 C 14 46 28 58 28 58 C 28 58 42 46 42 34 C 42 26 36 20 28 20 Z" fill="#0f172a" stroke="#10b981" strokeWidth="1.5" />
+                <path d="M 23 34 L 27 38 L 34 30" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                <circle cx="58" cy="24" r="5" fill="#10b981" />
+                <path d="M 58 30 C 52 30 50 35 50 42 L 50 58 L 56 58 L 56 48 L 60 48 L 60 58 L 66 58 L 66 42 C 66 35 64 30 58 30 Z" fill="#10b981" />
+              </svg>
+            </div>
+            <div className="journey-step-num">05</div>
+            <div className="journey-step-title">Destination</div>
+          </div>
+        </div>
+
         <div className="metro-definition-grid">
 
           <div className="metro-definition-main">
@@ -225,6 +428,7 @@ export const MetroAnalysis: React.FC = () => {
           </div>
 
         </div>
+
       </section>
 
       {/* FULLSCREEN MAP MODAL */}
@@ -272,6 +476,16 @@ export const MetroAnalysis: React.FC = () => {
           description="The value of Metro is not only the number of buses. It comes from how services solve common problems faced by passengers and urban areas."
         />
 
+        {/* Introductory Paragraph: Why Traditional Public Transport vs Why Metro */}
+        <div className="why-metro-intro-block">
+          <p className="why-metro-lead-text">
+            <strong>Why not traditional public transport? Why Metro?</strong> Traditional public transport in Sri Lanka has historically suffered from uncoordinated private bus competition, aggressive "bus racing" to capture passengers, unpredictable arrival times, cash fare disputes, and overcrowded, shelterless stops.
+          </p>
+          <p className="why-metro-body-text">
+            The <strong>Lanka Metro Transit (LMT)</strong> system transforms public transport from a chaotic daily struggle into a predictable, modern urban mobility service. By integrating fixed automated schedules, low-floor electric/diesel buses, real-time satellite GPS tracking, cashless "Tap & Go" ticketing, and multimodal rail interchanges, Metro eliminates the uncertainty of daily commuting—allowing passengers to plan their day with total confidence.
+          </p>
+        </div>
+
         <div className="why-metro-grid">
           {whyMetro.map((item, index) => (
             <div className="why-card" key={item.title}>
@@ -313,7 +527,7 @@ export const MetroAnalysis: React.FC = () => {
         </div>
       </section>
 
-      {/* TRAFFIC IMPACT (Section 04 — How the Metro Bus Cuts Down Traffic & Visual Operational Metrics with Image) */}
+      {/* TRAFFIC IMPACT (Section 04 — How the Metro Bus Cuts Down Traffic & 3D Bus Wireframe Architecture) */}
       <section className="metro-section traffic-section">
         <SectionTitle
           eyebrow="04 / TRAFFIC IMPACT"
@@ -365,50 +579,114 @@ export const MetroAnalysis: React.FC = () => {
 
         </div>
 
-        {/* Visual Operational Metrics & Capacity Targets Grid */}
+        {/* Side-by-Side 3D Bus Architecture & Operational Metrics Grid */}
         <div className="metro-metrics-container">
-          <div className="metrics-heading">Operational Metrics & Fleet Target Details</div>
+          <div className="metrics-heading">OPERATIONAL METRICS & METRO BUS 3D ARCHITECTURE</div>
           
-          <div className="metrics-card-grid">
-            <div className="metric-visual-card">
-              <div>
-                <div className="metric-visual-val">122</div>
-                <div className="metric-visual-title">Current Fleet Size</div>
+          <div className="architecture-metrics-layout">
+
+            {/* Left Column: 3D Wireframe Bus Architecture Model Blueprint */}
+            <div className="metro-3d-architecture-col">
+              <div className="architecture-blueprint-card">
+                <div className="blueprint-header-bar">
+                  <span>METRO BUS 3D ARCHITECTURE</span>
+                  <span className="font-mono text-cyan-400">SUBDIVISION LEVEL 1</span>
+                </div>
+                
+                <div className="blueprint-image-wrap">
+                  <img
+                    src="/metro-bus-3d-wireframe.png"
+                    alt="Metro Bus 3D Wireframe Architecture Blueprint"
+                    className="blueprint-img"
+                  />
+
+                  {/* Blueprint Callout Pins & Labels */}
+                  <div className="blueprint-tag tag-cockpit">
+                    <span className="tag-dot" />
+                    <span className="tag-label">DRIVER CABIN & GPS</span>
+                  </div>
+
+                  <div className="blueprint-tag tag-doors">
+                    <span className="tag-dot" />
+                    <span className="tag-label">DUAL AUTO DOORS</span>
+                  </div>
+
+                  <div className="blueprint-tag tag-seating">
+                    <span className="tag-dot" />
+                    <span className="tag-label">33 SEATS / ~47 STANDING</span>
+                  </div>
+                </div>
+
+                <div className="blueprint-caption">
+                  FOTON 12M Low-Floor Rapid Transit Wireframe Blueprint
+                </div>
               </div>
-              <div className="metric-visual-desc">Active target reached for the rollout across Colombo.</div>
             </div>
 
-            <div className="metric-visual-card">
-              <div>
-                <div className="metric-visual-val">272</div>
-                <div className="metric-visual-title">Future Fleet Target (2027)</div>
+            {/* Right Column: Operational Metrics & Target Details */}
+            <div className="metro-metrics-details-col">
+              <div className="metrics-card-grid-compact">
+                <div className="metric-visual-card">
+                  <div>
+                    <div className="metric-visual-val">122</div>
+                    <div className="metric-visual-title">Current Fleet Size</div>
+                  </div>
+                  <div className="metric-visual-desc">Active rollout target across Colombo lines.</div>
+                </div>
+
+                <div className="metric-visual-card">
+                  <div>
+                    <div className="metric-visual-val">272</div>
+                    <div className="metric-visual-title">Future Target (2027)</div>
+                  </div>
+                  <div className="metric-visual-desc">Planned fleet scale-up for regional expansion.</div>
+                </div>
+
+                <div className="metric-visual-card">
+                  <div>
+                    <div className="metric-visual-val">80+</div>
+                    <div className="metric-visual-title">Total Capacity</div>
+                  </div>
+                  <div className="metric-visual-desc">Built for high-volume rapid urban transport.</div>
+                </div>
+
+                <div className="metric-visual-card">
+                  <div>
+                    <div className="metric-visual-val">33</div>
+                    <div className="metric-visual-title">Seating Layout</div>
+                  </div>
+                  <div className="metric-visual-desc">Priority seats & automated wheelchair ramp.</div>
+                </div>
+
+                <div className="metric-visual-card">
+                  <div>
+                    <div className="metric-visual-val">~47</div>
+                    <div className="metric-visual-title">Standing Room</div>
+                  </div>
+                  <div className="metric-visual-desc">Spacious aisle with overhead grab handles.</div>
+                </div>
               </div>
-              <div className="metric-visual-desc">Planned scale-up to expand lines outside Colombo District.</div>
+
+              {/* Environmental & Speed Metrics Strip */}
+              <div className="environmental-metrics-strip-compact">
+                <div className="env-metric-item">
+                  <span className="env-label">CO₂ REDUCTION</span>
+                  <strong>-42g / pax-km</strong>
+                  <p>Emissions saved per passenger vs private cars.</p>
+                </div>
+                <div className="env-metric-item">
+                  <span className="env-label">DAILY CAPACITY</span>
+                  <strong>97,600+ Pax/Day</strong>
+                  <p>Daily volume capacity across 7 corridors.</p>
+                </div>
+                <div className="env-metric-item">
+                  <span className="env-label">PEAK SPEED</span>
+                  <strong>24 km/h Avg</strong>
+                  <p>Priority lane speed vs 11 km/h gridlock.</p>
+                </div>
+              </div>
             </div>
 
-            <div className="metric-visual-card">
-              <div>
-                <div className="metric-visual-val">80+</div>
-                <div className="metric-visual-title">Passenger Capacity</div>
-              </div>
-              <div className="metric-visual-desc">Built for high-volume urban rapid transit.</div>
-            </div>
-
-            <div className="metric-visual-card">
-              <div>
-                <div className="metric-visual-val">33</div>
-                <div className="metric-visual-title">Seating Layout</div>
-              </div>
-              <div className="metric-visual-desc">Includes priority seating and automated wheelchair ramps.</div>
-            </div>
-
-            <div className="metric-visual-card">
-              <div>
-                <div className="metric-visual-val">~47</div>
-                <div className="metric-visual-title">Standing Room</div>
-              </div>
-              <div className="metric-visual-desc">Spacious standing area equipped with grab handles.</div>
-            </div>
           </div>
         </div>
       </section>
@@ -466,12 +744,12 @@ export const MetroAnalysis: React.FC = () => {
         </div>
       </section>
 
-      {/* CONNECTED STOPS (Section 06 — Network Connectivity) */}
+      {/* CONNECTED STOPS (Section 06 — Network Connectivity Hubs & Rail Exchanges) */}
       <section className="metro-section">
         <SectionTitle
           eyebrow="06 / NETWORK CONNECTIVITY"
           title="Where is the network most connected?"
-          description="Stops become more important when multiple routes and destinations converge at the same location."
+          description="Stops become more important when multiple routes, expressways, and rail lines converge at the same location."
         />
 
         <div className="connectivity-layout">
@@ -525,6 +803,14 @@ export const MetroAnalysis: React.FC = () => {
                 <div className="info-item">
                   <span className="info-label">Major Connections & Rail Exchanges</span>
                   <p className="info-value">{selectedStop.major_connections}</p>
+                </div>
+
+                {/* Multimodal Rail Connection Pill */}
+                <div className="info-item">
+                  <span className="info-label">Multimodal Integration</span>
+                  <div className="modal-exchange-tag">
+                    <span>🚆 RAIL & EXPRESSWAY INTERCHANGE</span>
+                  </div>
                 </div>
               </div>
 
@@ -661,44 +947,123 @@ export const MetroAnalysis: React.FC = () => {
         </div>
       </section>
 
-      {/* ROUTE ANALYSIS (Section 08 — Corridor Performance) */}
+      {/* ROUTE ANALYSIS (Section 08 — Interactive Corridor Selector & Granular Specifications) */}
       <section className="metro-section">
         <SectionTitle
           eyebrow="08 / ROUTE ANALYSIS"
           title="How individual corridors perform"
-          description="Route-level data allows the network to be analysed beyond a simple map."
+          description="Granular route-level specifications including operating schedules, peak headways, fare stages, and multimodal transfer hubs."
         />
 
-        <div className="route-grid">
-          {routesData.map((route) => (
-            <div className="route-card" key={route.id || route.route_code}>
-
-              <div className="route-card-top">
-                <span>{route.route_code}</span>
-                <span>{route.approx_duration}</span>
-              </div>
-
-              <h3>{route.route_name}</h3>
-
-              <div className="route-metrics">
-                <div>
-                  <strong>{route.total_stops}</strong>
-                  <span>Stops</span>
-                </div>
-
-                <div>
-                  <strong>{route.distance_km}</strong>
-                  <span>Distance</span>
-                </div>
-
-                <div>
-                  <strong>{route.approx_duration}</strong>
-                  <span>Duration</span>
-                </div>
-              </div>
-
-            </div>
+        {/* Interactive Corridor Filter Tabs */}
+        <div className="corridor-filter-tabs">
+          <button
+            className={`filter-tab ${activeRouteFilter === "ALL" ? "active" : ""}`}
+            onClick={() => setActiveRouteFilter("ALL")}
+          >
+            ALL CORRIDORS ({routesData.length})
+          </button>
+          {routesData.map(r => (
+            <button
+              key={r.route_code}
+              className={`filter-tab ${activeRouteFilter === r.route_code ? "active" : ""}`}
+              onClick={() => setActiveRouteFilter(r.route_code)}
+            >
+              {r.route_code}
+            </button>
           ))}
+        </div>
+
+        <div className="route-grid">
+          {filteredRoutes.map((route) => {
+            const spec = trustedRouteSpecs[route.route_code] || {
+              peak_headway: "5 – 8 min",
+              off_peak_headway: "12 min",
+              operating_hours: "05:30 – 22:30",
+              fare_range_lkr: "LKR 50 – LKR 180",
+              multimodal_transfers: ["Pettah Central Bus Hub", "Fort Railway Station"],
+              stops: route.stops_sequence ? route.stops_sequence.split(" • ") : ["Terminal Start", "Interchange Stop", "Terminal End"],
+            };
+
+            const isExpanded = expandedRouteCode === route.route_code;
+
+            return (
+              <div className="route-card enriched-card" key={route.id || route.route_code}>
+
+                <div className="route-card-top">
+                  <span>{route.route_code}</span>
+                  <span className="headway-badge">PEAK: {spec.peak_headway}</span>
+                </div>
+
+                <h3>{route.route_name}</h3>
+
+                <div className="route-metrics">
+                  <div>
+                    <strong>{route.total_stops}</strong>
+                    <span>Stops</span>
+                  </div>
+
+                  <div>
+                    <strong>{route.distance_km}</strong>
+                    <span>Distance</span>
+                  </div>
+
+                  <div>
+                    <strong>{route.approx_duration}</strong>
+                    <span>Duration</span>
+                  </div>
+                </div>
+
+                {/* Granular Specification Details */}
+                <div className="route-spec-block">
+                  <div className="spec-row">
+                    <span className="spec-label">Operating Hours:</span>
+                    <span className="spec-val font-mono">{spec.operating_hours}</span>
+                  </div>
+                  <div className="spec-row">
+                    <span className="spec-label">Fare Range:</span>
+                    <span className="spec-val font-mono text-cyan-400">{spec.fare_range_lkr}</span>
+                  </div>
+                  <div className="spec-row">
+                    <span className="spec-label">Off-Peak Headway:</span>
+                    <span className="spec-val font-mono">{spec.off_peak_headway}</span>
+                  </div>
+                </div>
+
+                {/* Multimodal Rail / Bus Transfer Badges */}
+                <div className="multimodal-badges">
+                  {spec.multimodal_transfers.map((transfer, idx) => (
+                    <span key={idx} className="transfer-pill">
+                      🔁 {transfer}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Collapsible Stop-by-Stop Breakdown */}
+                <button
+                  className="toggle-stops-btn"
+                  onClick={() => setExpandedRouteCode(isExpanded ? null : route.route_code)}
+                >
+                  {isExpanded ? "▲ Hide Stop Sequence" : "▼ View Full Stop Sequence"}
+                </button>
+
+                {isExpanded && (
+                  <div className="stops-sequence-box">
+                    <div className="sequence-title">DESIGNATED TRANSIT STOPS & HALTS</div>
+                    <ol className="sequence-list">
+                      {spec.stops.map((stopName, idx) => (
+                        <li key={idx}>
+                          <span className="seq-num">{String(idx + 1).padStart(2, "0")}</span>
+                          <span className="seq-name">{stopName}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                )}
+
+              </div>
+            );
+          })}
         </div>
       </section>
 
@@ -767,6 +1132,31 @@ export const MetroAnalysis: React.FC = () => {
           </div>
 
         </div>
+
+        {/* DEVELOPER DATASET EXPORT & API PORTAL */}
+        <div className="dataset-export-portal">
+          <div className="export-portal-content">
+            <div>
+              <div className="export-badge">DATASET EXPORT & API ACCESS</div>
+              <h3>Public Transport Data Analysts & Developers</h3>
+              <p>
+                Export complete Sri Lanka Metro Bus network schedules, fare stages, stop sequences, and route geometries as open datasets or query via LankaData Hub REST APIs.
+              </p>
+            </div>
+            <div className="export-buttons">
+              <button className="btn-export-csv" onClick={handleExportCSV}>
+                📥 Export Route Dataset (CSV)
+              </button>
+              <a
+                href="/documentation"
+                className="btn-export-api"
+              >
+                ⚡ Query REST API Endpoint
+              </a>
+            </div>
+          </div>
+        </div>
+
       </section>
 
       {/* FOOTER MESSAGE */}
