@@ -720,7 +720,7 @@ export const MetroAnalysis: React.FC = () => {
         </div>
       </section>
 
-      {/* CONNECTED STOPS (Section 06 — Network Connectivity Hubs) */}
+      {/* CONNECTED STOPS (Section 06 — Network Connectivity Hubs & Visual Analytics) */}
       <section className="metro-section">
         <SectionTitle
           eyebrow="06 / NETWORK CONNECTIVITY"
@@ -758,19 +758,19 @@ export const MetroAnalysis: React.FC = () => {
 
               <h3>{selectedStop.city_hub}</h3>
 
-              <div className="detail-stat-grid">
-                <div className="stat-highlight-box">
-                  <strong>{selectedStop.routes_serving_it}</strong>
-                  <span>Routes Serving</span>
+              <div className="detail-info-block">
+                <div className="detail-stat-row">
+                  <div className="info-item">
+                    <span className="info-label">Routes Serving</span>
+                    <p className="info-value-stat">{selectedStop.routes_serving_it} Active Routes</p>
+                  </div>
+
+                  <div className="info-item">
+                    <span className="info-label">Total Network Stops</span>
+                    <p className="info-value-stat">{selectedStop.total_stops} Designated Stops</p>
+                  </div>
                 </div>
 
-                <div className="stat-highlight-box">
-                  <strong>{selectedStop.total_stops}</strong>
-                  <span>Total Network Stops</span>
-                </div>
-              </div>
-
-              <div className="detail-info-block full-space">
                 <div className="info-item">
                   <span className="info-label">Primary Destinations Served</span>
                   <p className="info-value">{selectedStop.primary_destinations}</p>
@@ -786,6 +786,123 @@ export const MetroAnalysis: React.FC = () => {
           )}
 
         </div>
+
+        {/* Interactive Connectivity Visual Analytics (Pie Chart Left & Bar Chart Right) */}
+        <div className="connectivity-charts-grid">
+
+          {/* Left Chart: SVG Donut/Pie Chart for Selected Hub Route Share */}
+          <div className="connectivity-chart-card">
+            <div className="chart-card-header">
+              <span className="chart-badge cyan">ROUTE CONNECTIVITY SHARE</span>
+              <h3>{selectedStop ? selectedStop.city_hub : "Selected Hub"} Network Share</h3>
+            </div>
+
+            {selectedStop && (() => {
+              const routesCount = parseInt(selectedStop.routes_serving_it, 10) || 1;
+              const totalRoutes = 7;
+              const percentage = Math.round((routesCount / totalRoutes) * 100);
+              const circumference = 2 * Math.PI * 65; // r = 65 => 408.4
+              const dashOffset = circumference - (routesCount / totalRoutes) * circumference;
+
+              return (
+                <div className="pie-chart-container">
+                  <div className="svg-donut-wrap">
+                    <svg viewBox="0 0 180 180" className="w-[170px] h-[170px]">
+                      {/* Background Donut Track */}
+                      <circle
+                        cx="90"
+                        cy="90"
+                        r="65"
+                        fill="transparent"
+                        stroke="#1e293b"
+                        strokeWidth="20"
+                      />
+                      {/* Active Route Slice */}
+                      <circle
+                        cx="90"
+                        cy="90"
+                        r="65"
+                        fill="transparent"
+                        stroke="#00d2ff"
+                        strokeWidth="20"
+                        strokeDasharray={circumference}
+                        strokeDashoffset={dashOffset}
+                        strokeLinecap="round"
+                        transform="rotate(-90 90 90)"
+                        className="transition-all duration-700 ease-out filter drop-shadow-[0_0_10px_rgba(0,210,255,0.4)]"
+                      />
+                      {/* Center Donut Text */}
+                      <text x="90" y="85" textAnchor="middle" fontSize="24" fontWeight="800" fill="#00d2ff">
+                        {routesCount} / {totalRoutes}
+                      </text>
+                      <text x="90" y="105" textAnchor="middle" fontSize="9" fontWeight="700" fill="#94a3b8" letterSpacing="0.8">
+                        ROUTES ({percentage}%)
+                      </text>
+                    </svg>
+                  </div>
+
+                  <div className="pie-legend-block">
+                    <div className="legend-item">
+                      <div className="legend-dot bg-cyan" />
+                      <div>
+                        <div className="legend-title">{selectedStop.city_hub} Routes</div>
+                        <div className="legend-sub font-mono">{routesCount} of {totalRoutes} Active Corridors</div>
+                      </div>
+                    </div>
+
+                    <div className="legend-item">
+                      <div className="legend-dot bg-slate" />
+                      <div>
+                        <div className="legend-title">Other Network Corridors</div>
+                        <div className="legend-sub font-mono">{totalRoutes - routesCount} Other Corridors</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* Right Chart: Bar Chart comparing Routes Serving across Connected Hubs */}
+          <div className="connectivity-chart-card">
+            <div className="chart-card-header">
+              <span className="chart-badge">NETWORK HUB COMPARISON</span>
+              <h3>Routes Serving by Major Transit Hub</h3>
+            </div>
+
+            <div className="bar-chart-container">
+              {connectedCities.map((city, idx) => {
+                const routesCount = parseInt(city.routes_serving_it, 10) || 1;
+                const maxRoutes = 7;
+                const barWidth = `${(routesCount / maxRoutes) * 100}%`;
+                const isSelected = selectedStop?.city_hub === city.city_hub;
+
+                return (
+                  <div
+                    key={city.id || city.city_hub}
+                    className={`bar-row-item ${isSelected ? "selected-row" : ""}`}
+                    onClick={() => setSelectedStop(city)}
+                  >
+                    <div className="bar-row-header">
+                      <span className="bar-rank">{String(idx + 1).padStart(2, "0")}</span>
+                      <span className="bar-hub-name">{city.city_hub}</span>
+                      <span className="bar-count-badge font-mono">{routesCount} routes</span>
+                    </div>
+
+                    <div className="bar-track">
+                      <div
+                        className={`bar-fill ${isSelected ? "active-fill" : ""}`}
+                        style={{ width: barWidth }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+        </div>
+
       </section>
 
       {/* COVERAGE & DISTRICT ANALYSIS (Section 07 — Executive Transport Summary) */}

@@ -1263,48 +1263,26 @@
   font-weight: 800;
 }
 
-.detail-stat-grid {
+.detail-stat-row {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
+  gap: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #252c35;
 }
 
-.stat-highlight-box {
-  background: #080c11;
-  border: 1px solid #1c232b;
-  border-radius: 8px;
-  padding: 18px 20px;
-  transition: border-color 0.2s ease;
-}
-
-.stat-highlight-box:hover {
-  border-color: #00d2ff;
-}
-
-.detail-stat-grid strong {
-  display: block;
-  font-size: 34px;
-  color: #00d2ff;
-  font-weight: 800;
-  line-height: 1.1;
-  margin-bottom: 4px;
-}
-
-.detail-stat-grid span {
-  color: #cbd5e1;
-  font-size: 11.5px;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
+.info-value-stat {
+  font-size: 14.5px;
+  color: #e2e8f0;
   font-weight: 700;
+  margin: 0;
+  line-height: 1.5;
 }
 
 .detail-info-block {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  border-top: 1px solid #252c35;
-  padding-top: 22px;
 }
 
 .info-label {
@@ -1322,6 +1300,193 @@
   color: #9ca7b5;
   line-height: 1.6;
   margin: 0;
+}
+
+/* ─── SECTION 06 CONNECTIVITY CHARTS (PIE LEFT & BAR RIGHT) ───────────── */
+
+.connectivity-charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 32px;
+}
+
+.connectivity-chart-card {
+  background: #0d1218;
+  border: 1px solid #252c35;
+  border-radius: 8px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-card-header {
+  margin-bottom: 20px;
+}
+
+.chart-badge {
+  font-size: 9.5px;
+  font-weight: 800;
+  color: #74808e;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  display: inline-block;
+  margin-bottom: 4px;
+}
+
+.chart-badge.cyan {
+  color: #00d2ff;
+}
+
+.chart-card-header h3 {
+  font-size: 17px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+}
+
+.pie-chart-container {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex: 1;
+}
+
+.svg-donut-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pie-legend-block {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex: 1;
+}
+
+.legend-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+.legend-dot.bg-cyan {
+  background: #00d2ff;
+  box-shadow: 0 0 8px rgba(0, 210, 255, 0.5);
+}
+
+.legend-dot.bg-slate {
+  background: #1e293b;
+  border: 1px solid #334155;
+}
+
+.legend-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 2px;
+}
+
+.legend-sub {
+  font-size: 11px;
+  color: #8c97a5;
+}
+
+.bar-chart-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.bar-row-item {
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: #080c11;
+  border: 1px solid #1c232b;
+  transition: all 0.2s ease;
+}
+
+.bar-row-item:hover {
+  border-color: #475569;
+}
+
+.bar-row-item.selected-row {
+  border-color: #00d2ff;
+  background: rgba(0, 210, 255, 0.04);
+}
+
+.bar-row-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.bar-rank {
+  font-size: 11px;
+  font-weight: 800;
+  color: #74808e;
+  font-family: monospace;
+}
+
+.bar-hub-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  flex: 1;
+}
+
+.selected-row .bar-hub-name {
+  color: #00d2ff;
+}
+
+.bar-count-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.selected-row .bar-count-badge {
+  color: #00d2ff;
+}
+
+.bar-track {
+  width: 100%;
+  height: 6px;
+  background: #1c232b;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  background: #334155;
+  border-radius: 3px;
+  transition: width 0.5s ease-out, background 0.3s ease;
+}
+
+.bar-fill.active-fill {
+  background: linear-gradient(90deg, #00d2ff 0%, #3b82f6 100%);
+  box-shadow: 0 0 10px rgba(0, 210, 255, 0.5);
+}
+
+@media (max-width: 900px) {
+  .connectivity-charts-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ─── SECTION 06: COVERAGE & DISTRICT ANALYSIS ───────────────────────────── */
