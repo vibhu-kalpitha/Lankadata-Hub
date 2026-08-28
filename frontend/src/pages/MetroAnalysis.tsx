@@ -205,7 +205,6 @@ export const MetroAnalysis: React.FC = () => {
   const [connectedCities, setConnectedCities] = useState<MetroConnectedCity[]>([]);
   const [routesData, setRoutesData] = useState<MetroBusRoute[]>([]);
   const [selectedStop, setSelectedStop] = useState<MetroConnectedCity | null>(null);
-  const [activeRouteFilter, setActiveRouteFilter] = useState<string>("ALL");
   const [expandedRouteCode, setExpandedRouteCode] = useState<string | null>(null);
   const [isMapExpanded, setIsMapExpanded] = useState<boolean>(false);
 
@@ -224,29 +223,6 @@ export const MetroAnalysis: React.FC = () => {
     // 3. Fetch routes from PostgreSQL metro_bus table
     fetchMetroBuses().then((buses) => setRoutesData(buses));
   }, []);
-
-  // Filter routes based on selected corridor button
-  const filteredRoutes = activeRouteFilter === "ALL"
-    ? routesData
-    : routesData.filter(r => r.route_code === activeRouteFilter);
-
-  // CSV Export Handler
-  const handleExportCSV = () => {
-    const headers = "Route Code,Route Name,Distance (km),Duration,Total Stops,Peak Headway,Operating Hours,Fare Range (LKR)\n";
-    const rows = routesData.map(r => {
-      const spec = trustedRouteSpecs[r.route_code] || { peak_headway: "5-8 min", operating_hours: "05:30-22:30", fare_range_lkr: "LKR 50-180" };
-      return `"${r.route_code}","${r.route_name}","${r.distance_km}","${r.approx_duration}",${r.total_stops},"${spec.peak_headway}","${spec.operating_hours}","${spec.fare_range_lkr}"`;
-    }).join("\n");
-
-    const blob = new Blob([headers + rows], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `lanka_metro_transit_routes_${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
 
   return (
     <main className="metro-page">
@@ -744,7 +720,7 @@ export const MetroAnalysis: React.FC = () => {
         </div>
       </section>
 
-      {/* CONNECTED STOPS (Section 06 — Network Connectivity Hubs & Rail Exchanges) */}
+      {/* CONNECTED STOPS (Section 06 — Network Connectivity Hubs) */}
       <section className="metro-section">
         <SectionTitle
           eyebrow="06 / NETWORK CONNECTIVITY"
@@ -783,18 +759,18 @@ export const MetroAnalysis: React.FC = () => {
               <h3>{selectedStop.city_hub}</h3>
 
               <div className="detail-stat-grid">
-                <div>
+                <div className="stat-highlight-box">
                   <strong>{selectedStop.routes_serving_it}</strong>
                   <span>Routes Serving</span>
                 </div>
 
-                <div>
+                <div className="stat-highlight-box">
                   <strong>{selectedStop.total_stops}</strong>
                   <span>Total Network Stops</span>
                 </div>
               </div>
 
-              <div className="detail-info-block">
+              <div className="detail-info-block full-space">
                 <div className="info-item">
                   <span className="info-label">Primary Destinations Served</span>
                   <p className="info-value">{selectedStop.primary_destinations}</p>
@@ -803,14 +779,6 @@ export const MetroAnalysis: React.FC = () => {
                 <div className="info-item">
                   <span className="info-label">Major Connections & Rail Exchanges</span>
                   <p className="info-value">{selectedStop.major_connections}</p>
-                </div>
-
-                {/* Multimodal Rail Connection Pill */}
-                <div className="info-item">
-                  <span className="info-label">Multimodal Integration</span>
-                  <div className="modal-exchange-tag">
-                    <span>🚆 RAIL & EXPRESSWAY INTERCHANGE</span>
-                  </div>
                 </div>
               </div>
 
@@ -947,41 +915,21 @@ export const MetroAnalysis: React.FC = () => {
         </div>
       </section>
 
-      {/* ROUTE ANALYSIS (Section 08 — Interactive Corridor Selector & Granular Specifications) */}
+      {/* ROUTE ANALYSIS (Section 08 — Clean Route Specifications Grid) */}
       <section className="metro-section">
         <SectionTitle
           eyebrow="08 / ROUTE ANALYSIS"
           title="How individual corridors perform"
-          description="Granular route-level specifications including operating schedules, peak headways, fare stages, and multimodal transfer hubs."
+          description="Granular route-level specifications including operating schedules, peak headways, and fare stages."
         />
 
-        {/* Interactive Corridor Filter Tabs */}
-        <div className="corridor-filter-tabs">
-          <button
-            className={`filter-tab ${activeRouteFilter === "ALL" ? "active" : ""}`}
-            onClick={() => setActiveRouteFilter("ALL")}
-          >
-            ALL CORRIDORS ({routesData.length})
-          </button>
-          {routesData.map(r => (
-            <button
-              key={r.route_code}
-              className={`filter-tab ${activeRouteFilter === r.route_code ? "active" : ""}`}
-              onClick={() => setActiveRouteFilter(r.route_code)}
-            >
-              {r.route_code}
-            </button>
-          ))}
-        </div>
-
         <div className="route-grid">
-          {filteredRoutes.map((route) => {
+          {routesData.map((route) => {
             const spec = trustedRouteSpecs[route.route_code] || {
               peak_headway: "5 – 8 min",
               off_peak_headway: "12 min",
               operating_hours: "05:30 – 22:30",
               fare_range_lkr: "LKR 50 – LKR 180",
-              multimodal_transfers: ["Pettah Central Bus Hub", "Fort Railway Station"],
               stops: route.stops_sequence ? route.stops_sequence.split(" • ") : ["Terminal Start", "Interchange Stop", "Terminal End"],
             };
 
@@ -1022,21 +970,12 @@ export const MetroAnalysis: React.FC = () => {
                   </div>
                   <div className="spec-row">
                     <span className="spec-label">Fare Range:</span>
-                    <span className="spec-val font-mono text-cyan-400">{spec.fare_range_lkr}</span>
+                    <span className="spec-val font-mono text-slate-300">{spec.fare_range_lkr}</span>
                   </div>
                   <div className="spec-row">
                     <span className="spec-label">Off-Peak Headway:</span>
                     <span className="spec-val font-mono">{spec.off_peak_headway}</span>
                   </div>
-                </div>
-
-                {/* Multimodal Rail / Bus Transfer Badges */}
-                <div className="multimodal-badges">
-                  {spec.multimodal_transfers.map((transfer, idx) => (
-                    <span key={idx} className="transfer-pill">
-                      🔁 {transfer}
-                    </span>
-                  ))}
                 </div>
 
                 {/* Collapsible Stop-by-Stop Breakdown */}
@@ -1131,30 +1070,6 @@ export const MetroAnalysis: React.FC = () => {
             </p>
           </div>
 
-        </div>
-
-        {/* DEVELOPER DATASET EXPORT & API PORTAL */}
-        <div className="dataset-export-portal">
-          <div className="export-portal-content">
-            <div>
-              <div className="export-badge">DATASET EXPORT & API ACCESS</div>
-              <h3>Public Transport Data Analysts & Developers</h3>
-              <p>
-                Export complete Sri Lanka Metro Bus network schedules, fare stages, stop sequences, and route geometries as open datasets or query via LankaData Hub REST APIs.
-              </p>
-            </div>
-            <div className="export-buttons">
-              <button className="btn-export-csv" onClick={handleExportCSV}>
-                📥 Export Route Dataset (CSV)
-              </button>
-              <a
-                href="/documentation"
-                className="btn-export-api"
-              >
-                ⚡ Query REST API Endpoint
-              </a>
-            </div>
-          </div>
         </div>
 
       </section>
