@@ -196,9 +196,9 @@
 
 .metro-definition-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 50px;
-  align-items: center;
+  grid-template-columns: 1fr 1.85fr;
+  gap: 36px;
+  align-items: flex-start;
 }
 
 .metro-definition-main p {

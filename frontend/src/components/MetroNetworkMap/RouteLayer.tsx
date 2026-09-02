@@ -6,6 +6,8 @@ interface RouteLayerProps {
   isSelected?: boolean;
   isDimmed?: boolean;
   onClick?: (route: MetroRoute) => void;
+  onMouseEnter?: (route: MetroRoute) => void;
+  onMouseLeave?: () => void;
 }
 
 export const RouteLayer: React.FC<RouteLayerProps> = ({
@@ -13,6 +15,8 @@ export const RouteLayer: React.FC<RouteLayerProps> = ({
   isSelected,
   isDimmed,
   onClick,
+  onMouseEnter,
+  onMouseLeave,
 }) => {
   if (!route || !route.points || route.points.length === 0) return null;
 
@@ -27,19 +31,31 @@ export const RouteLayer: React.FC<RouteLayerProps> = ({
     <g
       className={`route-layer-group ${isSelected ? "selected" : ""} ${isDimmed ? "dimmed" : ""}`}
       onClick={() => onClick && onClick(route)}
+      onMouseEnter={() => onMouseEnter && onMouseEnter(route)}
+      onMouseLeave={() => onMouseLeave && onMouseLeave()}
       style={{ cursor: "pointer" }}
     >
-      {/* Background glow stroke for selected route */}
+      {/* Invisible wider hit-testing polyline for easy mouse hovering */}
+      <polyline
+        points={pointsString}
+        fill="none"
+        stroke="transparent"
+        strokeWidth="36"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+
+      {/* Background glow stroke for selected/hovered route */}
       {isSelected && (
         <polyline
           points={pointsString}
           fill="none"
           stroke={route.color}
-          strokeWidth="24"
+          strokeWidth="32"
           strokeLinecap="round"
           strokeLinejoin="round"
           opacity="0.4"
-          filter="blur(6px)"
+          filter="blur(8px)"
         />
       )}
 
@@ -48,7 +64,7 @@ export const RouteLayer: React.FC<RouteLayerProps> = ({
         points={pointsString}
         fill="none"
         stroke={route.color}
-        strokeWidth={isSelected ? "14" : "10"}
+        strokeWidth={isSelected ? "18" : "14"}
         strokeLinecap="round"
         strokeLinejoin="round"
         style={{
@@ -57,25 +73,25 @@ export const RouteLayer: React.FC<RouteLayerProps> = ({
         }}
       />
 
-      {/* Route ID Label Badge near Start Point with 16px Font Size */}
+      {/* Route ID Label Badge near Start Point with 26px Font Size */}
       {startPoint && (
         <g transform={`translate(${startPoint.x}, ${startPoint.y})`} pointerEvents="none">
           <rect
-            x="-28"
-            y="-36"
-            width="56"
-            height="26"
-            rx="5"
+            x="-41"
+            y="-48"
+            width="82"
+            height="38"
+            rx="8"
             fill={route.color}
             stroke="#ffffff"
-            strokeWidth="2"
+            strokeWidth="3"
             opacity={isDimmed ? 0.3 : 0.95}
           />
           <text
             x="0"
-            y="-18"
+            y="-22"
             textAnchor="middle"
-            fontSize="16"
+            fontSize="26"
             fontWeight="900"
             fill="#ffffff"
             opacity={isDimmed ? 0.4 : 1}
@@ -85,25 +101,25 @@ export const RouteLayer: React.FC<RouteLayerProps> = ({
         </g>
       )}
 
-      {/* Route ID Label Badge near End Point with 16px Font Size */}
+      {/* Route ID Label Badge near End Point with 26px Font Size */}
       {endPoint && (startPoint.x !== endPoint.x || startPoint.y !== endPoint.y) && (
         <g transform={`translate(${endPoint.x}, ${endPoint.y})`} pointerEvents="none">
           <rect
-            x="-28"
-            y="12"
-            width="56"
-            height="26"
-            rx="5"
+            x="-41"
+            y="14"
+            width="82"
+            height="38"
+            rx="8"
             fill={route.color}
             stroke="#ffffff"
-            strokeWidth="2"
+            strokeWidth="3"
             opacity={isDimmed ? 0.3 : 0.95}
           />
           <text
             x="0"
-            y="30"
+            y="40"
             textAnchor="middle"
-            fontSize="16"
+            fontSize="26"
             fontWeight="900"
             fill="#ffffff"
             opacity={isDimmed ? 0.4 : 1}

@@ -17,8 +17,8 @@ export const Legend: React.FC<LegendProps> = ({
   const routesList = Object.values(metroRoutes);
 
   return (
-    <div className="metro-legend-horizontal-bar">
-      <div className="legend-horizontal-scroll">
+    <div className="metro-legend-horizontal-bar flex items-center justify-between gap-3 px-2 py-1">
+      <div className="legend-horizontal-scroll flex items-center gap-2 overflow-x-auto py-0.5">
         <button
           onClick={() => onSelectRoute(null)}
           onMouseEnter={() => onHoverRoute(null)}
@@ -47,6 +47,11 @@ export const Legend: React.FC<LegendProps> = ({
           );
         })}
       </div>
+
+      {/* Source credit text on right side of legend */}
+      <span className="text-[11px] text-slate-400/90 font-mono whitespace-nowrap pl-2 border-l border-slate-800 shrink-0">
+        Data from Lanka Metro Web
+      </span>
     </div>
   );
 };

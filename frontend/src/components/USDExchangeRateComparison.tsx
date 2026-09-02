@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, RefreshCw, Layers, TrendingUp, Zap, Activity, ChevronLeft, ChevronRight, Droplets } from 'lucide-react';
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, Tooltip, ReferenceDot, PieChart, Pie, Cell
@@ -21,6 +21,7 @@ const FALLBACK_RESERVOIRS = [
 ];
 
 export const USDExchangeRateComparison: React.FC = () => {
+  const navigate = useNavigate();
   const [usdData, setUsdData] = useState<UsdComparisonResponse | null>(null);
   const [cebData, setCebData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -31,11 +32,11 @@ export const USDExchangeRateComparison: React.FC = () => {
     fetchAllData();
   }, []);
 
-  // 7-second Auto-Swipe Timer
+  // 7-second Auto-Swipe Timer for 3 Slides
   useEffect(() => {
     if (isPaused) return;
     const interval = setInterval(() => {
-      setActiveSlide((prev) => (prev === 0 ? 1 : 0));
+      setActiveSlide((prev) => (prev + 1) % 3);
     }, 7000);
     return () => clearInterval(interval);
   }, [isPaused]);
@@ -72,9 +73,27 @@ export const USDExchangeRateComparison: React.FC = () => {
     ? cebData.major_reservoirs
     : FALLBACK_RESERVOIRS;
 
+  const slideTitles = [
+    'Lanka Metro Transit Network',
+    'USD Exchange Rates Intelligence',
+    'CEB National Power Grid Intelligence'
+  ];
+
+  const slideRoutes = [
+    '/metro-analysis',
+    '/dashboards/usd-exchange-rates',
+    '/dashboards/ceb-power-grid'
+  ];
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.closest('a') || target.closest('button')) return;
+    navigate(slideRoutes[activeSlide]);
+  };
+
   return (
     <section className="max-w-7xl mx-auto px-6 py-6">
-      {/* ── Section Title Header & Navigation Arrows ── */}
+      {/* ── Section Title Header & Navigation Controls ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-3">
         <div>
           <div className="flex items-center gap-2.5">
@@ -85,14 +104,28 @@ export const USDExchangeRateComparison: React.FC = () => {
           </div>
           <p className="text-xs font-mono font-bold text-cyan-400 mt-0.5 ml-4 flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-            {activeSlide === 0 ? 'USD Exchange Rates Intelligence' : 'CEB National Power Grid Intelligence'}
+            {slideTitles[activeSlide]}
           </p>
         </div>
 
-        {/* Sleek Arrow Navigation Controls */}
-        <div className="flex items-center gap-2 self-end sm:self-center">
+        {/* Sleek Arrow & Pagination Navigation Controls */}
+        <div className="flex items-center gap-3 self-end sm:self-center">
+          {/* Dot Pagination Indicators */}
+          <div className="flex items-center gap-1.5 bg-[#08172e] border border-slate-800 px-2.5 py-1.5 rounded-xl">
+            {[0, 1, 2].map((idx) => (
+              <button
+                key={idx}
+                onClick={() => setActiveSlide(idx)}
+                className={`h-2 rounded-full transition-all ${
+                  activeSlide === idx ? 'w-6 bg-cyan-400' : 'w-2 bg-slate-600 hover:bg-slate-400'
+                }`}
+                title={`Go to Dashboard ${idx + 1}`}
+              />
+            ))}
+          </div>
+
           <button
-            onClick={() => setActiveSlide((prev) => (prev === 0 ? 1 : 0))}
+            onClick={() => setActiveSlide((prev) => (prev === 0 ? 2 : prev - 1))}
             className="p-2 rounded-xl bg-[#08172e] border border-slate-800 hover:bg-[#0c2242] text-cyan-400 hover:text-white transition-all active:scale-95"
             title="Previous Dashboard"
           >
@@ -100,7 +133,7 @@ export const USDExchangeRateComparison: React.FC = () => {
           </button>
 
           <button
-            onClick={() => setActiveSlide((prev) => (prev === 0 ? 1 : 0))}
+            onClick={() => setActiveSlide((prev) => (prev + 1) % 3)}
             className="p-2 rounded-xl bg-[#08172e] border border-slate-800 hover:bg-[#0c2242] text-cyan-400 hover:text-white transition-all active:scale-95"
             title="Next Dashboard"
           >
@@ -119,19 +152,155 @@ export const USDExchangeRateComparison: React.FC = () => {
         </div>
       </div>
 
-      {/* ── ONE BIG UNIFIED DEV BOX CAROUSEL (No Light Blue Border Outline) ── */}
+      {/* ── ONE BIG UNIFIED CLICKABLE DEV BOX CAROUSEL ── */}
       <div
+        onClick={handleCardClick}
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
-        className="relative rounded-2xl bg-[#030914] p-3.5 h-[340px] min-h-[340px] max-h-[340px] overflow-hidden select-none shadow-2xl flex flex-col justify-between"
+        className="relative rounded-2xl bg-[#030914] p-3.5 h-[340px] min-h-[340px] max-h-[340px] overflow-hidden select-none shadow-2xl flex flex-col justify-between cursor-pointer border border-white/[0.04] group"
       >
         {/* Glow */}
         <div className="absolute top-0 right-1/4 w-[300px] h-[300px] bg-cyan-500/5 rounded-full blur-[100px] pointer-events-none" />
 
         {/* ════════════════════════════════════════════════════════════════════
-            SLIDE 0: USD EXCHANGE RATE COMPARISON DASHBOARD
+            SLIDE 0: LANKA METRO TRANSIT NETWORK (NOW 1ST DASHBOARD PREVIEW)
         ════════════════════════════════════════════════════════════════════ */}
         {activeSlide === 0 && (
+          <div className="flex flex-col justify-between h-full animate-fadeIn">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch flex-1 overflow-hidden">
+
+              {/* ── 1. LEFT SIDE: CARD WITH UPLOADED MAROON HEADER BAR + BUS PHOTO (lg:col-span-4) ── */}
+              <div className="lg:col-span-4 relative rounded-xl overflow-hidden border border-[#5a151e]/50 bg-[#030914] shadow-xl flex flex-col h-full">
+                <img
+                  src="/lanka-metro-header-card.jpg"
+                  alt="Lanka Metro Transit Official Header"
+                  className="w-full h-full object-cover object-center select-none pointer-events-none group-hover:scale-105 transition-transform duration-500"
+                />
+              </div>
+
+              {/* ── 2. RIGHT SIDE: RICH PREVIEW DETAILS & HUB HIGHLIGHTS (lg:col-span-8) ── */}
+              <div className="lg:col-span-8 flex flex-col justify-between h-full py-0.5 pr-2">
+                
+                {/* Header Title & Subtitle */}
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="px-2 py-0.5 rounded text-[9.5px] font-mono font-black text-white bg-gradient-to-r from-[#7a121d] to-[#b91c1c]">
+                      OFFICIAL TRANSIT
+                    </span>
+                    <span className="text-[10px] font-mono text-cyan-400 font-bold tracking-wider">
+                      WESTERN PROVINCE NETWORK
+                    </span>
+                  </div>
+
+                  <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight group-hover:text-cyan-300 transition-colors">
+                    Lanka Metro Transit Network
+                  </h3>
+                  <p className="text-xs text-slate-400 font-medium mt-0.5">
+                    Integrated high-frequency urban bus transit system across Sri Lanka's capital region.
+                  </p>
+                </div>
+
+                {/* Main Body: WHAT IS METRO? & WHY METRO? + 4 BENCHMARK STATS */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1.5">
+                  {/* What is Metro? */}
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 text-cyan-400 font-extrabold text-xs uppercase tracking-wide">
+                      <span className="w-2 h-2 rounded-full bg-cyan-400" />
+                      <span>WHAT IS METRO?</span>
+                    </div>
+                    <p className="text-[11px] text-slate-300 leading-relaxed font-normal">
+                      Sri Lanka's official rapid bus network operating high-frequency trips on dedicated color-coded corridors (<span className="text-cyan-300 font-bold">CM01–CM08</span>).
+                    </p>
+                  </div>
+
+                  {/* Why Metro? */}
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 text-sky-400 font-extrabold text-xs uppercase tracking-wide">
+                      <span className="w-2 h-2 rounded-full bg-sky-400" />
+                      <span>WHY METRO?</span>
+                    </div>
+                    <p className="text-[11px] text-slate-300 leading-relaxed font-normal">
+                      Eliminates schedule delays, provides fixed fare structures, and connects major railway terminals with live digital tracking.
+                    </p>
+                  </div>
+
+                  {/* 4 Stat Boxes Stack */}
+                  <div className="grid grid-cols-2 gap-1.5 text-[11px] font-mono">
+                    <div className="bg-[#051120] border border-white/[0.06] rounded-lg p-1.5">
+                      <span className="text-[8.5px] text-slate-400 uppercase block font-bold">ACTIVE ROUTES</span>
+                      <span className="font-extrabold text-cyan-300 text-xs">7 Corridors</span>
+                    </div>
+                    <div className="bg-[#051120] border border-white/[0.06] rounded-lg p-1.5">
+                      <span className="text-[8.5px] text-slate-400 uppercase block font-bold">METRO BUSES</span>
+                      <span className="font-extrabold text-white text-xs">100+ Fleet</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-1.5 text-[11px] font-mono">
+                    <div className="bg-[#051120] border border-white/[0.06] rounded-lg p-1.5">
+                      <span className="text-[8.5px] text-slate-400 uppercase block font-bold">DESIGNATED HALTS</span>
+                      <span className="font-extrabold text-sky-300 text-xs">60+ Stops</span>
+                    </div>
+                    <div className="bg-[#051120] border border-white/[0.06] rounded-lg p-1.5">
+                      <span className="text-[8.5px] text-slate-400 uppercase block font-bold">DESTINATIONS</span>
+                      <span className="font-extrabold text-white text-xs">11 Western Hubs</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* RICH PREVIEW DETAILS (Key Corridors & Multi-Modal Hubs) */}
+                <div className="grid grid-cols-2 gap-2 bg-[#051424]/90 border border-cyan-500/20 rounded-xl p-2 my-1 text-[10px]">
+                  <div className="space-y-1 border-r border-white/10 pr-2">
+                    <span className="text-[8.5px] font-mono font-bold text-cyan-400 uppercase tracking-wide block">
+                      KEY CORRIDORS
+                    </span>
+                    <div className="space-y-0.5 text-slate-300 font-medium">
+                      <div className="flex justify-between">
+                        <span>• CM01: Makumbura ↔ Fort</span>
+                        <span className="text-cyan-300 font-mono">23.3 km</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>• CM03: Kadawatha ↔ Makumbura</span>
+                        <span className="text-cyan-300 font-mono">34.8 km</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1 pl-1">
+                    <span className="text-[8.5px] font-mono font-bold text-sky-300 uppercase tracking-wide block">
+                      MULTI-MODAL HUBS
+                    </span>
+                    <div className="space-y-0.5 text-slate-300 font-medium">
+                      <div>• Fort / Pettah Rail & Bus Terminal</div>
+                      <div>• Kadawatha & Makumbura MMC Hubs</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bottom Bar: Source on left + Unified Dashboard Button on right */}
+                <div className="flex items-center justify-between border-t border-white/[0.06] pt-1.5 mt-0.5 shrink-0">
+                  <span className="text-[10px] font-mono text-slate-400">
+                    Source: <span className="text-slate-300 font-bold">Data from Lanka Metro Web (lankametro.lk)</span>
+                  </span>
+
+                  <Link
+                    to="/metro-analysis"
+                    className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-gradient-to-r from-lanka-blue to-cyan-500 hover:from-blue-600 hover:to-cyan-400 text-white text-[11px] font-bold shadow-cyan-glow transition-all active:scale-95 shrink-0"
+                  >
+                    View Full Dashboard <ArrowRight size={12} />
+                  </Link>
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+        )}
+
+        {/* ════════════════════════════════════════════════════════════════════
+            SLIDE 1: USD EXCHANGE RATE COMPARISON DASHBOARD
+        ════════════════════════════════════════════════════════════════════ */}
+        {activeSlide === 1 && (
           <div className="flex flex-col justify-between h-full animate-fadeIn">
             {/* 3 INNER COLUMNS */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-stretch flex-1 overflow-hidden">
@@ -250,7 +419,7 @@ export const USDExchangeRateComparison: React.FC = () => {
 
             </div>
 
-            {/* Bottom Bar for Slide 0 */}
+            {/* Bottom Bar for Slide 1 */}
             <div className="flex items-center justify-between border-t border-white/[0.06] pt-2 mt-1 shrink-0">
               <span className="text-[10px] font-mono text-slate-400">
                 Source: <span className="text-slate-300 font-bold">Central Bank of Sri Lanka (CBSL)</span>
@@ -267,9 +436,9 @@ export const USDExchangeRateComparison: React.FC = () => {
         )}
 
         {/* ════════════════════════════════════════════════════════════════════
-            SLIDE 1: CEB NATIONAL POWER GRID INTELLIGENCE DASHBOARD
+            SLIDE 2: CEB NATIONAL POWER GRID INTELLIGENCE DASHBOARD
         ════════════════════════════════════════════════════════════════════ */}
-        {activeSlide === 1 && (
+        {activeSlide === 2 && (
           <div className="flex flex-col justify-between h-full animate-fadeIn">
             {/* 3 INNER COLUMNS */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-stretch flex-1 overflow-hidden">
@@ -293,19 +462,19 @@ export const USDExchangeRateComparison: React.FC = () => {
                     <span className="text-[8px] text-slate-400 font-mono">public.daily_energy</span>
                   </div>
 
-                  <div className="bg-white/[0.035] border border-white/[0.05] rounded-xl p-2 flex flex-col justify-between">
+                  <div className="bg-[#051120] border border-white/[0.05] rounded-xl p-2 flex flex-col justify-between">
                     <span className="text-[9px] font-mono text-slate-400 uppercase font-bold">Peak Demand</span>
                     <span className="text-base font-black text-sky-300 font-mono">{cebSummary.current_peak_demand_mw} MW</span>
                     <span className="text-[8px] text-slate-400 font-mono">public.peak_demand</span>
                   </div>
 
-                  <div className="bg-white/[0.035] border border-white/[0.05] rounded-xl p-2 flex flex-col justify-between">
+                  <div className="bg-[#051120] border border-white/[0.05] rounded-xl p-2 flex flex-col justify-between">
                     <span className="text-[9px] font-mono text-slate-400 uppercase font-bold">Hydro Storage</span>
                     <span className="text-base font-black text-cyan-400 font-mono">{cebSummary.avg_hydro_storage_pct}%</span>
                     <span className="text-[8px] text-slate-400 font-mono">public.major_reservoirs</span>
                   </div>
 
-                  <div className="bg-white/[0.035] border border-white/[0.05] rounded-xl p-2 flex flex-col justify-between">
+                  <div className="bg-[#051120] border border-white/[0.05] rounded-xl p-2 flex flex-col justify-between">
                     <span className="text-[9px] font-mono text-slate-400 uppercase font-bold">Grid Frequency</span>
                     <span className="text-base font-black text-blue-300 font-mono">{cebSummary.grid_frequency_hz} Hz</span>
                     <span className="text-[8px] text-cyan-400 font-mono">✦ Optimal Stable</span>
@@ -406,7 +575,7 @@ export const USDExchangeRateComparison: React.FC = () => {
 
             </div>
 
-            {/* Bottom Bar for Slide 1 */}
+            {/* Bottom Bar for Slide 2 */}
             <div className="flex items-center justify-between border-t border-white/[0.06] pt-2 mt-1 shrink-0">
               <span className="text-[10px] font-mono text-slate-400">
                 Source: <span className="text-slate-300 font-bold">Ceylon Electricity Board (CEB) Telemetry</span>

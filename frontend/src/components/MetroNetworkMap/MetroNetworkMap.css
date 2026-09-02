@@ -1,8 +1,7 @@
 .metro-map-wrapper {
   position: relative;
   width: 100%;
-  height: 600px;
-  max-height: 600px;
+  height: auto;
   background-color: transparent;
   border: none;
   border-radius: 0;
@@ -11,6 +10,13 @@
   flex-direction: column;
   user-select: none;
   font-family: Inter, system-ui, -apple-system, sans-serif;
+  overflow: hidden;
+}
+
+.metro-svg-viewport {
+  position: relative;
+  width: 100%;
+  height: 590px;
   overflow: hidden;
 }
 

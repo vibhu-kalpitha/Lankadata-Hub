@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { metroRoutes, type MetroRoute } from "../../data/metroRoutes";
+import { metroRoutes } from "../../data/metroRoutes";
 import { metroStations, type MetroStation } from "../../data/metroStations";
 import { RouteLayer } from "./RouteLayer";
 import { StationLayer } from "./StationLayer";
@@ -10,46 +10,24 @@ export const MetroNetworkMap: React.FC = () => {
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null);
   const [hoveredRouteId, setHoveredRouteId] = useState<string | null>(null);
   const [hoveredStation, setHoveredStation] = useState<MetroStation | null>(null);
-  const [activeStation, setActiveStation] = useState<MetroStation | null>(null);
-  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const [mousePos, setMousePos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
   const routesList = Object.values(metroRoutes);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const activeRouteId = hoveredRouteId || selectedRouteId;
   const activeRoute = activeRouteId ? metroRoutes[activeRouteId] : null;
-  const displayStation = activeStation || hoveredStation;
 
   return (
     <div
       ref={containerRef}
-      className={`metro-map-wrapper ${isFullscreen ? "fullscreen" : ""}`}
+      className="metro-map-wrapper"
     >
-      {/* Top Map Control Bar with ONLY Fullscreen Option */}
-      <div className="map-top-bar">
-        <div className="map-brand-title">
-          <span className="live-dot-ping" />
-          <span className="map-title-text">LANKA METRO BUS NETWORK</span>
-        </div>
-
-        <div className="map-controls-group">
-          <button
-            className="map-ctrl-btn fullscreen-btn"
-            onClick={() => setIsFullscreen(!isFullscreen)}
-            title="Toggle Fullscreen"
-          >
-            {isFullscreen ? "Exit Fullscreen ⛶" : "⛶ Fullscreen"}
-          </button>
-        </div>
+      {/* Subtitle Aligned to Right Side Above Map */}
+      <div className="text-xs text-cyan-400/90 italic font-medium mb-1.5 tracking-wide flex items-center justify-end gap-1.5">
+        <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+        <span>The unofficial Metro transit map.</span>
       </div>
-
-      {/* Horizontal One-After-One Route Legend Bar */}
-      <Legend
-        selectedRouteId={selectedRouteId}
-        hoveredRouteId={hoveredRouteId}
-        onSelectRoute={(id) => setSelectedRouteId(id)}
-        onHoverRoute={(id) => setHoveredRouteId(id)}
-      />
 
       {/* Dynamic Route Hover Details Banner */}
       {activeRoute && (
@@ -85,13 +63,47 @@ export const MetroNetworkMap: React.FC = () => {
         </div>
       )}
 
-      {/* SVG Canvas Viewport */}
+      {/* Floating Station Tooltip directly NEXT to the hovered bus stop cursor */}
+      {hoveredStation && !activeRoute && (
+        <div
+          className="absolute bg-[#070e1b]/95 border border-cyan-500/60 backdrop-blur-md rounded-xl p-2.5 shadow-2xl text-xs z-40 pointer-events-none animate-fadeIn flex flex-col gap-1 min-w-[170px]"
+          style={{
+            left: Math.min(mousePos.x + 15, (containerRef.current?.clientWidth || 800) - 190),
+            top: Math.max(mousePos.y - 65, 10),
+          }}
+        >
+          <div className="flex items-center gap-1.5 text-cyan-400 font-bold text-xs">
+            <span>📍</span>
+            <span>{hoveredStation.name}</span>
+          </div>
+          <div className="text-[10px] text-slate-300 flex items-center gap-1">
+            <span className="text-slate-400 font-medium">Routes:</span>
+            <div className="flex flex-wrap items-center gap-1">
+              {hoveredStation.routes.map((routeId) => {
+                const rt = metroRoutes[routeId];
+                if (!rt) return null;
+                return (
+                  <span
+                    key={routeId}
+                    className="px-1.5 py-0.2 rounded text-white font-mono font-bold text-[9px]"
+                    style={{ backgroundColor: rt.color }}
+                  >
+                    {routeId}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SVG Canvas Viewport — min-y 210 provides 50px breathing room for top CM05 station names */}
       <div className="metro-svg-viewport">
         <svg
-          viewBox="-70 0 2120 2048"
+          viewBox="-160 210 2368 1760"
           width="100%"
           height="100%"
-          preserveAspectRatio="xMidYMid meet"
+          preserveAspectRatio="xMidYMin meet"
           className="metro-svg-canvas"
         >
           {/* Secondary Water / River Geographic Lines */}
@@ -117,63 +129,58 @@ export const MetroNetworkMap: React.FC = () => {
             >
               KELANI RIVER
             </text>
-
-            {/* Indian Ocean Coast Line Band */}
-            <path
-              d="M 0 0 L 120 0 L 120 2048 L 0 2048 Z"
-              fill="#0f172a"
-              fillOpacity="0.8"
-              stroke="#1e293b"
-              strokeWidth="2"
-            />
-            <text
-              x="50"
-              y="1024"
-              fill="#334155"
-              fontSize="24"
-              fontWeight="900"
-              letterSpacing="6"
-              transform="rotate(-90 50 1024)"
-            >
-              INDIAN OCEAN
-            </text>
           </g>
 
-          {/* 1. ROUTE LINES */}
-          <g className="routes-layer">
-            {routesList.map((route: MetroRoute) => {
-              const isSelected = activeRouteId === route.id;
-              const isDimmed = activeRouteId !== null && activeRouteId !== route.id;
+          {/* Render All Metro Polyline Routes */}
+          <g className="metro-routes-layer">
+            {routesList.map((route) => {
+              const isSelected = selectedRouteId === route.id;
+              const isHovered = hoveredRouteId === route.id;
+              const isDimmed =
+                activeRouteId !== null &&
+                activeRouteId !== route.id;
+
               return (
-                <g
+                <RouteLayer
                   key={route.id}
-                  onMouseEnter={() => setHoveredRouteId(route.id)}
+                  route={route}
+                  isSelected={isSelected || isHovered}
+                  isDimmed={isDimmed}
+                  onClick={(r) => {
+                    if (selectedRouteId === r.id) {
+                      setSelectedRouteId(null);
+                    } else {
+                      setSelectedRouteId(r.id);
+                    }
+                  }}
+                  onMouseEnter={(r) => setHoveredRouteId(r.id)}
                   onMouseLeave={() => setHoveredRouteId(null)}
-                >
-                  <RouteLayer
-                    route={route}
-                    isSelected={isSelected}
-                    isDimmed={isDimmed}
-                    onClick={(r) => setSelectedRouteId(r.id === selectedRouteId ? null : r.id)}
-                  />
-                </g>
+                />
               );
             })}
           </g>
 
-          {/* 2. STATION CIRCLES & LABELS */}
-          <g className="stations-layer">
-            {metroStations.map((station: MetroStation) => {
+          {/* Render All Station Node Points with Mouse Tracking Hover */}
+          <g className="metro-stations-layer">
+            {metroStations.map((station) => {
               const isHovered = hoveredStation?.id === station.id;
-              const isSelected = activeStation?.id === station.id;
+
               return (
                 <StationLayer
                   key={station.id}
                   station={station}
                   isHovered={isHovered}
-                  isSelected={isSelected}
-                  onClick={(s) => setActiveStation(s)}
-                  onMouseEnter={(s) => setHoveredStation(s)}
+                  onClick={() => {}}
+                  onMouseEnter={(st, e) => {
+                    setHoveredStation(st);
+                    const rect = containerRef.current?.getBoundingClientRect();
+                    if (rect) {
+                      setMousePos({
+                        x: e.clientX - rect.left,
+                        y: e.clientY - rect.top,
+                      });
+                    }
+                  }}
                   onMouseLeave={() => setHoveredStation(null)}
                 />
               );
@@ -182,52 +189,15 @@ export const MetroNetworkMap: React.FC = () => {
         </svg>
       </div>
 
-      {/* Hover & Active Station Info Tooltip Card */}
-      {displayStation && (
-        <div className="metro-tooltip-card">
-          <div className="tooltip-header">
-            <span className="tooltip-title">{displayStation.name}</span>
-            <span
-              className="tooltip-[close]"
-              onClick={() => {
-                setActiveStation(null);
-                setHoveredStation(null);
-              }}
-            >
-              ✕
-            </span>
-          </div>
-
-          <div className="tooltip-body">
-            <div>
-              <strong>Station Type: </strong>
-              <span className="text-cyan-400 font-mono">
-                {displayStation.interchange
-                  ? "Multi-Route Interchange Station"
-                  : "Intermediate Station"}
-              </span>
-            </div>
-
-            <div style={{ marginTop: "6px" }}>
-              <strong>Serving Routes:</strong>
-              <div className="routes-badge-wrap">
-                {displayStation.routes.map((rId) => {
-                  const r = metroRoutes[rId];
-                  return (
-                    <span
-                      key={rId}
-                      className="route-mini-badge"
-                      style={{ backgroundColor: r?.color || "#00d2ff" }}
-                    >
-                      {rId}: {r?.name || rId}
-                    </span>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Route Color Display Legend Bar directly at Bottom of Map with NO gap */}
+      <div className="mt-0 pt-1 bg-[#060a12]/95 border-t border-slate-800/60 rounded-b-xl">
+        <Legend
+          selectedRouteId={selectedRouteId}
+          hoveredRouteId={hoveredRouteId}
+          onSelectRoute={(id) => setSelectedRouteId(id)}
+          onHoverRoute={(id) => setHoveredRouteId(id)}
+        />
+      </div>
     </div>
   );
 };

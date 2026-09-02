@@ -8,8 +8,8 @@ export const metroStations = [
     routes: ["CM02", "CM08"],
     interchange: true,
     labelPosition: "left",
-    labelOffsetX: -22,
-    labelOffsetY: 6
+    labelOffsetX: -32,
+    labelOffsetY: 8
   },
   {
     id: "pettah",
@@ -19,30 +19,8 @@ export const metroStations = [
     routes: ["CM01", "CM02", "CM08"],
     interchange: true,
     labelPosition: "left",
-    labelOffsetX: -22,
-    labelOffsetY: 6
-  },
-  {
-    id: "regal_cinema",
-    name: "Regal Cinema",
-    x: 280,
-    y: 850,
-    routes: ["CM01", "CM08"],
-    interchange: false,
-    labelPosition: "bottom",
-    labelOffsetX: 0,
-    labelOffsetY: 28
-  },
-  {
-    id: "gamin_hall",
-    name: "Gamini Hall",
-    x: 420,
-    y: 850,
-    routes: ["CM01", "CM08"],
-    interchange: false,
-    labelPosition: "right",
-    labelOffsetX: 22,
-    labelOffsetY: 6
+    labelOffsetX: -32,
+    labelOffsetY: 8
   },
   {
     id: "maradana",
@@ -53,7 +31,7 @@ export const metroStations = [
     interchange: false,
     labelPosition: "top",
     labelOffsetX: 0,
-    labelOffsetY: -22
+    labelOffsetY: -32
   },
   {
     id: "hedges_ct",
@@ -62,53 +40,31 @@ export const metroStations = [
     y: 710,
     routes: ["CM01"],
     interchange: false,
-    labelPosition: "top",
+    labelPosition: "bottom",
     labelOffsetX: 0,
-    labelOffsetY: -22
+    labelOffsetY: 40
   },
   {
-    id: "town_hall",
-    name: "Town Hall",
+    id: "regal_cinema",
+    name: "Regal Cinema",
+    x: 280,
+    y: 850,
+    routes: ["CM01", "CM08"],
+    interchange: false,
+    labelPosition: "bottom",
+    labelOffsetX: 0,
+    labelOffsetY: 40
+  },
+  {
+    id: "gamin_hall",
+    name: "Gamini Hall",
     x: 420,
-    y: 1050,
-    routes: ["CM01", "CM02", "CM06", "CM08"],
-    interchange: true,
+    y: 850,
+    routes: ["CM01", "CM08"],
+    interchange: false,
     labelPosition: "right",
-    labelOffsetX: 24,
-    labelOffsetY: 6
-  },
-  {
-    id: "union_place",
-    name: "Union Pl.",
-    x: 350,
-    y: 1050,
-    routes: ["CM02", "CM06"],
-    interchange: false,
-    labelPosition: "top",
-    labelOffsetX: 0,
-    labelOffsetY: -22
-  },
-  {
-    id: "nawaloka",
-    name: "Nawaloka",
-    x: 220,
-    y: 1050,
-    routes: ["CM02"],
-    interchange: false,
-    labelPosition: "bottom",
-    labelOffsetX: 0,
-    labelOffsetY: 28
-  },
-  {
-    id: "public_library",
-    name: "Public Library",
-    x: 300,
-    y: 1050,
-    routes: ["CM02", "CM06"],
-    interchange: false,
-    labelPosition: "bottom",
-    labelOffsetX: 0,
-    labelOffsetY: 28
+    labelOffsetX: 32,
+    labelOffsetY: 8
   },
   {
     id: "lake_house",
@@ -118,8 +74,54 @@ export const metroStations = [
     routes: ["CM02"],
     interchange: false,
     labelPosition: "left",
-    labelOffsetX: -22,
-    labelOffsetY: 6
+    labelOffsetX: -32,
+    labelOffsetY: 8
+  },
+
+  // ==================== TOWN HALL / NELUM POKUNA (ALTERNATING TOP/BOTTOM) ====================
+  {
+    id: "nawaloka",
+    name: "Nawaloka",
+    x: 220,
+    y: 1050,
+    routes: ["CM02"],
+    interchange: false,
+    labelPosition: "bottom",
+    labelOffsetX: 0,
+    labelOffsetY: 40
+  },
+  {
+    id: "public_library",
+    name: "Public Library",
+    x: 300,
+    y: 1050,
+    routes: ["CM02", "CM06"],
+    interchange: false,
+    labelPosition: "top",
+    labelOffsetX: 0,
+    labelOffsetY: -32
+  },
+  {
+    id: "union_place",
+    name: "Union Pl.",
+    x: 350,
+    y: 1050,
+    routes: ["CM02", "CM06"],
+    interchange: false,
+    labelPosition: "bottom",
+    labelOffsetX: 0,
+    labelOffsetY: 40
+  },
+  {
+    id: "town_hall",
+    name: "Town Hall",
+    x: 420,
+    y: 1050,
+    routes: ["CM01", "CM02", "CM06", "CM08"],
+    interchange: true,
+    labelPosition: "top",
+    labelOffsetX: 0,
+    labelOffsetY: -32
   },
   {
     id: "nelum_pokuna",
@@ -128,9 +130,9 @@ export const metroStations = [
     y: 1050,
     routes: ["CM01", "CM06", "CM08"],
     interchange: false,
-    labelPosition: "top",
+    labelPosition: "bottom",
     labelOffsetX: 0,
-    labelOffsetY: -22
+    labelOffsetY: 40
   },
   {
     id: "independence_square",
@@ -141,7 +143,7 @@ export const metroStations = [
     interchange: false,
     labelPosition: "top",
     labelOffsetX: 0,
-    labelOffsetY: -22
+    labelOffsetY: -32
   },
   {
     id: "wijerama",
@@ -150,12 +152,12 @@ export const metroStations = [
     y: 1050,
     routes: ["CM01", "CM02", "CM06"],
     interchange: false,
-    labelPosition: "top",
+    labelPosition: "bottom",
     labelOffsetX: 0,
-    labelOffsetY: -22
+    labelOffsetY: 40
   },
 
-  // ==================== WEST COAST CORRIDOR ====================
+  // ==================== WEST COAST CORRIDOR (ALTERNATING LEFT/RIGHT) ====================
   {
     id: "liberty",
     name: "Liberty",
@@ -164,8 +166,8 @@ export const metroStations = [
     routes: ["CM06"],
     interchange: false,
     labelPosition: "left",
-    labelOffsetX: -22,
-    labelOffsetY: 6
+    labelOffsetX: -32,
+    labelOffsetY: 8
   },
   {
     id: "kollupitiya",
@@ -175,8 +177,19 @@ export const metroStations = [
     routes: ["CM06", "CM08"],
     interchange: true,
     labelPosition: "left",
-    labelOffsetX: -22,
-    labelOffsetY: 6
+    labelOffsetX: -32,
+    labelOffsetY: 8
+  },
+  {
+    id: "wellawatta",
+    name: "Wellawatta",
+    x: 450,
+    y: 1400,
+    routes: ["CM04", "CM06"],
+    interchange: false,
+    labelPosition: "right",
+    labelOffsetX: 32,
+    labelOffsetY: 8
   },
   {
     id: "bambalapitiya",
@@ -186,19 +199,8 @@ export const metroStations = [
     routes: ["CM04", "CM06"],
     interchange: true,
     labelPosition: "left",
-    labelOffsetX: -22,
-    labelOffsetY: 6
-  },
-  {
-    id: "wellawatta",
-    name: "Wellawatta",
-    x: 450,
-    y: 1400,
-    routes: ["CM04", "CM06"],
-    interchange: false,
-    labelPosition: "left",
-    labelOffsetX: -22,
-    labelOffsetY: 6
+    labelOffsetX: -32,
+    labelOffsetY: 8
   },
   {
     id: "wa_silva",
@@ -207,9 +209,9 @@ export const metroStations = [
     y: 1530,
     routes: ["CM04"],
     interchange: false,
-    labelPosition: "left",
-    labelOffsetX: -22,
-    labelOffsetY: 6
+    labelPosition: "right",
+    labelOffsetX: 32,
+    labelOffsetY: 8
   },
   {
     id: "williams_junc",
@@ -219,8 +221,8 @@ export const metroStations = [
     routes: ["CM04"],
     interchange: false,
     labelPosition: "left",
-    labelOffsetX: -22,
-    labelOffsetY: 6
+    labelOffsetX: -32,
+    labelOffsetY: 8
   },
   {
     id: "dehiwala",
@@ -229,10 +231,12 @@ export const metroStations = [
     y: 1660,
     routes: ["CM04", "CM08"],
     interchange: true,
-    labelPosition: "left",
-    labelOffsetX: -22,
-    labelOffsetY: 6
+    labelPosition: "right",
+    labelOffsetX: 32,
+    labelOffsetY: 8
   },
+
+  // ==================== CM04 SOUTHERN COAST (ALTERNATING TOP/BOTTOM) ====================
   {
     id: "mount_lavinia",
     name: "Mount Lavinia",
@@ -241,11 +245,9 @@ export const metroStations = [
     routes: ["CM04"],
     interchange: false,
     labelPosition: "bottom-left",
-    labelOffsetX: -14,
-    labelOffsetY: 26
+    labelOffsetX: -16,
+    labelOffsetY: 32
   },
-
-  // ==================== CM04 SOUTHERN COAST (ALTERNATING TOP/BOTTOM) ====================
   {
     id: "ratmalana",
     name: "Ratmalana",
@@ -255,7 +257,7 @@ export const metroStations = [
     interchange: false,
     labelPosition: "top",
     labelOffsetX: 0,
-    labelOffsetY: -22
+    labelOffsetY: -32
   },
   {
     id: "maliban_junc",
@@ -266,7 +268,7 @@ export const metroStations = [
     interchange: false,
     labelPosition: "bottom",
     labelOffsetX: 0,
-    labelOffsetY: 28
+    labelOffsetY: 40
   },
   {
     id: "rathmalana_tech",
@@ -277,7 +279,7 @@ export const metroStations = [
     interchange: false,
     labelPosition: "top",
     labelOffsetX: 0,
-    labelOffsetY: -22
+    labelOffsetY: -32
   },
   {
     id: "golumadama",
@@ -288,7 +290,7 @@ export const metroStations = [
     interchange: false,
     labelPosition: "bottom",
     labelOffsetX: 0,
-    labelOffsetY: 28
+    labelOffsetY: 40
   },
   {
     id: "german_tech",
@@ -299,7 +301,7 @@ export const metroStations = [
     interchange: false,
     labelPosition: "top",
     labelOffsetX: 0,
-    labelOffsetY: -22
+    labelOffsetY: -32
   },
   {
     id: "katubedda",
@@ -310,7 +312,7 @@ export const metroStations = [
     interchange: false,
     labelPosition: "bottom",
     labelOffsetX: 0,
-    labelOffsetY: 28
+    labelOffsetY: 40
   },
   {
     id: "mendis_ln",
@@ -321,7 +323,7 @@ export const metroStations = [
     interchange: false,
     labelPosition: "top",
     labelOffsetX: 0,
-    labelOffsetY: -22
+    labelOffsetY: -32
   },
   {
     id: "moratuwa",
@@ -332,7 +334,7 @@ export const metroStations = [
     interchange: false,
     labelPosition: "bottom",
     labelOffsetX: 0,
-    labelOffsetY: 28
+    labelOffsetY: 40
   },
   {
     id: "koralawella",
@@ -343,7 +345,7 @@ export const metroStations = [
     interchange: false,
     labelPosition: "top",
     labelOffsetX: 0,
-    labelOffsetY: -22
+    labelOffsetY: -32
   },
   {
     id: "egoda_uyana",
@@ -354,7 +356,7 @@ export const metroStations = [
     interchange: false,
     labelPosition: "bottom",
     labelOffsetX: 0,
-    labelOffsetY: 28
+    labelOffsetY: 40
   },
   {
     id: "jayanthi_mw",
@@ -365,7 +367,7 @@ export const metroStations = [
     interchange: false,
     labelPosition: "top",
     labelOffsetX: 0,
-    labelOffsetY: -22
+    labelOffsetY: -32
   },
   {
     id: "palam_junc",
@@ -376,7 +378,7 @@ export const metroStations = [
     interchange: false,
     labelPosition: "bottom",
     labelOffsetX: 0,
-    labelOffsetY: 28
+    labelOffsetY: 40
   },
   {
     id: "mahanama",
@@ -387,7 +389,7 @@ export const metroStations = [
     interchange: false,
     labelPosition: "top",
     labelOffsetX: 0,
-    labelOffsetY: -22
+    labelOffsetY: -32
   },
   {
     id: "panadura",
@@ -397,8 +399,8 @@ export const metroStations = [
     routes: ["CM04"],
     interchange: false,
     labelPosition: "right",
-    labelOffsetX: 22,
-    labelOffsetY: 6
+    labelOffsetX: 32,
+    labelOffsetY: 8
   },
   {
     id: "panadura_hosp",
@@ -408,11 +410,11 @@ export const metroStations = [
     routes: ["CM04"],
     interchange: true,
     labelPosition: "right",
-    labelOffsetX: 22,
-    labelOffsetY: 6
+    labelOffsetX: 32,
+    labelOffsetY: 8
   },
 
-  // ==================== NORTH TRUNK (EKALA / KADAWATHA) ====================
+  // ==================== EKALA CORRIDOR (ALTERNATING TOP/BOTTOM) ====================
   {
     id: "ekala",
     name: "Ekala",
@@ -420,9 +422,9 @@ export const metroStations = [
     y: 310,
     routes: ["CM05"],
     interchange: true,
-    labelPosition: "top",
+    labelPosition: "bottom",
     labelOffsetX: 0,
-    labelOffsetY: -22
+    labelOffsetY: 40
   },
   {
     id: "ctb_junc",
@@ -433,7 +435,7 @@ export const metroStations = [
     interchange: false,
     labelPosition: "top",
     labelOffsetX: 0,
-    labelOffsetY: -22
+    labelOffsetY: -32
   },
   {
     id: "ja_ela",
@@ -442,9 +444,9 @@ export const metroStations = [
     y: 310,
     routes: ["CM05"],
     interchange: false,
-    labelPosition: "top",
+    labelPosition: "bottom",
     labelOffsetX: 0,
-    labelOffsetY: -22
+    labelOffsetY: 40
   },
   {
     id: "weligampitiya",
@@ -453,9 +455,9 @@ export const metroStations = [
     y: 310,
     routes: ["CM05"],
     interchange: false,
-    labelPosition: "bottom",
+    labelPosition: "top",
     labelOffsetX: 0,
-    labelOffsetY: 28
+    labelOffsetY: -32
   },
   {
     id: "kandana",
@@ -464,9 +466,9 @@ export const metroStations = [
     y: 310,
     routes: ["CM05"],
     interchange: false,
-    labelPosition: "top",
+    labelPosition: "bottom",
     labelOffsetX: 0,
-    labelOffsetY: -22
+    labelOffsetY: 40
   },
   {
     id: "mahabage",
@@ -477,7 +479,7 @@ export const metroStations = [
     interchange: false,
     labelPosition: "top",
     labelOffsetX: 0,
-    labelOffsetY: -22
+    labelOffsetY: -32
   },
   {
     id: "mabola",
@@ -488,7 +490,7 @@ export const metroStations = [
     interchange: false,
     labelPosition: "bottom",
     labelOffsetX: 0,
-    labelOffsetY: 28
+    labelOffsetY: 40
   },
   {
     id: "wattala",
@@ -499,7 +501,7 @@ export const metroStations = [
     interchange: false,
     labelPosition: "top",
     labelOffsetX: 0,
-    labelOffsetY: -22
+    labelOffsetY: -32
   },
   {
     id: "hendala",
@@ -510,7 +512,7 @@ export const metroStations = [
     interchange: false,
     labelPosition: "bottom",
     labelOffsetX: 0,
-    labelOffsetY: 28
+    labelOffsetY: 40
   },
   {
     id: "hekitta",
@@ -521,8 +523,10 @@ export const metroStations = [
     interchange: false,
     labelPosition: "top",
     labelOffsetX: 0,
-    labelOffsetY: -22
+    labelOffsetY: -32
   },
+
+  // ==================== NORTH-SOUTH HIGHWAY TRUNK (ALTERNATING LEFT/RIGHT & TOP/BOTTOM) ====================
   {
     id: "peliyagoda",
     name: "Peliyagoda",
@@ -531,8 +535,8 @@ export const metroStations = [
     routes: ["CM05"],
     interchange: false,
     labelPosition: "left",
-    labelOffsetX: -22,
-    labelOffsetY: 6
+    labelOffsetX: -32,
+    labelOffsetY: 8
   },
   {
     id: "kadawatha",
@@ -541,9 +545,9 @@ export const metroStations = [
     y: 520,
     routes: ["CM03"],
     interchange: true,
-    labelPosition: "top",
+    labelPosition: "bottom",
     labelOffsetX: 0,
-    labelOffsetY: -22
+    labelOffsetY: 40
   },
   {
     id: "mahara",
@@ -554,7 +558,7 @@ export const metroStations = [
     interchange: false,
     labelPosition: "top",
     labelOffsetX: 0,
-    labelOffsetY: -22
+    labelOffsetY: -32
   },
   {
     id: "kiribathgoda",
@@ -565,7 +569,7 @@ export const metroStations = [
     interchange: false,
     labelPosition: "bottom",
     labelOffsetX: 0,
-    labelOffsetY: 28
+    labelOffsetY: 40
   },
   {
     id: "kelaniya_campus",
@@ -576,7 +580,7 @@ export const metroStations = [
     interchange: false,
     labelPosition: "top",
     labelOffsetX: 0,
-    labelOffsetY: -22
+    labelOffsetY: -32
   },
   {
     id: "thorana",
@@ -586,8 +590,8 @@ export const metroStations = [
     routes: ["CM03", "CM05"],
     interchange: true,
     labelPosition: "right",
-    labelOffsetX: 22,
-    labelOffsetY: 6
+    labelOffsetX: 32,
+    labelOffsetY: 8
   },
   {
     id: "new_kelani_br",
@@ -597,8 +601,8 @@ export const metroStations = [
     routes: ["CM03", "CM05"],
     interchange: false,
     labelPosition: "left",
-    labelOffsetX: -22,
-    labelOffsetY: 6
+    labelOffsetX: -32,
+    labelOffsetY: 8
   },
   {
     id: "orugodawatta",
@@ -607,9 +611,9 @@ export const metroStations = [
     y: 710,
     routes: ["CM03", "CM05"],
     interchange: true,
-    labelPosition: "left",
-    labelOffsetX: -22,
-    labelOffsetY: 6
+    labelPosition: "right",
+    labelOffsetX: 32,
+    labelOffsetY: 8
   },
   {
     id: "dematagoda",
@@ -618,9 +622,9 @@ export const metroStations = [
     y: 800,
     routes: ["CM03", "CM04", "CM05"],
     interchange: true,
-    labelPosition: "right",
-    labelOffsetX: 22,
-    labelOffsetY: 6
+    labelPosition: "left",
+    labelOffsetX: -32,
+    labelOffsetY: 8
   },
   {
     id: "campbell_park",
@@ -630,8 +634,8 @@ export const metroStations = [
     routes: ["CM03", "CM04", "CM05"],
     interchange: true,
     labelPosition: "right",
-    labelOffsetX: 22,
-    labelOffsetY: 6
+    labelOffsetX: 32,
+    labelOffsetY: 8
   },
   {
     id: "borella",
@@ -641,8 +645,8 @@ export const metroStations = [
     routes: ["CM01", "CM02", "CM03", "CM04", "CM05"],
     interchange: true,
     labelPosition: "right",
-    labelOffsetX: 22,
-    labelOffsetY: 6
+    labelOffsetX: 32,
+    labelOffsetY: 8
   },
   {
     id: "singer_mega",
@@ -652,11 +656,11 @@ export const metroStations = [
     routes: ["CM01", "CM02", "CM03", "CM04", "CM05"],
     interchange: true,
     labelPosition: "left",
-    labelOffsetX: -22,
-    labelOffsetY: 6
+    labelOffsetX: -32,
+    labelOffsetY: 8
   },
 
-  // ==================== EAST SUBURBS ====================
+  // ==================== EAST CORRIDOR (ALTERNATING TOP/BOTTOM) ====================
   {
     id: "castle_hosp",
     name: "Castle Hosp.",
@@ -666,7 +670,7 @@ export const metroStations = [
     interchange: true,
     labelPosition: "bottom",
     labelOffsetX: 0,
-    labelOffsetY: 28
+    labelOffsetY: 40
   },
   {
     id: "rajagiriya",
@@ -677,7 +681,7 @@ export const metroStations = [
     interchange: false,
     labelPosition: "top",
     labelOffsetX: 0,
-    labelOffsetY: -22
+    labelOffsetY: -32
   },
   {
     id: "sethsiripaya",
@@ -686,9 +690,9 @@ export const metroStations = [
     y: 980,
     routes: ["CM01", "CM02", "CM05"],
     interchange: false,
-    labelPosition: "top",
+    labelPosition: "bottom",
     labelOffsetX: 0,
-    labelOffsetY: -22
+    labelOffsetY: 40
   },
   {
     id: "naita",
@@ -697,9 +701,9 @@ export const metroStations = [
     y: 980,
     routes: ["CM01", "CM02", "CM05"],
     interchange: false,
-    labelPosition: "bottom",
+    labelPosition: "top",
     labelOffsetX: 0,
-    labelOffsetY: 28
+    labelOffsetY: -32
   },
   {
     id: "battaramulla_junc",
@@ -708,10 +712,12 @@ export const metroStations = [
     y: 980,
     routes: ["CM01", "CM02", "CM05"],
     interchange: true,
-    labelPosition: "top",
+    labelPosition: "bottom",
     labelOffsetX: 0,
-    labelOffsetY: -22
+    labelOffsetY: 40
   },
+
+  // ==================== SOUTHEAST CORRIDOR & MALABE (ALTERNATING LEFT/RIGHT & TOP/BOTTOM) ====================
   {
     id: "palam_thuna",
     name: "Palam Thuna Junc.",
@@ -720,8 +726,8 @@ export const metroStations = [
     routes: ["CM01", "CM02"],
     interchange: false,
     labelPosition: "left",
-    labelOffsetX: -22,
-    labelOffsetY: 6
+    labelOffsetX: -32,
+    labelOffsetY: 8
   },
   {
     id: "thalangama",
@@ -731,8 +737,8 @@ export const metroStations = [
     routes: ["CM01", "CM02"],
     interchange: false,
     labelPosition: "right",
-    labelOffsetX: 22,
-    labelOffsetY: 6
+    labelOffsetX: 32,
+    labelOffsetY: 8
   },
   {
     id: "isurupaya",
@@ -741,9 +747,9 @@ export const metroStations = [
     y: 1260,
     routes: ["CM01", "CM02"],
     interchange: true,
-    labelPosition: "bottom-left",
-    labelOffsetX: -14,
-    labelOffsetY: 26
+    labelPosition: "left",
+    labelOffsetX: -32,
+    labelOffsetY: 8
   },
   {
     id: "thalahena",
@@ -754,7 +760,7 @@ export const metroStations = [
     interchange: false,
     labelPosition: "top",
     labelOffsetX: 0,
-    labelOffsetY: -22
+    labelOffsetY: -32
   },
   {
     id: "arangala",
@@ -763,9 +769,9 @@ export const metroStations = [
     y: 1260,
     routes: ["CM02"],
     interchange: false,
-    labelPosition: "top",
+    labelPosition: "bottom",
     labelOffsetX: 0,
-    labelOffsetY: -22
+    labelOffsetY: 40
   },
   {
     id: "malabe",
@@ -774,9 +780,9 @@ export const metroStations = [
     y: 1260,
     routes: ["CM02"],
     interchange: false,
-    labelPosition: "bottom",
+    labelPosition: "top",
     labelOffsetX: 0,
-    labelOffsetY: 28
+    labelOffsetY: -32
   },
   {
     id: "hokandara",
@@ -787,7 +793,7 @@ export const metroStations = [
     interchange: false,
     labelPosition: "bottom",
     labelOffsetX: 0,
-    labelOffsetY: 28
+    labelOffsetY: 40
   },
   {
     id: "nisaco",
@@ -798,7 +804,7 @@ export const metroStations = [
     interchange: false,
     labelPosition: "top",
     labelOffsetX: 0,
-    labelOffsetY: -22
+    labelOffsetY: -32
   },
   {
     id: "athurugiriya",
@@ -809,7 +815,7 @@ export const metroStations = [
     interchange: false,
     labelPosition: "bottom",
     labelOffsetX: 0,
-    labelOffsetY: 28
+    labelOffsetY: 40
   },
   {
     id: "athurugiriya_hosp",
@@ -819,8 +825,8 @@ export const metroStations = [
     routes: ["CM02"],
     interchange: false,
     labelPosition: "right",
-    labelOffsetX: 22,
-    labelOffsetY: 6
+    labelOffsetX: 32,
+    labelOffsetY: 8
   },
   {
     id: "millennium_city",
@@ -830,8 +836,8 @@ export const metroStations = [
     routes: ["CM02"],
     interchange: true,
     labelPosition: "right",
-    labelOffsetX: 22,
-    labelOffsetY: 6
+    labelOffsetX: 32,
+    labelOffsetY: 8
   },
   {
     id: "thalawathugoda",
@@ -841,8 +847,8 @@ export const metroStations = [
     routes: ["CM01"],
     interchange: false,
     labelPosition: "right",
-    labelOffsetX: 22,
-    labelOffsetY: 6
+    labelOffsetX: 32,
+    labelOffsetY: 8
   },
   {
     id: "kalalgoda",
@@ -852,11 +858,11 @@ export const metroStations = [
     routes: ["CM01"],
     interchange: false,
     labelPosition: "right",
-    labelOffsetX: 22,
-    labelOffsetY: 6
+    labelOffsetX: 32,
+    labelOffsetY: 8
   },
 
-  // ==================== INLAND SOUTH & CM08 (ALTERNATING TOP/BOTTOM) ====================
+  // ==================== INLAND SOUTH & CM08 (ALTERNATING LEFT/RIGHT & TOP/BOTTOM) ====================
   {
     id: "army_hosp",
     name: "Army Hosp.",
@@ -865,8 +871,8 @@ export const metroStations = [
     routes: ["CM03"],
     interchange: false,
     labelPosition: "right",
-    labelOffsetX: 22,
-    labelOffsetY: 6
+    labelOffsetX: 32,
+    labelOffsetY: 8
   },
   {
     id: "arcade",
@@ -875,9 +881,9 @@ export const metroStations = [
     y: 1150,
     routes: ["CM04", "CM06"],
     interchange: false,
-    labelPosition: "right",
-    labelOffsetX: 22,
-    labelOffsetY: 6
+    labelPosition: "left",
+    labelOffsetX: -32,
+    labelOffsetY: 8
   },
   {
     id: "jawatta",
@@ -887,8 +893,8 @@ export const metroStations = [
     routes: ["CM04", "CM06"],
     interchange: false,
     labelPosition: "right",
-    labelOffsetX: 22,
-    labelOffsetY: 6
+    labelOffsetX: 32,
+    labelOffsetY: 8
   },
   {
     id: "jawatta_rd",
@@ -897,9 +903,9 @@ export const metroStations = [
     y: 1290,
     routes: ["CM06"],
     interchange: false,
-    labelPosition: "right",
-    labelOffsetX: 22,
-    labelOffsetY: 6
+    labelPosition: "left",
+    labelOffsetX: -32,
+    labelOffsetY: 8
   },
   {
     id: "hirdaramani",
@@ -909,8 +915,8 @@ export const metroStations = [
     routes: ["CM06"],
     interchange: false,
     labelPosition: "right",
-    labelOffsetX: 22,
-    labelOffsetY: 6
+    labelOffsetX: 32,
+    labelOffsetY: 8
   },
   {
     id: "vta",
@@ -919,9 +925,9 @@ export const metroStations = [
     y: 1370,
     routes: ["CM03", "CM06"],
     interchange: false,
-    labelPosition: "right",
-    labelOffsetX: 22,
-    labelOffsetY: 6
+    labelPosition: "left",
+    labelOffsetX: -32,
+    labelOffsetY: 8
   },
   {
     id: "narahenpita",
@@ -931,8 +937,8 @@ export const metroStations = [
     routes: ["CM03", "CM06"],
     interchange: true,
     labelPosition: "right",
-    labelOffsetX: 22,
-    labelOffsetY: 6
+    labelOffsetX: 32,
+    labelOffsetY: 8
   },
   {
     id: "kirulapone",
@@ -941,9 +947,9 @@ export const metroStations = [
     y: 1530,
     routes: ["CM03"],
     interchange: false,
-    labelPosition: "right",
-    labelOffsetX: 22,
-    labelOffsetY: 6
+    labelPosition: "left",
+    labelOffsetX: -32,
+    labelOffsetY: 8
   },
   {
     id: "royal_institute",
@@ -952,10 +958,12 @@ export const metroStations = [
     y: 1590,
     routes: ["CM03", "CM08"],
     interchange: false,
-    labelPosition: "left",
-    labelOffsetX: -22,
-    labelOffsetY: 6
+    labelPosition: "right",
+    labelOffsetX: 32,
+    labelOffsetY: 8
   },
+
+  // SOUTH INLAND (ALTERNATING TOP/BOTTOM)
   {
     id: "nugegoda",
     name: "Nugegoda",
@@ -963,9 +971,9 @@ export const metroStations = [
     y: 1660,
     routes: ["CM01", "CM03"],
     interchange: true,
-    labelPosition: "bottom",
+    labelPosition: "top",
     labelOffsetX: 0,
-    labelOffsetY: 28
+    labelOffsetY: -32
   },
   {
     id: "delkanda",
@@ -976,7 +984,7 @@ export const metroStations = [
     interchange: false,
     labelPosition: "bottom",
     labelOffsetX: 0,
-    labelOffsetY: 28
+    labelOffsetY: 40
   },
   {
     id: "wijerama_junc",
@@ -985,9 +993,9 @@ export const metroStations = [
     y: 1660,
     routes: ["CM03"],
     interchange: false,
-    labelPosition: "bottom",
+    labelPosition: "top",
     labelOffsetX: 0,
-    labelOffsetY: 28
+    labelOffsetY: -32
   },
   {
     id: "nawinna",
@@ -998,7 +1006,7 @@ export const metroStations = [
     interchange: false,
     labelPosition: "bottom",
     labelOffsetX: 0,
-    labelOffsetY: 28
+    labelOffsetY: 40
   },
   {
     id: "maharagama",
@@ -1007,9 +1015,9 @@ export const metroStations = [
     y: 1660,
     routes: ["CM01", "CM03"],
     interchange: false,
-    labelPosition: "bottom",
+    labelPosition: "top",
     labelOffsetX: 0,
-    labelOffsetY: 28
+    labelOffsetY: -32
   },
   {
     id: "cancer_hosp",
@@ -1020,7 +1028,7 @@ export const metroStations = [
     interchange: false,
     labelPosition: "bottom",
     labelOffsetX: 0,
-    labelOffsetY: 28
+    labelOffsetY: 40
   },
   {
     id: "kottawa",
@@ -1029,9 +1037,9 @@ export const metroStations = [
     y: 1660,
     routes: ["CM01", "CM03"],
     interchange: true,
-    labelPosition: "bottom",
+    labelPosition: "top",
     labelOffsetX: 0,
-    labelOffsetY: 28
+    labelOffsetY: -32
   },
   {
     id: "pannipitiya",
@@ -1042,7 +1050,7 @@ export const metroStations = [
     interchange: false,
     labelPosition: "bottom",
     labelOffsetX: 0,
-    labelOffsetY: 28
+    labelOffsetY: 40
   },
   {
     id: "makumbura",
@@ -1052,9 +1060,11 @@ export const metroStations = [
     routes: ["CM01", "CM03"],
     interchange: true,
     labelPosition: "top-right",
-    labelOffsetX: 16,
-    labelOffsetY: -16
+    labelOffsetX: 24,
+    labelOffsetY: -24
   },
+
+  // CM08 INLAND BRANCH (ALTERNATING TOP/BOTTOM)
   {
     id: "kesbewa",
     name: "Kesbewa",
@@ -1063,8 +1073,8 @@ export const metroStations = [
     routes: ["CM08"],
     interchange: true,
     labelPosition: "right",
-    labelOffsetX: 22,
-    labelOffsetY: 6
+    labelOffsetX: 32,
+    labelOffsetY: 8
   },
   {
     id: "piliyandala",
@@ -1075,7 +1085,7 @@ export const metroStations = [
     interchange: false,
     labelPosition: "top",
     labelOffsetX: 0,
-    labelOffsetY: -22
+    labelOffsetY: -32
   },
   {
     id: "lanka_fiber",
@@ -1086,7 +1096,7 @@ export const metroStations = [
     interchange: false,
     labelPosition: "bottom",
     labelOffsetX: 0,
-    labelOffsetY: 28
+    labelOffsetY: 40
   },
   {
     id: "weerasinghe",
@@ -1097,7 +1107,7 @@ export const metroStations = [
     interchange: false,
     labelPosition: "top",
     labelOffsetX: 0,
-    labelOffsetY: -22
+    labelOffsetY: -32
   },
   {
     id: "werahera",
@@ -1108,7 +1118,7 @@ export const metroStations = [
     interchange: true,
     labelPosition: "bottom",
     labelOffsetX: 0,
-    labelOffsetY: 28
+    labelOffsetY: 40
   },
   {
     id: "boralesgamuwa",
@@ -1119,7 +1129,7 @@ export const metroStations = [
     interchange: true,
     labelPosition: "bottom",
     labelOffsetX: 0,
-    labelOffsetY: 28
+    labelOffsetY: 40
   },
   {
     id: "raththanapitiya",
@@ -1130,7 +1140,7 @@ export const metroStations = [
     interchange: false,
     labelPosition: "top",
     labelOffsetX: 0,
-    labelOffsetY: -22
+    labelOffsetY: -32
   },
   {
     id: "pepiliyana",
@@ -1141,7 +1151,7 @@ export const metroStations = [
     interchange: false,
     labelPosition: "bottom",
     labelOffsetX: 0,
-    labelOffsetY: 28
+    labelOffsetY: 40
   },
   {
     id: "kalubowila",
@@ -1151,8 +1161,8 @@ export const metroStations = [
     routes: ["CM08"],
     interchange: false,
     labelPosition: "left",
-    labelOffsetX: -22,
-    labelOffsetY: 6
+    labelOffsetX: -32,
+    labelOffsetY: 8
   },
   {
     id: "thummulla",
@@ -1161,9 +1171,9 @@ export const metroStations = [
     y: 1280,
     routes: ["CM04"],
     interchange: false,
-    labelPosition: "left",
-    labelOffsetX: -22,
-    labelOffsetY: 6
+    labelPosition: "right",
+    labelOffsetX: 32,
+    labelOffsetY: 8
   },
   {
     id: "thimbirigasyaya",
@@ -1173,8 +1183,8 @@ export const metroStations = [
     routes: ["CM04", "CM06", "CM08"],
     interchange: false,
     labelPosition: "left",
-    labelOffsetX: -22,
-    labelOffsetY: 6
+    labelOffsetX: -32,
+    labelOffsetY: 8
   },
   {
     id: "brc_junc",
@@ -1184,8 +1194,8 @@ export const metroStations = [
     routes: ["CM06", "CM08"],
     interchange: false,
     labelPosition: "right",
-    labelOffsetX: 22,
-    labelOffsetY: 6
+    labelOffsetX: 32,
+    labelOffsetY: 8
   },
   {
     id: "havelock",
@@ -1195,8 +1205,8 @@ export const metroStations = [
     routes: ["CM06", "CM08"],
     interchange: false,
     labelPosition: "right",
-    labelOffsetX: 22,
-    labelOffsetY: 6
+    labelOffsetX: 32,
+    labelOffsetY: 8
   },
   {
     id: "anderson_fls",
@@ -1207,6 +1217,6 @@ export const metroStations = [
     interchange: false,
     labelPosition: "bottom",
     labelOffsetX: 0,
-    labelOffsetY: 28
+    labelOffsetY: 40
   }
 ];
