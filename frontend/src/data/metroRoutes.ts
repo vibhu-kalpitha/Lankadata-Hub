@@ -1,0 +1,259 @@
+export interface RoutePoint {
+  x: number;
+  y: number;
+}
+
+export interface MetroRoute {
+  id: string;
+  name: string;
+  color: string;
+  description?: string;
+  totalStations?: number;
+  startTerminal?: string;
+  endTerminal?: string;
+  points: RoutePoint[];
+}
+
+export const metroRoutes: Record<string, MetroRoute> = {
+  CM01: {
+    id: "CM01",
+    name: "Makumbura to Pettah",
+    color: "#0B6682",
+    description: "Main Eastern-Southern Expressway corridor connecting Makumbura Multimodal Hub to Pettah via Kottawa, Rajagiriya & Town Hall.",
+    totalStations: 23,
+    startTerminal: "Makumbura",
+    endTerminal: "Pettah",
+    points: [
+      { x: 170, y: 706 },
+      { x: 220, y: 706 },
+      { x: 280, y: 706 },
+      { x: 416, y: 846 },
+      { x: 420, y: 1054 },
+      { x: 530, y: 1054 },
+      { x: 600, y: 1054 },
+      { x: 700, y: 1054 },
+      { x: 842, y: 900 },
+      { x: 950, y: 980 },
+      { x: 1080, y: 980 },
+      { x: 1220, y: 980 },
+      { x: 1320, y: 980 },
+      { x: 1420, y: 980 },
+      { x: 1415, y: 1090 },
+      { x: 1415, y: 1180 },
+      { x: 1415, y: 1260 },
+      { x: 1520, y: 1356 },
+      { x: 1570, y: 1406 },
+      { x: 1650, y: 1486 },
+      { x: 1650, y: 1655 },
+      { x: 1740, y: 1655 },
+      { x: 1850, y: 1655 }
+    ]
+  },
+
+  CM02: {
+    id: "CM02",
+    name: "Millennium City to Colombo Fort",
+    color: "#FFD400",
+    description: "East-West IT corridor linking Millennium City & Malabe to Colombo Fort via Rajagiriya & Town Hall.",
+    totalStations: 25,
+    startTerminal: "Colombo Fort",
+    endTerminal: "Millennium City",
+    points: [
+      { x: 170, y: 610 },
+      { x: 170, y: 710 },
+      { x: 170, y: 980 },
+      { x: 220, y: 1046 },
+      { x: 300, y: 1046 },
+      { x: 350, y: 1046 },
+      { x: 420, y: 1046 },
+      { x: 700, y: 1046 },
+      { x: 842, y: 908 },
+      { x: 950, y: 988 },
+      { x: 1080, y: 988 },
+      { x: 1220, y: 988 },
+      { x: 1320, y: 988 },
+      { x: 1420, y: 988 },
+      { x: 1425, y: 1090 },
+      { x: 1425, y: 1180 },
+      { x: 1425, y: 1260 },
+      { x: 1520, y: 1260 },
+      { x: 1630, y: 1260 },
+      { x: 1700, y: 1260 },
+      { x: 1770, y: 1260 },
+      { x: 1840, y: 1260 },
+      { x: 1910, y: 1260 },
+      { x: 1970, y: 1200 },
+      { x: 1970, y: 1090 }
+    ]
+  },
+
+  CM03: {
+    id: "CM03",
+    name: "Kadawatha to Makumbura",
+    color: "#8E1B4D",
+    description: "North-South Highway Trunk connecting Kadawatha & Kiribathgoda down to Nugegoda, Maharagama & Makumbura.",
+    totalStations: 23,
+    startTerminal: "Kadawatha",
+    endTerminal: "Makumbura",
+    points: [
+      { x: 1380, y: 520 },
+      { x: 1280, y: 520 },
+      { x: 1180, y: 520 },
+      { x: 1080, y: 520 },
+      { x: 930, y: 520 },
+      { x: 818, y: 620 },
+      { x: 818, y: 710 },
+      { x: 818, y: 800 },
+      { x: 818, y: 900 },
+      { x: 818, y: 980 },
+      { x: 825, y: 1280 },
+      { x: 825, y: 1370 },
+      { x: 825, y: 1460 },
+      { x: 825, y: 1530 },
+      { x: 825, y: 1590 },
+      { x: 950, y: 1665 },
+      { x: 1050, y: 1665 },
+      { x: 1150, y: 1665 },
+      { x: 1250, y: 1665 },
+      { x: 1350, y: 1665 },
+      { x: 1460, y: 1665 },
+      { x: 1650, y: 1665 },
+      { x: 1850, y: 1665 }
+    ]
+  },
+
+  CM04: {
+    id: "CM04",
+    name: "Dematagoda to Panadura",
+    color: "#F57C00",
+    description: "Long South Coastal Trunk connecting Dematagoda, Borella, Wellawatta, Dehiwala & Moratuwa to Panadura.",
+    totalStations: 28,
+    startTerminal: "Dematagoda",
+    endTerminal: "Panadura Hosp.",
+    points: [
+      { x: 826, y: 800 },
+      { x: 826, y: 900 },
+      { x: 826, y: 980 },
+      { x: 680, y: 1150 },
+      { x: 680, y: 1220 },
+      { x: 560, y: 1280 },
+      { x: 458, y: 1280 },
+      { x: 458, y: 1400 },
+      { x: 458, y: 1460 },
+      { x: 458, y: 1530 },
+      { x: 458, y: 1590 },
+      { x: 458, y: 1660 },
+      { x: 580, y: 1790 },
+      { x: 700, y: 1910 },
+      { x: 780, y: 1910 },
+      { x: 860, y: 1910 },
+      { x: 950, y: 1910 },
+      { x: 1050, y: 1910 },
+      { x: 1180, y: 1910 },
+      { x: 1280, y: 1910 },
+      { x: 1380, y: 1910 },
+      { x: 1480, y: 1910 },
+      { x: 1580, y: 1910 },
+      { x: 1660, y: 1910 },
+      { x: 1740, y: 1910 },
+      { x: 1820, y: 1910 },
+      { x: 1910, y: 1820 },
+      { x: 1910, y: 1750 }
+    ]
+  },
+
+  CM05: {
+    id: "CM05",
+    name: "Battaramulla to Ekala",
+    color: "#673399",
+    description: "North Suburban Radial connecting Ekala & Wattala to Borella & Battaramulla Govt Administrative Hub.",
+    totalStations: 22,
+    startTerminal: "Ekala",
+    endTerminal: "Battaramulla Junc.",
+    points: [
+      { x: 1750, y: 310 },
+      { x: 1660, y: 310 },
+      { x: 1560, y: 310 },
+      { x: 1440, y: 310 },
+      { x: 1320, y: 310 },
+      { x: 1200, y: 310 },
+      { x: 1080, y: 310 },
+      { x: 960, y: 310 },
+      { x: 900, y: 310 },
+      { x: 830, y: 310 },
+      { x: 750, y: 390 },
+      { x: 930, y: 520 },
+      { x: 834, y: 620 },
+      { x: 834, y: 710 },
+      { x: 834, y: 800 },
+      { x: 834, y: 900 },
+      { x: 834, y: 980 },
+      { x: 950, y: 972 },
+      { x: 1080, y: 972 },
+      { x: 1220, y: 972 },
+      { x: 1320, y: 972 },
+      { x: 1420, y: 972 }
+    ]
+  },
+
+  CM06: {
+    id: "CM06",
+    name: "Kollupitiya Circular Route",
+    color: "#6AA84F",
+    description: "Inner Colombo Ring Loop connecting Kollupitiya, Town Hall, Narahenpita, Havelock & Bambalapitiya.",
+    totalStations: 19,
+    startTerminal: "Kollupitiya Loop",
+    endTerminal: "Kollupitiya Loop",
+    points: [
+      { x: 450, y: 1280 },
+      { x: 450, y: 1180 },
+      { x: 420, y: 1038 },
+      { x: 300, y: 1038 },
+      { x: 350, y: 1038 },
+      { x: 530, y: 1038 },
+      { x: 600, y: 1038 },
+      { x: 700, y: 1038 },
+      { x: 680, y: 1150 },
+      { x: 680, y: 1220 },
+      { x: 680, y: 1290 },
+      { x: 750, y: 1340 },
+      { x: 835, y: 1370 },
+      { x: 835, y: 1460 },
+      { x: 680, y: 1460 },
+      { x: 560, y: 1460 },
+      { x: 450, y: 1460 },
+      { x: 450, y: 1400 },
+      { x: 450, y: 1280 }
+    ]
+  },
+
+  CM08: {
+    id: "CM08",
+    name: "Kesbewa to Pettah",
+    color: "#2E7D4F",
+    description: "South-West Feeder connecting Kesbewa & Boralesgamuwa to Kalubowila, Town Hall & Pettah Terminal.",
+    totalStations: 18,
+    startTerminal: "Kesbewa",
+    endTerminal: "Colombo Fort",
+    points: [
+      { x: 1550, y: 1600 },
+      { x: 1420, y: 1700 },
+      { x: 1320, y: 1750 },
+      { x: 1220, y: 1750 },
+      { x: 1050, y: 1750 },
+      { x: 950, y: 1750 },
+      { x: 860, y: 1750 },
+      { x: 750, y: 1660 },
+      { x: 680, y: 1560 },
+      { x: 560, y: 1460 },
+      { x: 560, y: 1370 },
+      { x: 442, y: 1280 },
+      { x: 530, y: 1062 },
+      { x: 420, y: 1062 },
+      { x: 424, y: 854 },
+      { x: 280, y: 854 },
+      { x: 170, y: 714 },
+      { x: 170, y: 610 }
+    ]
+  }
+};

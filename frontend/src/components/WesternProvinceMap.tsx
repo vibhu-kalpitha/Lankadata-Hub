@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { srilankaDistricts } from '../assets/srilankaDistrictsMapData';
-import { MapPin } from 'lucide-react';
 
 interface RouteMapItem {
   code: string;
@@ -147,155 +146,114 @@ const metroStops: MetroStopNode[] = [
 ];
 
 export const WesternProvinceMap: React.FC = () => {
-  const [selectedRoute, setSelectedRoute] = useState<string>('CM01');
-  const [hoveredStop, setHoveredStop] = useState<MetroStopNode | null>(null);
+  const [hoveredRoute, setHoveredRoute] = useState<RouteMapItem | null>(null);
 
   // Western Province Districts (Gampaha, Colombo, Kalutara)
   const westernDistricts = srilankaDistricts.filter(d => d.province === 'Western');
 
+  // CM03 is active by default; if user hovers another route, that route takes priority
+  const cm03Route = metroRoutesData.find(r => r.code === 'CM03') || metroRoutesData[0];
+  const activeRoute = hoveredRoute || cm03Route;
+
   return (
-    <div className="relative w-full flex flex-col md:flex-row items-center justify-between gap-3">
+    <div className="relative w-full h-[460px] md:h-[500px] flex items-center justify-center overflow-hidden">
+      
+      {/* SVG Western Province map */}
+      <svg
+        viewBox="35 405 110 175"
+        className="w-full h-full p-1"
+      >
+        {/* Western Province District Vector Outlines */}
+        <g className="western-districts">
+          {westernDistricts.map((d) => (
+            <g key={d.id}>
+              <path
+                d={d.d}
+                className="fill-[#0b1628]/85 stroke-cyan-500/35 stroke-[0.7] hover:fill-cyan-500/20 transition-colors"
+              />
+              {/* District Background Labels */}
+              {d.district === 'Colombo' && (
+                <text x="64" y="490" fontSize="2.8" fill="#334155" fontWeight="bold" letterSpacing="0.5">
+                  COLOMBO
+                </text>
+              )}
+              {d.district === 'Gampaha' && (
+                <text x="70" y="440" fontSize="2.8" fill="#334155" fontWeight="bold" letterSpacing="0.5">
+                  GAMPAHA
+                </text>
+              )}
+              {d.district === 'Kalutara' && (
+                <text x="85" y="535" fontSize="2.8" fill="#334155" fontWeight="bold" letterSpacing="0.5">
+                  KALUTARA
+                </text>
+              )}
+            </g>
+          ))}
+        </g>
 
-      {/* SVG Map Container (Left side) */}
-      <div className="relative flex-1 w-full h-[460px] md:h-[500px] flex items-center justify-center overflow-hidden">
-        
-        {/* Subtle radial cyan background glow */}
-        <div className="absolute inset-0 bg-radial-gradient from-cyan-500/10 to-transparent filter blur-3xl pointer-events-none" />
+        {/* Route Corridors — CM03 highlighted by default, others dimmed until hovered */}
+        <g className="metro-route-lines">
+          {metroRoutesData.map((route) => {
+            const isHighlighted = activeRoute.code === route.code;
+            return (
+              <path
+                key={route.code}
+                d={route.pathD}
+                fill="none"
+                stroke={route.color}
+                strokeWidth={isHighlighted ? '1.4' : '0.45'}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="transition-all duration-300 cursor-pointer"
+                onMouseEnter={() => setHoveredRoute(route)}
+                onMouseLeave={() => setHoveredRoute(null)}
+                style={{
+                  filter: isHighlighted ? `drop-shadow(0 0 5px ${route.glowColor})` : 'none',
+                  opacity: isHighlighted ? 1 : 0.2,
+                }}
+              />
+            );
+          })}
+        </g>
 
-        {/* SVG Western Province map */}
-        <svg
-          viewBox="35 405 110 175"
-          className="w-full h-full p-1 filter drop-shadow-[0_0_25px_rgba(0,210,255,0.22)]"
-        >
-          {/* Western Province District Vector Outlines */}
-          <g className="western-districts">
-            {westernDistricts.map((d) => (
-              <g key={d.id}>
-                <path
-                  d={d.d}
-                  className="fill-[#0b1628]/85 stroke-cyan-500/35 stroke-[0.7] hover:fill-cyan-500/20 transition-colors"
-                />
-                {/* District Background Labels */}
-                {d.district === 'Colombo' && (
-                  <text x="64" y="490" fontSize="2.8" fill="#334155" fontWeight="bold" letterSpacing="0.5">
-                    COLOMBO
-                  </text>
-                )}
-                {d.district === 'Gampaha' && (
-                  <text x="70" y="440" fontSize="2.8" fill="#334155" fontWeight="bold" letterSpacing="0.5">
-                    GAMPAHA
-                  </text>
-                )}
-                {d.district === 'Kalutara' && (
-                  <text x="85" y="535" fontSize="2.8" fill="#334155" fontWeight="bold" letterSpacing="0.5">
-                    KALUTARA
-                  </text>
-                )}
-              </g>
-            ))}
-          </g>
+        {/* Minimal Stop Dots — Small subtle dots matching active route */}
+        <g className="metro-stop-nodes">
+          {metroStops.map((stop) => {
+            const hasMatchingRoute = stop.routes.includes(activeRoute.code);
+            return (
+              <circle
+                key={stop.name}
+                cx={stop.cx}
+                cy={stop.cy}
+                r="0.5"
+                fill="#cbd5e1"
+                stroke="#0f172a"
+                strokeWidth="0.15"
+                style={{ opacity: hasMatchingRoute ? 0.9 : 0.2 }}
+              />
+            );
+          })}
+        </g>
+      </svg>
 
-          {/* Route Corridors — Active selected route highlighted */}
-          <g className="metro-route-lines">
-            {metroRoutesData.map((route) => {
-              const isSelected = selectedRoute === route.code;
-              return (
-                <path
-                  key={route.code}
-                  d={route.pathD}
-                  fill="none"
-                  stroke={route.color}
-                  strokeWidth={isSelected ? '0.85' : '0.35'}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="transition-all duration-300 pointer-events-none"
-                  style={{
-                    filter: isSelected ? `drop-shadow(0 0 5px ${route.glowColor})` : 'none',
-                    opacity: isSelected ? 1 : 0.15,
-                  }}
-                />
-              );
-            })}
-          </g>
+      {/* Floating Route Info Overlay for Active Route (Default CM03, or Hovered Route) */}
+      <div className="absolute bottom-4 right-4 bg-[#070e1b]/95 border border-cyan-500/50 backdrop-blur-md rounded-xl p-3 shadow-2xl text-xs z-30 pointer-events-none max-width-[240px]">
+        <div className="flex items-center gap-2 mb-1">
+          <span
+            className="px-2 py-0.5 rounded text-white font-mono font-black text-xs"
+            style={{ backgroundColor: activeRoute.color }}
+          >
+            {activeRoute.code}
+          </span>
+          <span className="text-xs font-bold text-cyan-400">
+            {activeRoute.name}
+          </span>
+        </div>
 
-          {/* All Transit Bus Stops — Rendered as Dots */}
-          <g className="metro-stop-nodes">
-            {metroStops.map((stop) => {
-              const isHovered = hoveredStop?.name === stop.name;
-              const hasMatchingRoute = stop.routes.includes(selectedRoute);
-
-              return (
-                <g
-                  key={stop.name}
-                  className="cursor-pointer group"
-                  onMouseEnter={() => setHoveredStop(stop)}
-                  onMouseLeave={() => setHoveredStop(null)}
-                  style={{ opacity: hasMatchingRoute ? 1 : 0.2 }}
-                >
-                  {/* Outer circle */}
-                  <circle
-                    cx={stop.cx}
-                    cy={stop.cy}
-                    r={isHovered ? '2.8' : '1.4'}
-                    fill={isHovered ? '#00d2ff' : '#2563eb'}
-                    fillOpacity="0.35"
-                  />
-                  {/* Core stop point dot */}
-                  <circle
-                    cx={stop.cx}
-                    cy={stop.cy}
-                    r={isHovered ? '1.6' : '0.9'}
-                    fill={isHovered ? '#00d2ff' : '#38bdf8'}
-                    stroke="#0b1628"
-                    strokeWidth="0.25"
-                    className="transition-all duration-200"
-                  />
-                </g>
-              );
-            })}
-          </g>
-        </svg>
-
-        {/* Hover Tooltip Overlay (Appears when hovering over any stop dot) */}
-        {hoveredStop && (
-          <div className="absolute bottom-2 left-2 bg-[#070e1b]/95 border border-lanka-cyan/40 backdrop-blur-md rounded-lg p-2.5 shadow-glass text-xs space-y-0.5 z-20 pointer-events-none">
-            <div className="flex items-center gap-1.5 text-lanka-cyan font-bold text-[11px]">
-              <MapPin size={11} />
-              <span>{hoveredStop.name}</span>
-            </div>
-            <div className="text-[9px] text-lanka-muted">
-              Serving Routes: <span className="text-white font-bold">{hoveredStop.routes.join(', ')}</span>
-            </div>
-          </div>
-        )}
-
-      </div>
-
-      {/* Borderless Route Selection Buttons (Right side - Vertical top to bottom) */}
-      <div className="flex flex-col gap-1 w-full md:w-[125px] shrink-0">
-        {metroRoutesData.map((route) => {
-          const isActive = selectedRoute === route.code;
-          return (
-            <button
-              key={route.code}
-              onClick={() => setSelectedRoute(route.code)}
-              className={`text-[9.5px] px-2.5 py-1.5 rounded transition-all flex items-center justify-between text-left border-0 ${
-                isActive
-                  ? 'bg-slate-800/90 text-cyan-400 font-semibold'
-                  : 'bg-transparent text-slate-400 hover:text-slate-200 hover:bg-white/5'
-              }`}
-            >
-              <div className="flex items-center gap-1.5">
-                <span
-                  className="w-1.5 h-1.5 rounded-full"
-                  style={{ backgroundColor: route.color, opacity: isActive ? 1 : 0.6 }}
-                />
-                <span>{route.code}</span>
-              </div>
-              <span className="text-[8px] text-slate-500 font-mono">{route.distance}</span>
-            </button>
-          );
-        })}
+        <div className="text-[10px] text-slate-300 flex items-center gap-3 mt-1">
+          <span>Distance: <strong className="text-white font-mono">{activeRoute.distance}</strong></span>
+          <span>Duration: <strong className="text-white font-mono">{activeRoute.duration}</strong></span>
+        </div>
       </div>
 
     </div>

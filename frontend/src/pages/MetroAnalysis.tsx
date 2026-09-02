@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './MetroAnalysis.css';
 import { WesternProvinceMap } from '../components/WesternProvinceMap';
+import { MetroNetworkMap } from '../components/MetroNetworkMap/MetroNetworkMap';
 import {
   fetchMetroTotals,
   fetchMetroConnectedCities,
@@ -391,16 +392,8 @@ export const MetroAnalysis: React.FC = () => {
             </p>
           </div>
 
-          <div className="metro-definition-image" onClick={() => setIsMapExpanded(true)}>
-            <img
-              src="/metro-bus-official-map.jpg"
-              alt="Official Lanka Metro Transit Network Map"
-              loading="lazy"
-            />
-            <div className="metro-image-badge">
-              <span>LANKA METRO TRANSIT OFFICIAL MAP</span>
-              <p>Click to view full screen diagram (CM01 - CM08 Corridors)</p>
-            </div>
+          <div className="w-full">
+            <MetroNetworkMap />
           </div>
 
         </div>
