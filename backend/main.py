@@ -1242,10 +1242,26 @@ def get_metro_totals(db: Session = Depends(get_db)):
     try:
         rows = db.execute(text("SELECT id, network_metric, total_count, key_locations_and_details FROM metro_total ORDER BY id ASC")).mappings().all()
         if rows:
-            return [dict(r) for r in rows]
+            results = []
+            for r in rows:
+                d = dict(r)
+                if d.get("network_metric") in ("Total Destinations Served", "Destinations Served"):
+                    d["network_metric"] = "Destinations"
+                    d["total_count"] = "20+"
+                elif d.get("network_metric") == "Destinations":
+                    d["total_count"] = "20+"
+                if d.get("network_metric") == "Total Network Bus Stops":
+                    d["total_count"] = "150+"
+                results.append(d)
+            return results
     except Exception:
         db.rollback()
-    return []
+    return [
+        {"id": 1, "network_metric": "Total Active Routes", "total_count": "7", "key_locations_and_details": "High-frequency urban corridors"},
+        {"id": 2, "network_metric": "Destinations", "total_count": "20+", "key_locations_and_details": "Key urban nodes and suburban hubs"},
+        {"id": 3, "network_metric": "Total Network Bus Stops", "total_count": "150+", "key_locations_and_details": "Stop locations across Western Province"},
+        {"id": 4, "network_metric": "Total Major Connections", "total_count": "5", "key_locations_and_details": "Multimodal rail & expressway hubs"}
+    ]
 
 
 @app.get("/api/v1/metro/connected-cities", tags=["Metro Bus Analysis"])

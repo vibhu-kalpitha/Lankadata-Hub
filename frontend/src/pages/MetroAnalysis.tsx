@@ -419,18 +419,31 @@ export const MetroAnalysis: React.FC = () => {
       <section className="metro-stats-section">
         <div className="metro-stats-grid">
           {totals.length > 0 ? (
-            totals.map((item) => (
-              <StatCard
-                key={item.id || item.network_metric}
-                value={item.total_count}
-                label={item.network_metric}
-              />
-            ))
+            totals.map((item) => {
+              let label = item.network_metric;
+              let val = item.total_count;
+              if (label === "Total Destinations Served" || label === "Destinations Served") {
+                label = "Destinations";
+                val = "20+";
+              } else if (label === "Destinations" && (val === "11" || !val)) {
+                val = "20+";
+              }
+              if (label === "Total Network Bus Stops") {
+                val = "150+";
+              }
+              return (
+                <StatCard
+                  key={item.id || label}
+                  value={val}
+                  label={label}
+                />
+              );
+            })
           ) : (
             <>
               <StatCard value="7" label="Total Active Routes" />
-              <StatCard value="11" label="Total Destinations Served" />
-              <StatCard value="60+" label="Total Network Bus Stops" />
+              <StatCard value="20+" label="Destinations" />
+              <StatCard value="150+" label="Total Network Bus Stops" />
               <StatCard value="5" label="Total Major Connections" />
             </>
           )}
