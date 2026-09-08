@@ -12,20 +12,45 @@ import type {
   MetroConnectedCity,
   MetroBusRoute,
 } from '../services/metroService';
+import {
+  BusFront,
+  Route,
+  Network,
+  Clock,
+  MapPin,
+  Building2,
+  Monitor,
+  CreditCard,
+  BarChart3,
+  GitBranch,
+  Map,
+  ChartNoAxesCombined,
+  Lightbulb,
+  Zap,
+  Activity,
+  ShieldCheck,
+  Smartphone,
+  Radio,
+  ChevronDown,
+  ChevronUp,
+} from 'lucide-react';
 
 interface WhyMetroItem {
+  icon: React.ReactNode;
   title: string;
   description: string;
   result: string;
 }
 
 interface AudienceItem {
+  icon: React.ReactNode;
   title: string;
   text: string;
 }
 
 const whyMetro: WhyMetroItem[] = [
   {
+    icon: <Zap className="w-5 h-5 text-cyan-400" />,
     title: "Congested urban corridors",
     description:
       "High-frequency public transport concentrates passenger movement on major corridors instead of relying entirely on individual vehicles.",
@@ -33,6 +58,7 @@ const whyMetro: WhyMetroItem[] = [
       "More people can move through shared transport using existing road capacity more efficiently.",
   },
   {
+    icon: <Clock className="w-5 h-5 text-cyan-400" />,
     title: "Uncertainty about bus arrival",
     description:
       "GPS tracking and passenger information systems provide better visibility of vehicle movement and service conditions.",
@@ -40,6 +66,7 @@ const whyMetro: WhyMetroItem[] = [
       "Passengers can plan journeys around real-time service information.",
   },
   {
+    icon: <GitBranch className="w-5 h-5 text-cyan-400" />,
     title: "Disconnected bus services",
     description:
       "Connected routes and interchange infrastructure allow passengers to transfer between services more easily.",
@@ -47,6 +74,7 @@ const whyMetro: WhyMetroItem[] = [
       "Transfers become simpler and the network becomes more useful as a whole.",
   },
   {
+    icon: <Clock className="w-5 h-5 text-cyan-400" />,
     title: "Long waiting times",
     description:
       "Frequent peak-period services reduce the amount of time passengers need to wait for the next vehicle.",
@@ -54,6 +82,7 @@ const whyMetro: WhyMetroItem[] = [
       "Shorter waiting periods and better service availability.",
   },
   {
+    icon: <Building2 className="w-5 h-5 text-cyan-400" />,
     title: "Limited accessibility",
     description:
       "Modern vehicles and passenger facilities can support low-floor access, wheelchair users and priority seating.",
@@ -61,6 +90,7 @@ const whyMetro: WhyMetroItem[] = [
       "Public transport becomes accessible to a wider passenger population.",
   },
   {
+    icon: <Monitor className="w-5 h-5 text-cyan-400" />,
     title: "Fragmented passenger information",
     description:
       "GPS, digital displays and mobile applications can bring service information into one passenger experience.",
@@ -68,6 +98,7 @@ const whyMetro: WhyMetroItem[] = [
       "Passengers gain better visibility of the network.",
   },
   {
+    icon: <Activity className="w-5 h-5 text-cyan-400" />,
     title: "Urban emissions and traffic pressure",
     description:
       "High-capacity shared transport allows more passengers to travel without requiring an equivalent increase in private vehicles.",
@@ -78,20 +109,67 @@ const whyMetro: WhyMetroItem[] = [
 
 const audience: AudienceItem[] = [
   {
+    icon: <Clock className="w-5 h-5 text-cyan-400" />,
     title: "Daily commuters",
     text: "People travelling to Colombo and surrounding urban centres every day can benefit from predictable, frequent services.",
+    image: "/daily-commuters.png",
   },
   {
+    icon: <Building2 className="w-5 h-5 text-cyan-400" />,
     title: "Students",
     text: "Students can use connected routes to reach schools, universities and other education centres without depending entirely on private transport.",
+    image: "/students-transit.png",
   },
   {
+    icon: <Activity className="w-5 h-5 text-cyan-400" />,
     title: "Workers",
     text: "Workers travelling between residential areas and employment centres can benefit from reliable high-frequency corridors.",
+    image: "/office-workers.png",
   },
   {
+    icon: <MapPin className="w-5 h-5 text-cyan-400" />,
     title: "Visitors and occasional passengers",
     text: "Clear route information, connected stops and passenger information make the network easier to understand.",
+    image: "/visitors-passengers.png",
+  },
+];
+
+const metroFeatures = [
+  {
+    icon: <Clock className="w-5 h-5 text-cyan-400" />,
+    title: "High-Frequency Services",
+    description: "Frequent and reliable services operating along important urban corridors.",
+    image: "/feature-high-frequency.png",
+  },
+  {
+    icon: <MapPin className="w-5 h-5 text-cyan-400" />,
+    title: "Live GPS Tracking",
+    description: "Real-time location tracking and estimated bus arrival information.",
+    image: "/feature-live-gps.png",
+  },
+  {
+    icon: <Building2 className="w-5 h-5 text-cyan-400" />,
+    title: "Modern Passenger Facilities",
+    description: "Improved bus stops, stations, shelters and passenger infrastructure.",
+    image: "/feature-modern-facilities.png",
+  },
+  {
+    icon: <Monitor className="w-5 h-5 text-cyan-400" />,
+    title: "Digital Information",
+    description: "Real-time information about routes, arrivals and service updates.",
+    image: "/feature-digital-info.png",
+  },
+  {
+    icon: <CreditCard className="w-5 h-5 text-cyan-400" />,
+    title: "Digital Ticketing",
+    description: "Modern and convenient fare payment systems.",
+    image: "/feature-digital-ticketing.png",
+  },
+  {
+    icon: <GitBranch className="w-5 h-5 text-cyan-400" />,
+    title: "Connected Interchanges",
+    description: "Better connections between buses and other transport services.",
+    image: "/feature-connected-interchanges.png",
   },
 ];
 
@@ -185,17 +263,21 @@ function StatCard({ value, label }: StatCardProps) {
 }
 
 interface SectionTitleProps {
+  icon?: React.ReactNode;
   eyebrow: string;
   title: string;
   description?: string;
 }
 
-function SectionTitle({ eyebrow, title, description }: SectionTitleProps) {
+function SectionTitle({ icon, eyebrow, title, description }: SectionTitleProps) {
   return (
     <div className="metro-section-heading">
-      <div className="metro-eyebrow">{eyebrow}</div>
+      <div className="metro-eyebrow-container">
+        {icon}
+        <span className="metro-eyebrow">{eyebrow}</span>
+      </div>
       <h2>{title}</h2>
-      {description && <p>{description}</p>}
+      {description && <p className="metro-section-description">{description}</p>}
     </div>
   );
 }
@@ -233,7 +315,10 @@ export const MetroAnalysis: React.FC = () => {
         <div className="metro-hero-grid">
 
           <div className="metro-hero-left">
-            <div className="metro-label">LANKADATA HUB / METRO BUS</div>
+            <div className="metro-label flex items-center gap-2">
+              <BusFront className="w-4 h-4 text-cyan-400" />
+              <span>LANKADATA HUB / METRO BUS</span>
+            </div>
 
             <h1>
               Understanding
@@ -256,15 +341,57 @@ export const MetroAnalysis: React.FC = () => {
         </div>
       </section>
 
-      {/* WHAT IS METRO */}
+      {/* SECTION 01: WHAT IS METRO */}
       <section className="metro-section">
         <SectionTitle
-          eyebrow="01 / WHAT IS METRO?"
-          title="A connected urban mobility network"
-          description="Metro Bus is not simply a collection of individual bus routes. The concept focuses on connecting high-frequency services, modern passenger infrastructure, digital information and transport interchanges."
+          icon={<BusFront className="w-4 h-4 text-cyan-400" />}
+          eyebrow="UNDERSTANDING THE CONCEPT"
+          title="What is a Metro Bus System?"
         />
 
-        {/* 5-Step Passenger Journey Flow Graphics (Pure Vector SVGs with Passenger Figure, No Emojis) */}
+        {/* Detailed Overview Paragraphs (Summarized, muted text-slate-400, justified alignment) */}
+        <div className="space-y-3 mb-10 text-slate-400 text-justify">
+          <p className="text-base md:text-lg leading-relaxed">
+            Metro Bus is a connected urban mobility system built around high-frequency routes, modern passenger facilities, real-time GPS tracking, and multimodal transport interchanges.
+          </p>
+          <p className="text-base md:text-lg leading-relaxed">
+            In Sri Lanka, the <strong className="text-cyan-400 font-semibold">Lanka Metro Transit (LMT)</strong> concept overhauls public transit across Western Province corridors (Galle Road, High-Level, Low-Level). By deploying low-floor AC buses, dedicated bus priority lanes, automated dispatching, and cashless "Tap & Go" ticketing, Metro Bus provides fast, reliable, and congestion-free transit linked to SLR train hubs.
+          </p>
+        </div>
+
+        {/* 6 Metro Feature Cards Grid */}
+        <div className="metro-features-grid">
+          {metroFeatures.map((feature) => (
+            <div className="metro-feature-card" key={feature.title}>
+              <div className="feature-image-thumb">
+                <img
+                  src={feature.image}
+                  alt={feature.title}
+                  className="feature-thumb-img"
+                  loading="lazy"
+                />
+                <div className="feature-thumb-overlay" />
+                <div className="feature-icon-badge">
+                  {feature.icon}
+                </div>
+              </div>
+
+              <div className="feature-card-content">
+                <h3>{feature.title}</h3>
+                <p>{feature.description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Visually Highlighted Statement Banner */}
+        <div className="metro-highlight-statement">
+          <p>
+            "Metro is not simply about operating more buses. It is about creating one connected mobility network."
+          </p>
+        </div>
+
+        {/* 5-Step Passenger Journey Flow Graphics */}
         <div className="passenger-journey-flow">
           {/* Step 1: Passenger Check Bus On Phone */}
           <div className="journey-step-card">
@@ -367,35 +494,9 @@ export const MetroAnalysis: React.FC = () => {
           </div>
         </div>
 
-        <div className="metro-definition-grid">
-
-          <div className="metro-definition-main">
-            <p>
-              In Sri Lanka, the Metro Bus concept represents a modernization
-              of urban public transport. It is designed around high-frequency
-              corridors connecting major urban areas through reliable services,
-              modern stops, passenger information systems and connected
-              transport infrastructure.
-            </p>
-
-            <p>
-              The system combines frequent bus services, live GPS tracking,
-              modern passenger facilities, digital ticketing, centralized
-              fleet management and multimodal interchange infrastructure.
-            </p>
-
-            <p>
-              The goal is therefore not simply to operate more buses. The goal
-              is to create a connected mobility network where passengers can
-              move between locations more easily and make better decisions
-              using real-time information.
-            </p>
-          </div>
-
-          <div className="w-full">
-            <MetroNetworkMap />
-          </div>
-
+        {/* Centered Metro Transit Map (Fit on Screen in One View) */}
+        <div className="w-full max-w-[1050px] mx-auto mt-8 flex justify-center">
+          <MetroNetworkMap />
         </div>
 
       </section>
@@ -450,29 +551,82 @@ export const MetroAnalysis: React.FC = () => {
         </div>
       </section>
 
-      {/* WHY METRO */}
+      {/* SECTION 02: WHY METRO */}
       <section className="metro-section">
         <SectionTitle
+          icon={<Lightbulb className="w-4 h-4 text-cyan-400" />}
           eyebrow="02 / WHY METRO?"
           title="What changes when public transport becomes connected?"
           description="The value of Metro is not only the number of buses. It comes from how services solve common problems faced by passengers and urban areas."
         />
 
-        {/* Introductory Paragraph: Why Traditional Public Transport vs Why Metro */}
+        {/* Introductory Paragraph: Why Traditional Public Transport vs Why Metro (Summarized) */}
         <div className="why-metro-intro-block">
-          <p className="why-metro-lead-text">
-            <strong>Why not traditional public transport? Why Metro?</strong> Traditional public transport in Sri Lanka has historically suffered from uncoordinated private bus competition, aggressive "bus racing" to capture passengers, unpredictable arrival times, cash fare disputes, and overcrowded, shelterless stops.
+          <div className="why-intro-header flex items-center gap-2 mb-3">
+            <BusFront className="w-5 h-5 text-cyan-400" />
+            <h3 className="text-sm font-extrabold uppercase tracking-widest text-cyan-400">
+              TRADITIONAL TRANSPORT VS. LANKA METRO TRANSIT
+            </h3>
+          </div>
+
+          <p className="why-metro-lead-text text-sm md:text-base leading-relaxed text-slate-300">
+            Traditional transport in Sri Lanka suffers from aggressive bus racing, unpredictable arrivals, cash disputes, and overcrowded stops. <strong className="text-cyan-400 font-semibold">Lanka Metro Transit (LMT)</strong> replaces this chaos with a structured, reliable network featuring automated schedules, low-floor buses, real-time GPS tracking, and cashless "Tap & Go" ticketing for a predictable commute.
           </p>
-          <p className="why-metro-body-text">
-            The <strong>Lanka Metro Transit (LMT)</strong> system transforms public transport from a chaotic daily struggle into a predictable, modern urban mobility service. By integrating fixed automated schedules, low-floor electric/diesel buses, real-time satellite GPS tracking, cashless "Tap & Go" ticketing, and multimodal rail interchanges, Metro eliminates the uncertainty of daily commuting—allowing passengers to plan their day with total confidence.
-          </p>
+
+          {/* Key Solution Features Square Dev Boxes Grid */}
+          <div className="lmt-square-features-grid">
+            <div className="lmt-square-card">
+              <div className="lmt-square-icon-box">
+                <Clock className="w-7 h-7 text-cyan-400" />
+              </div>
+              <h4>Fixed Schedules</h4>
+              <p>Fixed departure times eliminate long waits & bus racing.</p>
+            </div>
+
+            <div className="lmt-square-card">
+              <div className="lmt-square-icon-box">
+                <BusFront className="w-7 h-7 text-cyan-400" />
+              </div>
+              <h4>Low-Floor Fleet</h4>
+              <p>Climate-controlled electric & diesel accessible buses.</p>
+            </div>
+
+            <div className="lmt-square-card">
+              <div className="lmt-square-icon-box">
+                <Radio className="w-7 h-7 text-cyan-400" />
+              </div>
+              <h4>Satellite GPS</h4>
+              <p>Real-time location tracking on shelters & mobile app.</p>
+            </div>
+
+            <div className="lmt-square-card">
+              <div className="lmt-square-icon-box">
+                <CreditCard className="w-7 h-7 text-cyan-400" />
+              </div>
+              <h4>Tap & Go Pay</h4>
+              <p>Cashless transit card & phone QR boarding payment.</p>
+            </div>
+
+            <div className="lmt-square-card">
+              <div className="lmt-square-icon-box">
+                <GitBranch className="w-7 h-7 text-cyan-400" />
+              </div>
+              <h4>Bus-Rail Interchanges</h4>
+              <p>Connecting Metro Bus lines to Sri Lanka Railways (SLR) suburban train hubs.</p>
+            </div>
+          </div>
         </div>
 
         <div className="why-metro-grid">
           {whyMetro.map((item, index) => (
             <div className="why-card" key={item.title}>
-              <div className="why-number">
-                {String(index + 1).padStart(2, "0")}
+              <div className="why-card-top flex items-center justify-between mb-3">
+                <div className="why-number">
+                  {String(index + 1).padStart(2, "0")}
+                </div>
+                <div className="p-2 rounded-lg bg-cyan-950/40 border border-cyan-500/20">
+                  {item.icon}
+                </div>
               </div>
 
               <h3>{item.title}</h3>
@@ -488,9 +642,10 @@ export const MetroAnalysis: React.FC = () => {
         </div>
       </section>
 
-      {/* TARGET AUDIENCE */}
+      {/* SECTION 03: TARGET AUDIENCE */}
       <section className="metro-section audience-section">
         <SectionTitle
+          icon={<BusFront className="w-4 h-4 text-cyan-400" />}
           eyebrow="03 / WHO IS IT FOR?"
           title="Who benefits from a connected Metro network?"
           description="Metro is designed around the needs of people who depend on reliable movement between residential areas, employment centres, education centres and transport hubs."
@@ -499,45 +654,107 @@ export const MetroAnalysis: React.FC = () => {
         <div className="audience-grid">
           {audience.map((item, index) => (
             <div className="audience-card" key={item.title}>
-              <div className="audience-index">
-                0{index + 1}
+              <div className="audience-image-wrap">
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  className="audience-card-img"
+                  loading="lazy"
+                />
+                <div className="audience-img-overlay" />
+                <div className="audience-index-badge">
+                  0{index + 1}
+                </div>
               </div>
-              <h3>{item.title}</h3>
-              <p>{item.text}</p>
+
+              <div className="audience-card-body">
+                <div className="audience-card-header flex items-center justify-between mb-2">
+                  <h3>{item.title}</h3>
+                  <div className="p-1.5 rounded-lg bg-cyan-950/60 border border-cyan-500/30">
+                    {item.icon}
+                  </div>
+                </div>
+                <p>{item.text}</p>
+              </div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* TRAFFIC IMPACT (Section 04 — How the Metro Bus Cuts Down Traffic & 3D Bus Wireframe Architecture) */}
+      {/* SECTION 04: TRAFFIC IMPACT */}
       <section className="metro-section traffic-section">
         <SectionTitle
+          icon={<Zap className="w-4 h-4 text-cyan-400" />}
           eyebrow="04 / TRAFFIC IMPACT"
           title="How the Metro Bus Cuts Down Traffic"
           description="Colombo experiences severe gridlock, with over 250,000 private vehicles entering the city daily. The Metro Bus aims to break this congestion through a 'modal shift'—getting people out of their private cars and onto public transit:"
         />
 
-        <div className="traffic-main-grid">
+        {/* 3 Horizontal Dev Boxes Side-by-Side (Left to Right) with Generated Dark Mode Images */}
+        <div className="traffic-horizontal-grid">
 
-          <div className="traffic-flow-column">
-            <div className="traffic-step">
-              <div className="traffic-step-number">01</div>
+          {/* Dev Box 01 */}
+          <div className="traffic-step-card">
+            <div className="traffic-card-image-wrap">
+              <img
+                src="/traffic-space-optimization.png"
+                alt="Massive Space Optimization"
+                className="traffic-card-img"
+                loading="lazy"
+              />
+              <div className="traffic-img-overlay" />
+              <div className="traffic-step-badge">
+                <span>01</span>
+                <BusFront className="w-4 h-4 text-cyan-400" />
+              </div>
+            </div>
+            <div className="traffic-card-content">
               <h3>Massive Space Optimization</h3>
               <p>
                 One single FOTON Metro Bus carries up to 80+ passengers. This efficiently removes roughly 40 to 50 private cars or three-wheelers from tightly packed Colombo roads like the High-Level or Galle Road corridors.
               </p>
             </div>
+          </div>
 
-            <div className="traffic-step">
-              <div className="traffic-step-number">02</div>
+          {/* Dev Box 02 */}
+          <div className="traffic-step-card">
+            <div className="traffic-card-image-wrap">
+              <img
+                src="/traffic-priority-lanes.png"
+                alt="Bus Priority Lanes"
+                className="traffic-card-img"
+                loading="lazy"
+              />
+              <div className="traffic-img-overlay" />
+              <div className="traffic-step-badge">
+                <span>02</span>
+                <Route className="w-4 h-4 text-cyan-400" />
+              </div>
+            </div>
+            <div className="traffic-card-content">
               <h3>Bus Priority Lanes</h3>
               <p>
                 LMT works alongside designated bus priority corridors. Keeping the buses separated from regular traffic ensures they don't get stuck in standard gridlocks, allowing them to bypass car queues.
               </p>
             </div>
+          </div>
 
-            <div className="traffic-step">
-              <div className="traffic-step-number">03</div>
+          {/* Dev Box 03 */}
+          <div className="traffic-step-card">
+            <div className="traffic-card-image-wrap">
+              <img
+                src="/traffic-scheduled-dispatch.png"
+                alt="Eliminating Bus Racing"
+                className="traffic-card-img"
+                loading="lazy"
+              />
+              <div className="traffic-img-overlay" />
+              <div className="traffic-step-badge">
+                <span>03</span>
+                <Clock className="w-4 h-4 text-cyan-400" />
+              </div>
+            </div>
+            <div className="traffic-card-content">
               <h3>Eliminating "Bus Racing"</h3>
               <p>
                 Traditional private buses in Sri Lanka often idle at stops to wait for passengers and then race dangerously to beat competitors. LMT operates under a unified cluster company model with fixed, automated schedules, keeping traffic moving smoothly.
@@ -545,25 +762,14 @@ export const MetroAnalysis: React.FC = () => {
             </div>
           </div>
 
-          <div className="traffic-image-column">
-            <div className="traffic-image-card">
-              <img
-                src="/metro-traffic-cut.png"
-                alt="Sri Lanka Metro Bus Cutting Traffic Congestion"
-                loading="lazy"
-              />
-              <div className="traffic-image-caption">
-                <span>PRIORITY TRANSIT CORRIDOR</span>
-                <p>Rapid transit bypassing urban congestion along major Colombo arteries.</p>
-              </div>
-            </div>
-          </div>
-
         </div>
 
         {/* Side-by-Side 3D Bus Architecture & Operational Metrics Grid */}
         <div className="metro-metrics-container">
-          <div className="metrics-heading">OPERATIONAL METRICS & METRO BUS 3D ARCHITECTURE</div>
+          <div className="metrics-heading flex items-center gap-2">
+            <BarChart3 className="w-4 h-4 text-cyan-400" />
+            <span>OPERATIONAL METRICS & METRO BUS 3D ARCHITECTURE</span>
+          </div>
           
           <div className="architecture-metrics-layout">
 
@@ -673,9 +879,10 @@ export const MetroAnalysis: React.FC = () => {
         </div>
       </section>
 
-      {/* RIDE EXPERIENCE (Section 05 — How Metro Upgrades the Quality of Your Ride) */}
+      {/* SECTION 05: RIDE EXPERIENCE */}
       <section className="metro-section">
         <SectionTitle
+          icon={<Building2 className="w-4 h-4 text-cyan-400" />}
           eyebrow="05 / RIDE EXPERIENCE"
           title="How Metro Upgrades the Quality of Your Ride"
           description="The service fixes long-standing complaints about local public transport—such as overcrowding, loud noises, and unpredictable schedules—by introducing modern European-standard features:"
@@ -684,7 +891,12 @@ export const MetroAnalysis: React.FC = () => {
         <div className="ride-features-grid">
 
           <div className="ride-feature-card">
-            <div className="feature-number">01 / LMT-GO APP</div>
+            <div className="feature-card-header flex items-center justify-between mb-3">
+              <div className="feature-number">01 / LMT-GO APP</div>
+              <div className="p-2 rounded-lg bg-cyan-950/40 border border-cyan-500/20">
+                <Smartphone className="w-5 h-5 text-cyan-400" />
+              </div>
+            </div>
             <h3>Zero Waiting via LMT-GO App</h3>
             <p>
               Passengers no longer have to guess when the next bus will show up. Continuous satellite GPS tracking feeds live arrival times directly to smart shelters and commuters' mobile phones.
@@ -692,7 +904,12 @@ export const MetroAnalysis: React.FC = () => {
           </div>
 
           <div className="ride-feature-card">
-            <div className="feature-number">02 / ACCESSIBILITY</div>
+            <div className="feature-card-header flex items-center justify-between mb-3">
+              <div className="feature-number">02 / ACCESSIBILITY</div>
+              <div className="p-2 rounded-lg bg-cyan-950/40 border border-cyan-500/20">
+                <Building2 className="w-5 h-5 text-cyan-400" />
+              </div>
+            </div>
             <h3>True Inclusion & Accessibility</h3>
             <p>
               The entire fleet consists of low-floor vehicles equipped with extendable wheelchair ramps, multi-language audio/visual next-stop announcements, and broad doors. This makes travel easy for the elderly, pregnant women, and passengers with disabilities.
@@ -700,7 +917,12 @@ export const MetroAnalysis: React.FC = () => {
           </div>
 
           <div className="ride-feature-card">
-            <div className="feature-number">03 / CABIN COMFORT</div>
+            <div className="feature-card-header flex items-center justify-between mb-3">
+              <div className="feature-number">03 / CABIN COMFORT</div>
+              <div className="p-2 rounded-lg bg-cyan-950/40 border border-cyan-500/20">
+                <BusFront className="w-5 h-5 text-cyan-400" />
+              </div>
+            </div>
             <h3>Premium Cabin Comfort</h3>
             <p>
               Every bus features full climate-control air conditioning, ergonomic seating, built-in USB charging ports, and a quiet, spacious interior.
@@ -708,7 +930,12 @@ export const MetroAnalysis: React.FC = () => {
           </div>
 
           <div className="ride-feature-card">
-            <div className="feature-number">04 / FARE SYSTEM</div>
+            <div className="feature-card-header flex items-center justify-between mb-3">
+              <div className="feature-number">04 / FARE SYSTEM</div>
+              <div className="p-2 rounded-lg bg-cyan-950/40 border border-cyan-500/20">
+                <CreditCard className="w-5 h-5 text-cyan-400" />
+              </div>
+            </div>
             <h3>Cashless "Tap & Go" Fare System</h3>
             <p>
               By using the LMT Touch transit card or mobile QR scanning, conductors don't have to manually handle cash or change. This prevents fare disputes and significantly speeds up boarding times at busy stations.
@@ -716,7 +943,12 @@ export const MetroAnalysis: React.FC = () => {
           </div>
 
           <div className="ride-feature-card">
-            <div className="feature-number">05 / SAFETY & SOS</div>
+            <div className="feature-card-header flex items-center justify-between mb-3">
+              <div className="feature-number">05 / SAFETY & SOS</div>
+              <div className="p-2 rounded-lg bg-cyan-950/40 border border-cyan-500/20">
+                <ShieldCheck className="w-5 h-5 text-cyan-400" />
+              </div>
+            </div>
             <h3>Enforced Safety & Monitoring</h3>
             <p>
               The vehicles are equipped with 24/7 CCTV cameras and emergency SOS buttons. Drivers are professionally trained and monitored, eliminating aggressive driving behavior.
@@ -726,9 +958,10 @@ export const MetroAnalysis: React.FC = () => {
         </div>
       </section>
 
-      {/* CONNECTED STOPS (Section 06 — Network Connectivity Hubs & Visual Analytics) */}
+      {/* SECTION 06: CONNECTED STOPS */}
       <section className="metro-section">
         <SectionTitle
+          icon={<Network className="w-4 h-4 text-cyan-400" />}
           eyebrow="06 / NETWORK CONNECTIVITY"
           title="Where is the network most connected?"
           description="Stops become more important when multiple routes, expressways, and rail lines converge at the same location."
@@ -760,7 +993,10 @@ export const MetroAnalysis: React.FC = () => {
 
           {selectedStop && (
             <div className="connected-stop-detail">
-              <div className="detail-label">TRANSIT HUB ANALYSIS</div>
+              <div className="detail-label flex items-center gap-1.5">
+                <GitBranch className="w-3.5 h-3.5 text-cyan-400" />
+                <span>TRANSIT HUB ANALYSIS</span>
+              </div>
 
               <h3>{selectedStop.city_hub}</h3>
 
@@ -799,7 +1035,10 @@ export const MetroAnalysis: React.FC = () => {
           {/* Left Chart: SVG Donut/Pie Chart for Selected Hub Route Share */}
           <div className="connectivity-chart-card">
             <div className="chart-card-header">
-              <span className="chart-badge cyan">ROUTE CONNECTIVITY SHARE</span>
+              <span className="chart-badge cyan flex items-center gap-1">
+                <BarChart3 className="w-3 h-3 text-cyan-400" />
+                ROUTE CONNECTIVITY SHARE
+              </span>
               <h3>{selectedStop ? selectedStop.city_hub : "Selected Hub"} Network Share</h3>
             </div>
 
@@ -872,7 +1111,10 @@ export const MetroAnalysis: React.FC = () => {
           {/* Right Chart: Bar Chart comparing Routes Serving across Connected Hubs */}
           <div className="connectivity-chart-card">
             <div className="chart-card-header">
-              <span className="chart-badge">NETWORK HUB COMPARISON</span>
+              <span className="chart-badge flex items-center gap-1">
+                <BarChart3 className="w-3 h-3 text-cyan-400" />
+                NETWORK HUB COMPARISON
+              </span>
               <h3>Routes Serving by Major Transit Hub</h3>
             </div>
 
@@ -911,9 +1153,10 @@ export const MetroAnalysis: React.FC = () => {
 
       </section>
 
-      {/* COVERAGE & DISTRICT ANALYSIS (Section 07 — Executive Transport Summary) */}
+      {/* SECTION 07: COVERAGE & DISTRICT ANALYSIS */}
       <section className="metro-section">
         <SectionTitle
+          icon={<Map className="w-4 h-4 text-cyan-400" />}
           eyebrow="07 / COVERAGE & DISTRICT ANALYSIS"
           title="Colombo District Executive Transport Summary"
           description="A data-driven evaluation of network density, route boundaries, and regional transit dependence across the Colombo Metropolitan Region."
@@ -921,34 +1164,33 @@ export const MetroAnalysis: React.FC = () => {
 
         <div className="coverage-analysis-grid">
 
-          {/* Card 1: Infographic Pie Chart (Dark Mode & Enlarged Chart Size) */}
+          {/* Card 1: Infographic Pie Chart */}
           <div className="coverage-analyst-card pie-chart-infographic-card">
             <div className="pie-chart-header">
-              <div className="card-badge cyan">DISTRICT DISTRIBUTION</div>
+              <div className="card-badge cyan flex items-center gap-1">
+                <BarChart3 className="w-3 h-3 text-cyan-400" />
+                DISTRICT DISTRIBUTION
+              </div>
               <h3 className="pie-chart-title">
                 Sri Lanka Metro Bus Network: Stop Distribution by District
               </h3>
             </div>
 
             <div className="pie-chart-body">
-              {/* SVG Pie Chart Infographic - Enlarged 210px Size */}
+              {/* SVG Pie Chart Infographic */}
               <div className="pie-chart-visual">
                 <svg viewBox="0 0 200 200" className="w-[195px] h-[195px] md:w-[210px] md:h-[210px]">
-                  {/* Slice 1: Inside Colombo District (90.32% = 325.15 deg) */}
                   <path
                     d="M 100 100 L 100 18 A 82 82 0 1 1 51.2 33.5 Z"
                     fill="#00d2ff"
                     className="transition-all duration-300 hover:opacity-90 cursor-pointer filter drop-shadow-[0_0_10px_rgba(0,210,255,0.4)]"
                   />
-                  {/* Slice 2: Outside Colombo District (9.68% = 34.85 deg) */}
                   <path
                     d="M 100 100 L 51.2 33.5 A 82 82 0 0 1 100 18 Z"
                     fill="#475569"
                     className="transition-all duration-300 hover:opacity-90 cursor-pointer"
                   />
-                  {/* Inner Donut Hole (Dark Theme) */}
                   <circle cx="100" cy="100" r="44" fill="#0d1218" stroke="#252c35" strokeWidth="1" />
-                  {/* Center Summary Count */}
                   <text x="100" y="96" textAnchor="middle" fontSize="17" fontWeight="800" fill="#00d2ff">
                     62
                   </text>
@@ -982,7 +1224,10 @@ export const MetroAnalysis: React.FC = () => {
           {/* Card 2: Distance Comparison */}
           <div className="coverage-analyst-card">
             <div>
-              <div className="card-badge">DISTANCE COMPARISON</div>
+              <div className="card-badge flex items-center gap-1">
+                <Route className="w-3 h-3 text-cyan-400" />
+                DISTANCE COMPARISON
+              </div>
               <div className="distance-compare-grid">
                 <div className="compare-item">
                   <strong>23.9 km</strong>
@@ -1003,7 +1248,10 @@ export const MetroAnalysis: React.FC = () => {
           {/* Card 3: Top Infrastructure Routes */}
           <div className="coverage-analyst-card">
             <div>
-              <div className="card-badge">TOP INFRASTRUCTURE ROUTES</div>
+              <div className="card-badge flex items-center gap-1">
+                <BusFront className="w-3 h-3 text-cyan-400" />
+                TOP INFRASTRUCTURE ROUTES
+              </div>
               <div className="top-routes-list">
                 <div className="top-route-item">
                   <span className="route-code-pill">CM01</span>
@@ -1027,7 +1275,10 @@ export const MetroAnalysis: React.FC = () => {
           {/* Card 4: Key Executive Takeaway */}
           <div className="coverage-analyst-card takeaway-card">
             <div>
-              <div className="card-badge cyan">EXECUTIVE TAKEAWAY</div>
+              <div className="card-badge cyan flex items-center gap-1">
+                <Lightbulb className="w-3 h-3 text-cyan-400" />
+                EXECUTIVE TAKEAWAY
+              </div>
               <h3>Systemic Dependency</h3>
               <p className="takeaway-text">
                 The Lanka Metro Transit network relies overwhelmingly on Colombo District infrastructure, with over 90% of all passenger stops concentrated within its urban boundaries. While cross-border routes cover longer distances on average to connect outlying suburbs, internal Colombo corridors form the high-density operational core of the entire system.
@@ -1038,9 +1289,10 @@ export const MetroAnalysis: React.FC = () => {
         </div>
       </section>
 
-      {/* ROUTE ANALYSIS (Section 08 — Clean Route Specifications Grid) */}
+      {/* SECTION 08: ROUTE ANALYSIS */}
       <section className="metro-section">
         <SectionTitle
+          icon={<Route className="w-4 h-4 text-cyan-400" />}
           eyebrow="08 / ROUTE ANALYSIS"
           title="How individual corridors perform"
           description="Granular route-level specifications including operating schedules, peak headways, and fare stages."
@@ -1061,9 +1313,12 @@ export const MetroAnalysis: React.FC = () => {
             return (
               <div className="route-card enriched-card" key={route.id || route.route_code}>
 
-                <div className="route-card-top">
+                <div className="route-card-top flex items-center justify-between">
                   <span>{route.route_code}</span>
-                  <span className="headway-badge">PEAK: {spec.peak_headway}</span>
+                  <span className="headway-badge flex items-center gap-1">
+                    <Clock className="w-3 h-3 text-cyan-400 inline" />
+                    PEAK: {spec.peak_headway}
+                  </span>
                 </div>
 
                 <h3>{route.route_name}</h3>
@@ -1103,10 +1358,20 @@ export const MetroAnalysis: React.FC = () => {
 
                 {/* Collapsible Stop-by-Stop Breakdown */}
                 <button
-                  className="toggle-stops-btn"
+                  className="toggle-stops-btn flex items-center justify-center gap-1.5"
                   onClick={() => setExpandedRouteCode(isExpanded ? null : route.route_code)}
                 >
-                  {isExpanded ? "▲ Hide Stop Sequence" : "▼ View Full Stop Sequence"}
+                  {isExpanded ? (
+                    <>
+                      <ChevronUp className="w-4 h-4 text-cyan-400" />
+                      <span>Hide Stop Sequence</span>
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="w-4 h-4 text-cyan-400" />
+                      <span>View Full Stop Sequence</span>
+                    </>
+                  )}
                 </button>
 
                 {isExpanded && (
@@ -1129,9 +1394,10 @@ export const MetroAnalysis: React.FC = () => {
         </div>
       </section>
 
-      {/* DATA ANALYSIS (Section 09) */}
+      {/* SECTION 09: DATA ANALYSIS */}
       <section className="metro-section analysis-section">
         <SectionTitle
+          icon={<ChartNoAxesCombined className="w-4 h-4 text-cyan-400" />}
           eyebrow="09 / DATA ANALYSIS"
           title="What can the data tell us?"
           description="Once route, stop, schedule and interchange data are combined, the Metro network can be evaluated using measurable indicators."
@@ -1140,7 +1406,10 @@ export const MetroAnalysis: React.FC = () => {
         <div className="analysis-grid">
 
           <div className="analysis-card">
-            <span>01</span>
+            <div className="analysis-card-header flex items-center justify-between mb-3">
+              <span className="analysis-num">01</span>
+              <Route className="w-5 h-5 text-cyan-400" />
+            </div>
             <h3>Route Density</h3>
             <p>
               Identify areas where a high number of routes overlap and where
@@ -1149,7 +1418,10 @@ export const MetroAnalysis: React.FC = () => {
           </div>
 
           <div className="analysis-card">
-            <span>02</span>
+            <div className="analysis-card-header flex items-center justify-between mb-3">
+              <span className="analysis-num">02</span>
+              <MapPin className="w-5 h-5 text-cyan-400" />
+            </div>
             <h3>Stop Connectivity</h3>
             <p>
               Measure how many routes, destinations and connections are
@@ -1158,7 +1430,10 @@ export const MetroAnalysis: React.FC = () => {
           </div>
 
           <div className="analysis-card">
-            <span>03</span>
+            <div className="analysis-card-header flex items-center justify-between mb-3">
+              <span className="analysis-num">03</span>
+              <Map className="w-5 h-5 text-cyan-400" />
+            </div>
             <h3>Coverage Score</h3>
             <p>
               Compare areas using route count, stop count and destination
@@ -1167,7 +1442,10 @@ export const MetroAnalysis: React.FC = () => {
           </div>
 
           <div className="analysis-card">
-            <span>04</span>
+            <div className="analysis-card-header flex items-center justify-between mb-3">
+              <span className="analysis-num">04</span>
+              <Clock className="w-5 h-5 text-cyan-400" />
+            </div>
             <h3>Service Frequency</h3>
             <p>
               Analyse departure intervals to identify high-frequency and
@@ -1176,7 +1454,10 @@ export const MetroAnalysis: React.FC = () => {
           </div>
 
           <div className="analysis-card">
-            <span>05</span>
+            <div className="analysis-card-header flex items-center justify-between mb-3">
+              <span className="analysis-num">05</span>
+              <GitBranch className="w-5 h-5 text-cyan-400" />
+            </div>
             <h3>Transfer Potential</h3>
             <p>
               Identify locations where multiple transport modes or routes
@@ -1185,7 +1466,10 @@ export const MetroAnalysis: React.FC = () => {
           </div>
 
           <div className="analysis-card">
-            <span>06</span>
+            <div className="analysis-card-header flex items-center justify-between mb-3">
+              <span className="analysis-num">06</span>
+              <BarChart3 className="w-5 h-5 text-cyan-400" />
+            </div>
             <h3>Network Gaps</h3>
             <p>
               Identify areas with low route coverage, fewer stops or limited
@@ -1200,7 +1484,10 @@ export const MetroAnalysis: React.FC = () => {
       {/* FOOTER MESSAGE */}
       <section className="metro-conclusion">
         <div>
-          <span className="metro-eyebrow">LANKADATA HUB</span>
+          <span className="metro-eyebrow flex items-center justify-center gap-2 mb-3">
+            <BusFront className="w-4 h-4 text-cyan-400 inline" />
+            LANKADATA HUB
+          </span>
 
           <h2>
             From individual routes

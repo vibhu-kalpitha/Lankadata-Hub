@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { metroRoutes } from "../../data/metroRoutes";
 import { metroStations, type MetroStation } from "../../data/metroStations";
 import { RouteLayer } from "./RouteLayer";
@@ -11,6 +11,7 @@ export const MetroNetworkMap: React.FC = () => {
   const [hoveredRouteId, setHoveredRouteId] = useState<string | null>(null);
   const [hoveredStation, setHoveredStation] = useState<MetroStation | null>(null);
   const [mousePos, setMousePos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
 
   const routesList = Object.values(metroRoutes);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -18,28 +19,119 @@ export const MetroNetworkMap: React.FC = () => {
   const activeRouteId = hoveredRouteId || selectedRouteId;
   const activeRoute = activeRouteId ? metroRoutes[activeRouteId] : null;
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isFullscreen) {
+        setIsFullscreen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isFullscreen]);
+
+  useEffect(() => {
+    if (isFullscreen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isFullscreen]);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (rect) {
+      setMousePos({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+      });
+    }
+  };
+
   return (
     <div
       ref={containerRef}
-      className="metro-map-wrapper"
+      onMouseMove={handleMouseMove}
+      className={`metro-map-wrapper ${isFullscreen ? "fullscreen" : ""}`}
     >
-      {/* Subtitle Aligned to Right Side Above Map */}
-      <div className="text-xs text-cyan-400/90 italic font-medium mb-1.5 tracking-wide flex items-center justify-end gap-1.5">
-        <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-        <span>The unofficial Metro transit map.</span>
+      {/* Control Top Bar with Fullscreen Toggle */}
+      <div className="map-top-bar px-4 py-2 bg-[#060a12]/90 border-b border-slate-800/80 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_#00d2ff]" />
+          <span className="text-xs font-extrabold uppercase tracking-widest text-cyan-400">
+            Unofficial Metro Transit Map
+          </span>
+          <span className="hidden md:inline-block text-[11px] text-slate-400 italic ml-2">
+            • Interactive Network Map (100% Full Width)
+          </span>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setIsFullscreen(!isFullscreen)}
+          className="fullscreen-btn flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold text-cyan-400 bg-cyan-950/40 border border-cyan-500/40 hover:bg-cyan-500/25 hover:border-cyan-400 transition-all cursor-pointer shadow-sm"
+          title={isFullscreen ? "Exit Full Screen" : "View Full Screen"}
+        >
+          {isFullscreen ? (
+            <>
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              <span>Exit Full Screen</span>
+            </>
+          ) : (
+            <>
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+              </svg>
+              <span>Full Screen</span>
+            </>
+          )}
+        </button>
       </div>
 
-      {/* Dynamic Route Hover Details Banner */}
+      {/* Dynamic Route Hover/Selection Details Banner Positioned Near Mouse Cursor */}
       {activeRoute && (
-        <div className="route-hover-banner">
-          <div className="route-banner-header">
-            <span
-              className="route-banner-badge"
-              style={{ backgroundColor: activeRoute.color }}
-            >
-              {activeRoute.id}
-            </span>
-            <span className="route-banner-title">{activeRoute.name}</span>
+        <div
+          className="route-hover-banner"
+          style={{
+            position: "absolute",
+            left: Math.min(
+              Math.max(mousePos.x + 15, 16),
+              (containerRef.current?.clientWidth || 800) - 340
+            ),
+            top: Math.min(
+              Math.max(mousePos.y - 30, 48),
+              (containerRef.current?.clientHeight || 600) - 170
+            ),
+            zIndex: 50,
+          }}
+        >
+          <div className="route-banner-header flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span
+                className="route-banner-badge"
+                style={{ backgroundColor: activeRoute.color }}
+              >
+                {activeRoute.id}
+              </span>
+              <span className="route-banner-title">{activeRoute.name}</span>
+            </div>
+            {selectedRouteId === activeRoute.id && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedRouteId(null);
+                }}
+                className="text-slate-400 hover:text-white text-xs px-1.5 py-0.5 rounded bg-slate-800/60 hover:bg-slate-700 transition-colors cursor-pointer"
+                title="Close route detail"
+              >
+                ✕
+              </button>
+            )}
           </div>
 
           <div className="route-banner-meta">
@@ -103,7 +195,7 @@ export const MetroNetworkMap: React.FC = () => {
           viewBox="-160 210 2368 1760"
           width="100%"
           height="100%"
-          preserveAspectRatio="xMidYMin meet"
+          preserveAspectRatio="xMidYMid meet"
           className="metro-svg-canvas"
         >
           {/* Secondary Water / River Geographic Lines */}
