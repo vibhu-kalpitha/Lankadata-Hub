@@ -46,6 +46,7 @@ interface AudienceItem {
   icon: React.ReactNode;
   title: string;
   text: string;
+  image?: string;
 }
 
 const whyMetro: WhyMetroItem[] = [
